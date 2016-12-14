@@ -34,7 +34,7 @@ module.exports = {
             anonymous: 'always',
             named: 'never'
         }],
-        strict: ['error', 'never'],
+        strict: 'off',
         'valid-jsdoc': ['error', {
             requireParamDescription: false,
             requireReturnDescription: false,
