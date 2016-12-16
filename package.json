@@ -1,32 +1,32 @@
 {
-    "name": "eslint-config-expensify",
-    "version": "1.0.0",
-    "description": "Expensify's ESLint configuration following our style guide",
-    "main": "index.js",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Expensify/eslint-config-expensify.git"
-    },
-    "dependencies": {
-        "eslint": "3.12.0",
-        "eslint-config-airbnb": "13.0.0",
-        "eslint-config-airbnb-base": "11.0.0",
-        "eslint-plugin-import": "2.2.0",
-        "eslint-plugin-jsx-a11y": "2.2.3",
-        "eslint-plugin-react": "6.6.0"
-    },
-    "keywords": [
-        "eslint",
-        "eslintconfig",
-        "config",
-        "javascript",
-        "styleguide",
-        "expensify"
-    ],
-    "author": "Florian Weber <florian@expensify.com>",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/Expensify/eslint-config-expensify/issues"
-    },
-    "homepage": "https://github.com/Expensify/eslint-config-expensify#readme"
+  "name": "eslint-config-expensify",
+  "version": "1.0.1",
+  "description": "Expensify's ESLint configuration following our style guide",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Expensify/eslint-config-expensify.git"
+  },
+  "dependencies": {
+    "eslint": "3.12.0",
+    "eslint-config-airbnb": "13.0.0",
+    "eslint-config-airbnb-base": "11.0.0",
+    "eslint-plugin-import": "2.2.0",
+    "eslint-plugin-jsx-a11y": "2.2.3",
+    "eslint-plugin-react": "6.6.0"
+  },
+  "keywords": [
+    "eslint",
+    "eslintconfig",
+    "config",
+    "javascript",
+    "styleguide",
+    "expensify"
+  ],
+  "author": "Florian Weber <florian@expensify.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Expensify/eslint-config-expensify/issues"
+  },
+  "homepage": "https://github.com/Expensify/eslint-config-expensify#readme"
 }
