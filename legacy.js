@@ -10,6 +10,6 @@ module.exports = {
     rules: {
         'no-param-reassign': 'warn',
         'no-underscore-dangle': 'warn',
-        'no-unused-var': 'warn'
+        'no-unused-vars': 'warn'
     }
 };
