@@ -11,9 +11,13 @@ module.exports = {
         jquery: true,
         node: true
     },
-    ecmaFeatures: {
-        generators: true,
-        objectLiteralDuplicateProperties: true,
-        experimentalObjectRestSpread: true
+    parserOptions: {
+        ecmaVersion: 2017,
+        sourceType: 'module',
+        ecmaFeatures: {
+            generators: true,
+            objectLiteralDuplicateProperties: true,
+            experimentalObjectRestSpread: true
+        }
     }
 };

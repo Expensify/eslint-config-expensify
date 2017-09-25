@@ -12,6 +12,9 @@ module.exports = {
             allowArrowFunctions: false,
             allowBind: false
         }],
+        'react/jsx-no-undef': ['error', {
+            allowGlobals: true
+        }],
         'react/prefer-es6-class': 'warn',
         'react/prefer-stateless-function': 'warn',
         'react/prop-types': 'warn',
