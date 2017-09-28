@@ -7,11 +7,6 @@ module.exports = {
         // Enforce indentation of 4 spaces
         'react/jsx-indent-props': ['error', 4],
         'react/jsx-indent': ['error', 4],
-        'react/jsx-no-bind': ['error', {
-            ignoreRefs: true,
-            allowArrowFunctions: false,
-            allowBind: false
-        }],
         'react/jsx-no-undef': ['error', {
             allowGlobals: true
         }],
