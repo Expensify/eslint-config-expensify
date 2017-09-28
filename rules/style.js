@@ -1,6 +1,7 @@
 module.exports = {
     rules: {
         camelcase: 'off',
+        'class-methods-use-this': 'off',
         'comma-dangle': 'off',
         'consistent-return': 'off',
         'consistent-this': [1, 'self'],
