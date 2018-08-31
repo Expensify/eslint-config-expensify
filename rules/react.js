@@ -18,8 +18,6 @@ module.exports = {
         // This will only be a warning, to promote us to write better propTypes
         'react/forbid-prop-types': 'warn',
         // This is also a warning as its a best practice to not use strings, but its not being deprecated either
-        'react/no-string-refs': 'warn',
-        // Turn this off entirely because we like to click on things like <h3>s
-        'jsx-a11y/no-static-element-interactions': 'off'
+        'react/no-string-refs': 'warn'
     }
 };
