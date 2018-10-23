@@ -20,6 +20,8 @@ module.exports = {
         // This is also a warning as its a best practice to not use strings, but its not being deprecated either
         'react/no-string-refs': 'warn',
         // Turn this off entirely because we like to click on things like <h3>s
-        'jsx-a11y/no-static-element-interactions': 'off'
+        'jsx-a11y/no-static-element-interactions': 'off',
+        // Allow us to use positive tabIndex property values
+        'jsx-a11y/tabindex-no-positive': 'off'
     }
 };
