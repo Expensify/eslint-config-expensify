@@ -4,6 +4,14 @@
 
 This package provides Expensify's .eslintrc as an extensible shared config. Most of our rules are based on [Airbnb's style guide](https://github.com/airbnb/javascript).
 
+## How to Develop
+
+1. Make a change
+2. Bump the version in package.json
+3. Once PR is merged, create a PR in Web-Expensify and Web-Secure to update the version
+
+**Note** as of now we have no way of testing these PRs without a separate Web or Web Secure PR
+
 ## Usage
 
 We export two ESLint configurations for your usage.
