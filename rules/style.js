@@ -41,6 +41,7 @@ module.exports = {
             requireReturnDescription: false,
             requireReturn: false
         }],
+        'vars-on-top': 'off',
         // This enforces wrapping always the function expression.
         'wrap-iife': ['error', 'inside']
     }
