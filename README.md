@@ -7,8 +7,17 @@ This package provides Expensify's .eslintrc as an extensible shared config. Most
 ## How to Develop
 
 1. Make a change
-2. Bump the version in package.json
-3. Once PR is merged you'll have to run `npm update eslint-config-expensify` from Web-Expensify and Web-Secure to update the version
+2. Bump the version in package.json and submit your PR
+
+### After PR is merged
+You need to publish the newest version of this to NPM so that we can update it in the other repos
+1. From the command line, in the directory for this repo:
+1. Run `npm login`
+1. Enter username: 'expensify'
+1. Enter password: this is in 1Password for npmjs.com
+1. Enter the email: help@expensify.com
+1. Run `npm publish`
+1. Go into the Web-Expensify and Web-Secure repos and run `npm update eslint-config-expensify --no-save`. This should update the `package_json.lock` file and you can submit a PR with those changes.
 
 **Note** as of now we have no way of testing these PRs without a separate Web or Web Secure PR
 
