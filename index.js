@@ -12,12 +12,11 @@ module.exports = {
         node: true
     },
     parserOptions: {
-        ecmaVersion: 2017,
+        ecmaVersion: 2018,
         sourceType: 'module',
         ecmaFeatures: {
             generators: true,
-            objectLiteralDuplicateProperties: true,
-            experimentalObjectRestSpread: true
+            objectLiteralDuplicateProperties: true
         }
     }
 };
