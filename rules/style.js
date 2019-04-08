@@ -10,8 +10,43 @@ module.exports = {
         'import/no-dynamic-require': 'off',
         'import/no-extraneous-dependencies': 'off',
         'import/no-unresolved': 'off',
-        // Enforce indentation of 4 spaces
-        indent: ['error', 4],
+
+        // Enforce indentation of 4 spaces; the third option parameter was copied from Airbnb:
+        // https://github.com/airbnb/javascript/blob/60b96d322277c4c71a21a05caba8eb3320e0e3fa/packages/eslint-config-airbnb-base/rules/style.js#L120-L145
+        indent: ['error', 4, {
+            SwitchCase: 1,
+            VariableDeclarator: 1,
+            outerIIFEBody: 1,
+            FunctionDeclaration: {
+                parameters: 1,
+                body: 1
+            },
+            FunctionExpression: {
+                parameters: 1,
+                body: 1
+            },
+            CallExpression: {
+                arguments: 1
+            },
+            ArrayExpression: 1,
+            ObjectExpression: 1,
+            ImportDeclaration: 1,
+            flatTernaryExpressions: false,
+
+            // list derived from https://github.com/benjamn/ast-types/blob/HEAD/def/jsx.js
+            ignoredNodes: ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
+            ignoreComments: false
+        }],
+
+        // Airbnb didn't want this rule to be enabled even though it complies with their styleguide - so we're adding it
+        // https://github.com/airbnb/javascript/pull/1994
+        'lines-around-comment': ['error', {
+            beforeLineComment: true,
+            allowBlockStart: true,
+            allowObjectStart: true,
+            allowArrayStart: true,
+            allowClassStart: true,
+        }],
         'max-len': ['warn', {
             code: 120
         }],
@@ -30,6 +65,7 @@ module.exports = {
         'no-plusplus': 'off',
         'no-return-assign': 'off',
         'object-curly-spacing': ['error', 'never'],
+
         // Require space before function opening parenthesis
         'space-before-function-paren': ['error', {
             anonymous: 'always',
@@ -42,6 +78,7 @@ module.exports = {
             requireReturn: false
         }],
         'vars-on-top': 'off',
+
         // This enforces wrapping always the function expression.
         'wrap-iife': ['error', 'inside']
     }
