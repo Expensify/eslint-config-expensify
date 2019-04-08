@@ -12,6 +12,15 @@ module.exports = {
         'import/no-unresolved': 'off',
         // Enforce indentation of 4 spaces
         indent: ['error', 4],
+        // Airbnb didn't want this rule to be enabled even though it complies with their styleguide - so we're adding it
+        // https://github.com/airbnb/javascript/pull/1994
+        'lines-around-comment': ['error', {
+            beforeLineComment: true,
+            allowBlockStart: true,
+            allowObjectStart: true,
+            allowArrayStart: true,
+            allowClassStart: true,
+        }],
         'max-len': ['warn', {
             code: 120
         }],
