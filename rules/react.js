@@ -23,6 +23,10 @@ module.exports = {
         'react/forbid-prop-types': 'warn',
 
         // This is also a warning as its a best practice to not use strings, but its not being deprecated either
-        'react/no-string-refs': 'warn'
+        'react/no-string-refs': 'warn',
+
+        // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
+        // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
+        'react/destructuring-assignment': 'off'
     }
 };
