@@ -11,6 +11,7 @@ module.exports = {
         'import/no-extraneous-dependencies': 'off',
         'import/no-unresolved': 'off',
         'jsx-a11y/click-events-have-key-events': 'off',
+        'jsx-a11y/label-has-for': 'off',
 
         // Enforce indentation of 4 spaces; the third option parameter was copied from Airbnb:
         // https://github.com/airbnb/javascript/blob/60b96d322277c4c71a21a05caba8eb3320e0e3fa/packages/eslint-config-airbnb-base/rules/style.js#L120-L145
