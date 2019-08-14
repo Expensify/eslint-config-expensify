@@ -13,6 +13,12 @@ module.exports = {
         'jsx-a11y/click-events-have-key-events': 'off',
         'jsx-a11y/label-has-for': 'off',
 
+        // By default, this rules makes us use both "for" attributes and nest inputs inside of
+        // labels. We would rather just do either since browsers don't have a preference.
+        'jsx-a11y/label-has-associated-control': ['error', {
+            assert: 'either',
+        }],
+
         // Enforce indentation of 4 spaces; the third option parameter was copied from Airbnb:
         // https://github.com/airbnb/javascript/blob/60b96d322277c4c71a21a05caba8eb3320e0e3fa/packages/eslint-config-airbnb-base/rules/style.js#L120-L145
         indent: ['error', 4, {
