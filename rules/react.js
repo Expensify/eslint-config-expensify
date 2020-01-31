@@ -1,5 +1,4 @@
 module.exports = {
-    plugins: ['react'],
     rules: {
         // Do not prevent multiple component definition per file
         'react/no-multi-comp': 'off',
@@ -29,7 +28,7 @@ module.exports = {
         // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
         // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
         'react/destructuring-assignment': 'off',
-        
+
         // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
         // We need to prevent more usages of these methods and their aliases from being added
         'react/no-unsafe': ['error', {
