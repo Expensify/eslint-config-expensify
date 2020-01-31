@@ -1,4 +1,5 @@
 module.exports = {
+    plugins: ['react'],
     rules: {
         // Do not prevent multiple component definition per file
         'react/no-multi-comp': 'off',
