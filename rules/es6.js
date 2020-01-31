@@ -1,4 +1,5 @@
 module.exports = {
+    plugins: ['jsx-a11y'],
     rules: {
         'prefer-template': 'error',
 
