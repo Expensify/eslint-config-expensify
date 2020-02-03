@@ -27,6 +27,15 @@ module.exports = {
 
         // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
         // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
-        'react/destructuring-assignment': 'off'
+        'react/destructuring-assignment': 'off',
+
+        // This rule is broken for React components created using `window.CreateClass`, so we disable it temporarily
+        'react/no-this-in-sfc': 'off',
+
+        // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
+        // We need to prevent more usages of these methods and their aliases from being added
+        'react/no-unsafe': ['error', {
+            checkAliases: true
+        }]
     }
 };
