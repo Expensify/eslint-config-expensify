@@ -29,6 +29,9 @@ module.exports = {
         // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
         'react/destructuring-assignment': 'off',
 
+        // We want to force the use of stateless functions when we can
+        'react/prefer-stateless-function': 'error',
+
         // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
         // We need to prevent more usages of these methods and their aliases from being added
         'react/no-unsafe': ['error', {
