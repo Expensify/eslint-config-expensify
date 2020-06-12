@@ -5,6 +5,7 @@ module.exports = {
         'comma-dangle': 'off',
         'consistent-return': 'off',
         'consistent-this': [1, 'self'],
+        curly: ['error', 'all'],
         'no-console': ['error', { allow: ['debug', 'error'] }],
         'func-names': 'off',
         'global-require': 'off',
