@@ -15,14 +15,8 @@ module.exports = {
         'react/prefer-es6-class': 'error',
         'react/prefer-stateless-function': 'error',
         'react/prop-types': 'error',
-
-        // findDOMNode() will be an error, use refs instead
-        'react/no-find-dom-node': 'warn',
-
-        // This will only be a warning, to promote us to write better propTypes
+        'react/no-find-dom-node': 'error',
         'react/forbid-prop-types': 'error',
-
-        // This is also a warning as its a best practice to not use strings, but its not being deprecated either
         'react/no-string-refs': 'error',
 
         // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
