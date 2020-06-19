@@ -12,25 +12,22 @@ module.exports = {
         'react/jsx-no-undef': ['error', {
             allowGlobals: true
         }],
-        'react/prefer-es6-class': 'warn',
-        'react/prefer-stateless-function': 'warn',
-        'react/prop-types': 'warn',
+        'react/prefer-es6-class': 'error',
+        'react/prefer-stateless-function': 'error',
+        'react/prop-types': 'error',
 
         // findDOMNode() will be an error, use refs instead
         'react/no-find-dom-node': 'warn',
 
         // This will only be a warning, to promote us to write better propTypes
-        'react/forbid-prop-types': 'warn',
+        'react/forbid-prop-types': 'error',
 
         // This is also a warning as its a best practice to not use strings, but its not being deprecated either
-        'react/no-string-refs': 'warn',
+        'react/no-string-refs': 'error',
 
         // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
         // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
-        'react/destructuring-assignment': 'off',
-
-        // We want to force the use of stateless functions when we can
-        'react/prefer-stateless-function': 'error',
+        'react/destructuring-assignment': 'warn',
 
         // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
         // We need to prevent more usages of these methods and their aliases from being added
