@@ -68,6 +68,7 @@ module.exports = {
         }],
         'no-plusplus': 'off',
         'no-return-assign': 'off',
+        'no-use-before-define': 'warn',
         'object-curly-spacing': ['error', 'never'],
 
         // Require space before function opening parenthesis
