@@ -1,4 +1,5 @@
 module.exports = {
+    plugins: ['@lwc/eslint-plugin-lwc'],
     extends: [
         'airbnb',
         require.resolve('./rules/style'),
@@ -11,6 +12,7 @@ module.exports = {
         jquery: true,
         node: true
     },
+    parser: 'babel-eslint',
     parserOptions: {
         ecmaVersion: 2018,
         sourceType: 'module',
