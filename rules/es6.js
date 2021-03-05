@@ -18,6 +18,6 @@ module.exports = {
         }],
 
         // Do not allow the use of async/await
-        'lwc/no-async-await': 'error',
+        '@lwc/lwc/no-async-await': 'error',
     }
 };
