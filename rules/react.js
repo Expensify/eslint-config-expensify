@@ -19,9 +19,9 @@ module.exports = {
         'react/forbid-prop-types': 'error',
         'react/no-string-refs': 'error',
 
-        // Rather then blindly enforcing destructuring assignments, we'll trust the author's best judgement on when
-        // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
-        'react/destructuring-assignment': 'warn',
+        // Do not warn or error for destructuring
+        // See: https://github.com/Expensify/Style-Guide/blob/master/javascript.md#destructuring
+        'react/destructuring-assignment': 'off',
 
         // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
         // We need to prevent more usages of these methods and their aliases from being added
