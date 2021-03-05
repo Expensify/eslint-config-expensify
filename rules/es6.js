@@ -16,5 +16,8 @@ module.exports = {
         'arrow-parens': ['error', 'as-needed', {
             requireForBlockBody: true
         }],
+
+        // Do not allow the use of async/await
+        'lwc/no-async-await': 'error',
     }
 };
