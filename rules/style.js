@@ -52,7 +52,7 @@ module.exports = {
             allowClassStart: true,
         }],
         'max-len': ['warn', {
-            code: 120
+            code: 190
         }],
         'new-cap': 'off',
         'no-alert': 'off',
