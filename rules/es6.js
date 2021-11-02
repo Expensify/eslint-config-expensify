@@ -14,10 +14,14 @@ module.exports = {
 
         // Only require parens around arrow function arguments when there is a block body
         'arrow-parens': ['error', 'as-needed', {
-            requireForBlockBody: true
+            requireForBlockBody: true,
         }],
 
         // Do not allow the use of async/await
         '@lwc/lwc/no-async-await': 'error',
-    }
+
+        // Do not use these features yet
+        'es/no-nullish-coalescing-operators': 'error',
+        'es/no-optional-chaining': 'error',
+    },
 };

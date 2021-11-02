@@ -2,11 +2,11 @@ module.exports = {
     rules: {
         camelcase: 'off',
         'class-methods-use-this': 'off',
-        'comma-dangle': 'off',
+        'comma-dangle': ['error', 'always-multiline'],
         'consistent-return': 'off',
         'consistent-this': [1, 'self'],
         curly: ['error', 'all'],
-        'no-console': ['error', { allow: ['debug', 'error'] }],
+        'no-console': ['error', {allow: ['debug', 'error']}],
         'func-names': 'off',
         'global-require': 'off',
         'import/no-dynamic-require': 'off',
@@ -23,14 +23,14 @@ module.exports = {
             outerIIFEBody: 1,
             FunctionDeclaration: {
                 parameters: 1,
-                body: 1
+                body: 1,
             },
             FunctionExpression: {
                 parameters: 1,
-                body: 1
+                body: 1,
             },
             CallExpression: {
-                arguments: 1
+                arguments: 1,
             },
             ArrayExpression: 1,
             ObjectExpression: 1,
@@ -39,7 +39,7 @@ module.exports = {
 
             // list derived from https://github.com/benjamn/ast-types/blob/HEAD/def/jsx.js
             ignoredNodes: ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
-            ignoreComments: false
+            ignoreComments: false,
         }],
 
         // Airbnb didn't want this rule to be enabled even though it complies with their styleguide - so we're adding it
@@ -52,7 +52,7 @@ module.exports = {
             allowClassStart: true,
         }],
         'max-len': ['warn', {
-            code: 190
+            code: 190,
         }],
         'new-cap': 'off',
         'no-alert': 'off',
@@ -62,9 +62,9 @@ module.exports = {
                 ['&', '|', '^', '~', '<<', '>>', '>>>'],
                 ['==', '!=', '===', '!==', '>', '>=', '<', '<='],
                 ['&&', '||'],
-                ['in', 'instanceof']
+                ['in', 'instanceof'],
             ],
-            allowSamePrecedence: false
+            allowSamePrecedence: false,
         }],
         'no-plusplus': 'off',
         'no-return-assign': 'off',
@@ -73,17 +73,17 @@ module.exports = {
         // Require space before function opening parenthesis
         'space-before-function-paren': ['error', {
             anonymous: 'always',
-            named: 'never'
+            named: 'never',
         }],
         strict: ['error', 'never'],
         'valid-jsdoc': ['error', {
             requireParamDescription: false,
             requireReturnDescription: false,
-            requireReturn: false
+            requireReturn: false,
         }],
         'vars-on-top': 'off',
 
         // This enforces wrapping always the function expression.
-        'wrap-iife': ['error', 'inside']
-    }
+        'wrap-iife': ['error', 'inside'],
+    },
 };
