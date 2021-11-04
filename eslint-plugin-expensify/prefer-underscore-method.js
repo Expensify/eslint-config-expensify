@@ -25,7 +25,6 @@ function isStaticNativeMethodCall(node) {
 }
 
 /**
- *
  * @param {Object} node
  * @returns {Boolean}
  */

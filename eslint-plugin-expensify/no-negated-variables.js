@@ -3,7 +3,6 @@ const lodashGet = require('lodash/get');
 const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
 
 /**
- *
  * @param {String} string
  * @returns {Boolean}
  */
