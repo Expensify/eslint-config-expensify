@@ -1,16 +1,22 @@
+const path = require('path');
+const rulesDirPlugin = require('eslint-plugin-rulesdir');
+
+rulesDirPlugin.RULES_DIR = path.resolve(__dirname, 'eslint-plugin-expensify');
+
 module.exports = {
-    plugins: ['@lwc/eslint-plugin-lwc'],
+    plugins: ['@lwc/eslint-plugin-lwc', 'eslint-plugin-es', 'rulesdir'],
     extends: [
         'airbnb',
         require.resolve('./rules/style'),
         require.resolve('./rules/es6'),
-        require.resolve('./rules/react')
+        require.resolve('./rules/react'),
+        require.resolve('./rules/expensify'),
     ],
     env: {
         browser: true,
         es6: true,
         jquery: true,
-        node: true
+        node: true,
     },
     parser: 'babel-eslint',
     parserOptions: {
@@ -18,7 +24,7 @@ module.exports = {
         sourceType: 'module',
         ecmaFeatures: {
             generators: true,
-            objectLiteralDuplicateProperties: true
-        }
-    }
+            objectLiteralDuplicateProperties: true,
+        },
+    },
 };

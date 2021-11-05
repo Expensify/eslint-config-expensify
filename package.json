@@ -1,11 +1,15 @@
 {
   "name": "eslint-config-expensify",
-  "version": "2.0.16",
+  "version": "2.0.17",
   "description": "Expensify's ESLint configuration following our style guide",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Expensify/eslint-config-expensify.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@lwc/eslint-plugin-lwc": "^0.11.0",
@@ -13,9 +17,13 @@
     "eslint": "6.8.0",
     "eslint-config-airbnb": "18.0.1",
     "eslint-config-airbnb-base": "14.0.0",
-    "eslint-plugin-import": "2.20.0",
+    "eslint-plugin-es": "^4.1.0",
+    "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-jsx-a11y": "6.2.3",
-    "eslint-plugin-react": "7.18.0"
+    "eslint-plugin-react": "7.18.0",
+    "eslint-plugin-rulesdir": "^0.2.0",
+    "lodash": "^4.17.21",
+    "underscore": "^1.13.1"
   },
   "keywords": [
     "eslint",
@@ -30,5 +38,8 @@
   "bugs": {
     "url": "https://github.com/Expensify/eslint-config-expensify/issues"
   },
-  "homepage": "https://github.com/Expensify/eslint-config-expensify#readme"
+  "homepage": "https://github.com/Expensify/eslint-config-expensify#readme",
+  "devDependencies": {
+    "jest": "^27.3.1"
+  }
 }
