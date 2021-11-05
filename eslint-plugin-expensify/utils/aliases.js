@@ -32,10 +32,19 @@ const CHAINABLE = [
     'toPlainObject', 'transform', 'union', 'uniq', 'unshift', 'unzip', 'unzipWith', 'values', 'valuesIn', 'where', 'without', 'wrap', 'xor', 'zip', 'zipObject', 'zipWith'];
 
 const ALL_ALIASES = _.assign({}, ALIASES, WRAPPER_ALIASES);
+
+/**
+ * @param {String} method
+ * @returns {Array}
+ */
 function expandAlias(method) {
     return method in ALL_ALIASES ? ALL_ALIASES[method].concat(method) : [method];
 }
 
+/**
+ * @param {Array} methods
+ * @returns {Array}
+ */
 function expandAliases(methods) {
     return _(methods).map(expandAlias).flatten().value();
 }
