@@ -9,5 +9,6 @@ module.exports = {
         'rulesdir/no-inline-named-export': 'error',
         'rulesdir/prefer-underscore-method': 'error',
         'rulesdir/no-useless-compose': 'error',
+        'rulesdir/prefer-import-module-contents': 'error',
     },
 };

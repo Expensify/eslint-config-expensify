@@ -18,6 +18,40 @@ function isEverySpecifierImport(specifiers = []) {
     return _.every(specifiers, specifier => specifier.type === 'ImportSpecifier');
 }
 
+/**
+ * Make an exception for propTypes since they are sometimes bundled with modules.
+ *
+ * @param {Array} specifiers
+ * @returns {Boolean}
+ */
+function hasPropTypesSpecifier(specifiers) {
+    return _.some(specifiers, specifier => /proptypes/.test(lodashGet(specifier, 'imported.name', '').toLowerCase()));
+}
+
+/**
+ * @param {String} source
+ * @returns {Boolean}
+ */
+function isHigherOrderComponent(source) {
+    return /with/.test(source.toLowerCase());
+}
+
+/**
+ * @param {String} source
+ * @returns {Boolean}
+ */
+function isContextComponent(source) {
+    return /context|provider/.test(source.toLowerCase());
+}
+
+/**
+ * @param {String} source
+ * @returns {Boolean}
+ */
+function isJSONFile(source) {
+    return /\.json/.test(source.toLowerCase());
+}
+
 module.exports = {
     create: context => ({
         ImportDeclaration(node) {
@@ -26,11 +60,19 @@ module.exports = {
                 return;
             }
 
-            if (isFromNodeModules(sourceValue)) {
+            if (isFromNodeModules(sourceValue)
+                || isHigherOrderComponent(sourceValue)
+                || isContextComponent(sourceValue)
+                || isJSONFile(sourceValue)
+            ) {
                 return;
             }
 
             if (!node.specifiers || !node.specifiers.length) {
+                return;
+            }
+
+            if (hasPropTypesSpecifier(node.specifiers)) {
                 return;
             }
 
