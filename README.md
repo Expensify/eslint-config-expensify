@@ -17,9 +17,9 @@ You need to publish the newest version of this to NPM so that we can update it i
 1. Enter password: this is in 1Password for npmjs.com
 1. Enter the email: help@expensify.com
 1. Run `npm publish`
-1. Go into the Web-Expensify and Web-Secure repos and run `npm install eslint-config-expensify@latest`. This should update the `package.json` and `package-lock.json` file and you can submit a PR with those changes.
+1. Go into the App, Web-Expensify and Web-Secure repos and run `npm install eslint-config-expensify@latest`. This should update the `package.json` and `package-lock.json` file and you can submit a PR with those changes.
 
-**Note** as of now we have no way of testing these PRs without a separate Web or Web Secure PR
+**Note** as of now we have no way of testing these PRs without a separate App, Web or Web Secure PR
 
 ## Usage
 
