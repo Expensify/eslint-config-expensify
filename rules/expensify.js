@@ -13,8 +13,8 @@ module.exports = {
         'no-restricted-imports': ['error', {
             'paths': [{
                 'name': 'react-native',
-                'importNames': ['Button', 'Text'],
-                'message': 'Please use ExpensifyText or ExpensifyButton from src/components/ instead.'
+                'importNames': ['Button', 'Text', 'TextInput'],
+                'message': 'Please use an Expensify component from src/components/ instead.'
             }]
         }]
     },
