@@ -71,13 +71,31 @@ ruleTester.run('no-negated-variables', rule, {
             }],
         },
         {
+            code: 'const canNotBeValid = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const willNotBeValid = true',
+            errors: [{
+                message,
+            }],
+        },
+        {
             code: 'const isNotNotification = false;',
             errors: [{
                 message,
             }],
         },
         {
-            code: 'const notificationNoteIsNotVisible = false',
+            code: 'const notificationNoteIsNotVisible = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const notificationsThatAreNotOfNote = [];',
             errors: [{
                 message,
             }],

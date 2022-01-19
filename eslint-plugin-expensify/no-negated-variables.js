@@ -2,6 +2,15 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
 
+const BANNED_SUBSTRINGS = [
+    'not',
+    'isnot',
+    'cannot',
+    'shouldnot',
+    'cant',
+    'dont',
+];
+
 const NOTABLE_EXCEPTIONS = [
     'notification',
     'notch',
@@ -11,13 +20,17 @@ const NOTABLE_EXCEPTIONS = [
     'notice',
 ];
 
+// Declared up front to suppress eslint no-use-before-define
+// Mutually recursive functions are a valid exception to this rule. See https://github.com/eslint/eslint/issues/12473
+let isNegatedVariableName;
+
 /**
  * @param {String} string
  * @returns {Boolean}
  */
-function isFalsePositive(string) {
+const isFalsePositive = (string) => {
     const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
-    const regex = new RegExp(`(.*?)(?:${buzzWordMatcher.source})+(.*)`, 'gm');
+    const regex = new RegExp(`(.*?)(?:${buzzWordMatcher.source})+(.*)`, 'm');
     const matches = regex.exec(string);
 
     if (!matches) {
@@ -27,29 +40,24 @@ function isFalsePositive(string) {
     const prefix = matches[1];
     const suffix = matches[2];
 
-    if (_.some([prefix, suffix], s => /.*[nN](?:ot).*/.test(s) && !buzzWordMatcher.test(s))) {
-        return false;
-    }
+    const isPrefixNegatedVariableName = isNegatedVariableName(prefix);
+    const isSuffixNegatedVariableName = isNegatedVariableName(suffix);
 
-    return true;
-}
+    return !isPrefixNegatedVariableName && !isSuffixNegatedVariableName;
+};
 
 /**
  * @param {String} name
  * @returns {Boolean}
  */
-function isNegatedVariableName(name) {
+isNegatedVariableName = (name) => {
     if (!name) {
         return;
     }
 
-    return (name.includes('Not') && !isFalsePositive(name))
-      || name.includes('isNot' && !isFalsePositive(name))
-      || name.includes('cannot')
-      || name.includes('shouldNot')
-      || name.includes('cant')
-      || name.includes('dont');
-}
+    return _.any(BANNED_SUBSTRINGS, badSubstring => name.toLowerCase().includes(badSubstring))
+        && !isFalsePositive(name);
+};
 
 module.exports = {
     create: context => ({
