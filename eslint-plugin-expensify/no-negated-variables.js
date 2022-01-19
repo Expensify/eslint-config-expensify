@@ -30,7 +30,7 @@ let isNegatedVariableName;
  */
 const isFalsePositive = (string) => {
     const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
-    const regex = new RegExp(`(.*?)(?:${buzzWordMatcher.source})+(.*)`, 'm');
+    const regex = new RegExp(`(.*)${buzzWordMatcher.source}(.*)`, 'm');
     const matches = regex.exec(string);
 
     if (!matches) {
