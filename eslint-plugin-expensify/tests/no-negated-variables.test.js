@@ -70,5 +70,11 @@ ruleTester.run('no-negated-variables', rule, {
                 message,
             }],
         },
+        {
+            code: 'const notificationNoteIsNotVisible = false',
+            errors: [{
+                message,
+            }],
+        },
     ],
 });
