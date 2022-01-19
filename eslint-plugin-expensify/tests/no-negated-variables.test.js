@@ -31,7 +31,13 @@ ruleTester.run('no-negated-variables', rule, {
         },
         {
             code: 'const notificationIsVisible = false;',
-        }
+        },
+        {
+            code: 'const noteNotification = {}',
+        },
+        {
+            code: 'const notificationNote = {}',
+        },
     ],
     invalid: [
         {
@@ -63,6 +69,6 @@ ruleTester.run('no-negated-variables', rule, {
             errors: [{
                 message,
             }],
-        }
+        },
     ],
 });

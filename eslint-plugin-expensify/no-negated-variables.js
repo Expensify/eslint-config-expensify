@@ -7,7 +7,7 @@ const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    const matches = /(.*)[nN](?:otification|otch|ote)(.*)/gm.exec(string);
+    const matches = /(.*?)(?:[nN](?:otification|otch|ote))+(.*)/gm.exec(string);
 
     if (!matches) {
         return false;
