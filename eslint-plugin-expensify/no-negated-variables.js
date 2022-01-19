@@ -2,12 +2,23 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
 
+const NOTABLE_EXCEPTIONS = [
+    'notification',
+    'notch',
+    'note',
+    'notable',
+    'notion',
+    'notice',
+];
+
 /**
  * @param {String} string
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    const matches = /(.*?)(?:[nN](?:otification|otch|ote))+(.*)/gm.exec(string);
+    const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
+    const regex = new RegExp(`(.*?)(?:${buzzWordMatcher.source})+(.*)`, 'gm');
+    const matches = regex.exec(string);
 
     if (!matches) {
         return false;
@@ -16,7 +27,7 @@ function isFalsePositive(string) {
     const prefix = matches[1];
     const suffix = matches[2];
 
-    if (_.some([prefix, suffix], s => /.*[nN](?:ot).*/.test(s))) {
+    if (_.some([prefix, suffix], s => /.*[nN](?:ot).*/.test(s) && !buzzWordMatcher.test(s))) {
         return false;
     }
 

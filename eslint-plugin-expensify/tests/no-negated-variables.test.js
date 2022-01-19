@@ -38,6 +38,12 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const notificationNote = {}',
         },
+        {
+            code: 'const notableNotions = [];',
+        },
+        {
+            code: 'const notionsOfNote = [];',
+        },
     ],
     invalid: [
         {
