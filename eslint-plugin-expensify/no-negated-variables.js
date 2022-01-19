@@ -7,7 +7,20 @@ const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    return _.some(['notification', 'notch'], falsePositive => string.toLowerCase().includes(falsePositive));
+    const matches = /(.*)[nN](?:otification|otch|ote)(.*)/gm.exec(string);
+
+    if (!matches) {
+        return false;
+    }
+
+    const prefix = matches[1];
+    const suffix = matches[2];
+
+    if (_.some([prefix, suffix], s => /.*[nN](?:ot).*/.test(s))) {
+        return false;
+    }
+
+    return true;
 }
 
 /**

@@ -23,6 +23,15 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const iPhonesWithNotches = [];',
         },
+        {
+            code: 'const myNote = []',
+        },
+        {
+            code: 'const isNotification = {};',
+        },
+        {
+            code: 'const notificationIsVisible = false;',
+        }
     ],
     invalid: [
         {
@@ -37,5 +46,23 @@ ruleTester.run('no-negated-variables', rule, {
                 message,
             }],
         },
+        {
+            code: 'const isNotEnabled = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotChanged = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotNotification = false;',
+            errors: [{
+                message,
+            }],
+        }
     ],
 });
