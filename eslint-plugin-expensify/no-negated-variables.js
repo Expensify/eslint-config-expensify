@@ -20,17 +20,14 @@ const NOTABLE_EXCEPTIONS = [
     'notice',
 ];
 
-// Declared up front to suppress eslint no-use-before-define
-// Mutually recursive functions are a valid exception to this rule. See https://github.com/eslint/eslint/issues/12473
-let isNegatedVariableName;
-
 /**
  * @param {String} string
  * @returns {Boolean}
  */
-const isFalsePositive = (string) => {
+function isFalsePositive(string) {
     const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
-    const regex = new RegExp(`(.*)${buzzWordMatcher.source}(.*)`, 'm');
+    const upperSnakeCaseMatcher = new RegExp(`_?${_.map(NOTABLE_EXCEPTIONS, word => word.toUpperCase()).join('|')}_?`);
+    const regex = new RegExp(`(.*)(?:${buzzWordMatcher.source}|${upperSnakeCaseMatcher.source})(.*)`, 'm');
     const matches = regex.exec(string);
 
     if (!matches) {
@@ -40,7 +37,9 @@ const isFalsePositive = (string) => {
     const prefix = matches[1];
     const suffix = matches[2];
 
+    // eslint-disable-next-line no-use-before-define
     const isPrefixNegatedVariableName = isNegatedVariableName(prefix);
+    // eslint-disable-next-line no-use-before-define
     const isSuffixNegatedVariableName = isNegatedVariableName(suffix);
 
     return !isPrefixNegatedVariableName && !isSuffixNegatedVariableName;
@@ -50,7 +49,7 @@ const isFalsePositive = (string) => {
  * @param {String} name
  * @returns {Boolean}
  */
-isNegatedVariableName = (name) => {
+function isNegatedVariableName(name) {
     if (!name) {
         return;
     }

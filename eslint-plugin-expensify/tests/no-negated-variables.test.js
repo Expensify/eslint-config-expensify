@@ -44,6 +44,9 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const notionsOfNote = [];',
         },
+        {
+            code: 'const NOTABLE_EXCEPTIONS = [];',
+        },
     ],
     invalid: [
         {
