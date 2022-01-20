@@ -103,5 +103,11 @@ ruleTester.run('no-negated-variables', rule, {
                 message,
             }],
         },
+        {
+            code: 'const THIS_IS_NOT_GOOD = true;',
+            errors: [{
+                message,
+            }],
+        },
     ],
 });
