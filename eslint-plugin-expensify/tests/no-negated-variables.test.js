@@ -23,6 +23,30 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const iPhonesWithNotches = [];',
         },
+        {
+            code: 'const myNote = []',
+        },
+        {
+            code: 'const isNotification = {};',
+        },
+        {
+            code: 'const notificationIsVisible = false;',
+        },
+        {
+            code: 'const noteNotification = {}',
+        },
+        {
+            code: 'const notificationNote = {}',
+        },
+        {
+            code: 'const notableNotions = [];',
+        },
+        {
+            code: 'const notionsOfNote = [];',
+        },
+        {
+            code: 'const NOTABLE_EXCEPTIONS = [];',
+        },
     ],
     invalid: [
         {
@@ -33,6 +57,54 @@ ruleTester.run('no-negated-variables', rule, {
         },
         {
             code: 'function isNotValidName() {}',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotEnabled = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotChanged = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const canNotBeValid = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const willNotBeValid = true',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotNotification = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const notificationNoteIsNotVisible = false;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const notificationsThatAreNotOfNote = [];',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const THIS_IS_NOT_GOOD = true;',
             errors: [{
                 message,
             }],

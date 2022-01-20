@@ -2,13 +2,48 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
 
+const BANNED_SUBSTRINGS = [
+    'not',
+    'isnot',
+    'cannot',
+    'shouldnot',
+    'cant',
+    'dont',
+];
+
+const NOTABLE_EXCEPTIONS = [
+    'notification',
+    'notch',
+    'note',
+    'notable',
+    'notion',
+    'notice',
+];
+
 /**
  * @param {String} string
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    return _.some(['notification', 'notch'], falsePositive => string.toLowerCase().includes(falsePositive));
-}
+    const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
+    const upperSnakeCaseMatcher = new RegExp(`_?${_.map(NOTABLE_EXCEPTIONS, word => word.toUpperCase()).join('|')}_?`);
+    const regex = new RegExp(`(.*)(?:${buzzWordMatcher.source}|${upperSnakeCaseMatcher.source})(.*)`, 'm');
+    const matches = regex.exec(string);
+
+    if (!matches) {
+        return false;
+    }
+
+    const prefix = matches[1];
+    const suffix = matches[2];
+
+    // eslint-disable-next-line no-use-before-define
+    const isPrefixNegatedVariableName = isNegatedVariableName(prefix);
+    // eslint-disable-next-line no-use-before-define
+    const isSuffixNegatedVariableName = isNegatedVariableName(suffix);
+
+    return !isPrefixNegatedVariableName && !isSuffixNegatedVariableName;
+};
 
 /**
  * @param {String} name
@@ -19,13 +54,9 @@ function isNegatedVariableName(name) {
         return;
     }
 
-    return (name.includes('Not') && !isFalsePositive(name))
-      || name.includes('isNot' && !isFalsePositive(name))
-      || name.includes('cannot')
-      || name.includes('shouldNot')
-      || name.includes('cant')
-      || name.includes('dont');
-}
+    return _.any(BANNED_SUBSTRINGS, badSubstring => name.toLowerCase().includes(badSubstring))
+        && !isFalsePositive(name);
+};
 
 module.exports = {
     create: context => ({
