@@ -26,6 +26,9 @@ ruleTester.run('prefer-underscore-method', rule, {
         {
             code: 'describe.each(() => {});',
         },
+        {
+            code: 'React.Children.map(children, child => child);',
+        },
     ],
     invalid: [
         {

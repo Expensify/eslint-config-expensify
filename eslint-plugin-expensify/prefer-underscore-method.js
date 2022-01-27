@@ -43,10 +43,23 @@ function isJestEach(node) {
         && lodashGet(node, 'callee.property.name') === 'each';
 }
 
+/**
+ * @param {Object} node
+ * @returns {Boolean}
+ */
+function isReactChildrenMap(node) {
+    return lodashGet(node, 'callee.object.property.name') === 'Children'
+        && lodashGet(node, 'callee.property.name') === 'map';
+}
+
 module.exports = {
     create: context => ({
         CallExpression: (node) => {
             if (isJestEach(node)) {
+                return;
+            }
+
+            if (isReactChildrenMap(node)) {
                 return;
             }
 
