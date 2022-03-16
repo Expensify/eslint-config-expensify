@@ -51,6 +51,7 @@ module.exports = {
             allowArrayStart: true,
             allowClassStart: true,
         }],
+        'no-multiple-empty-lines': ['error', {max: 1}],
         'max-len': ['warn', {
             code: 190,
         }],
