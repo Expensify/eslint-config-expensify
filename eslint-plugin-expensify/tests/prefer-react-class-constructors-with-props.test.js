@@ -1,5 +1,5 @@
 const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-constructors-with-props');
+const rule = require('../prefer-react-class-constructors-with-props');
 const message = require('../CONST').MESSAGE.PREFER_REACT_CLASS_CONSTRUCTORS_WITH_PROPS;
 
 const ruleTester = new RuleTester({
@@ -54,7 +54,7 @@ class Car extends React.Component {
 }
 `;
 
-ruleTester.run('prefer-constructors-with-props', rule, {
+ruleTester.run('prefer-react-class-constructors-with-props', rule, {
     valid: [
         {
             code: goodExample,
