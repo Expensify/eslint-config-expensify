@@ -10,13 +10,13 @@ module.exports = {
 
             const whiteList = ['React', 'Component'];
 
-            // Check if the super class name is 'Component' eg. Car extents Component {}
+            // Check if the super class name is 'Component' eg. Car extends Component {}
             if (node.superClass.name) {
                 if (node.superClass.name !== 'Component') {
                     return;
                 }
             } else {
-                // If there's no super class object called react don't proceed eg. Car extents React.[AnyProperty] {} ||  Car extents Component {}
+                // If there's no super class object called react don't proceed eg. Car extends React.[AnyProperty] {} ||  Car extends Component {}
                 if (node.superClass.object) {
                     if (!whiteList.includes(node.superClass.object.name)) {
                         return;
@@ -25,7 +25,7 @@ module.exports = {
                     return;
                 }
 
-                // Check if the super class property name is 'Component' eg. Car extents React.Component {}
+                // Check if the super class property name is 'Component' eg. Car extends React.Component {}
                 if (node.superClass.property) {
                     if (node.superClass.property.name !== 'Component') {
                         return;
