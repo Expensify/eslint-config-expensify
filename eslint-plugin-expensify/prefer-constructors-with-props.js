@@ -1,26 +1,69 @@
-const message = require('./CONST').MESSAGE.PREFER_CONSTRUCTORS_WITH_PROPS;
+const message = require('./CONST').MESSAGE.PREFER_REACT_CLASS_CONSTRUCTORS_WITH_PROPS;
 
 module.exports = {
     create: context => ({
-        FunctionExpression(node) {
-            // Destructure the node and get these useful properties
+        ClassDeclaration(node) {
+            // If there's no super class inheritance don't proceed
+            if (!node.superClass) {
+                return;
+            }
+
+            const whiteList = ['React', 'Component'];
+
+            // Check if the super class name is 'Component' eg. Car extents Component {}
+            if (node.superClass.name) {
+                if (node.superClass.name !== 'Component') {
+                    return;
+                }
+            } else {
+                // If there's no super class object called react don't proceed eg. Car extents React.[AnyProperty] {} ||  Car extents Component {}
+                if (node.superClass.object) {
+                    if (!whiteList.includes(node.superClass.object.name)) {
+                        return;
+                    }
+                } else {
+                    return;
+                }
+
+                // Check if the super class property name is 'Component' eg. Car extents React.Component {}
+                if (node.superClass.property) {
+                    if (node.superClass.property.name !== 'Component') {
+                        return;
+                    }
+                }
+            }
+
+            // Gets all the method definitions in the class
+            const methods = node.body.body;
+
+            // Gets the constructor method definition if any
+            const constructorMethodDefinition = methods.find(method => method.kind === 'constructor');
+
+            if (!constructorMethodDefinition) {
+                context.report({
+                    node,
+                    message,
+                });
+                return;
+            }
+
             const {
                 parent,
                 params,
                 body,
-            } = node;
+            } = constructorMethodDefinition.value;
 
             // Anonymous function to check if there's a props parameter
             const hasPropsParameter = ({
-                name,
-                type,
-            }) => name === 'props' && type === 'Identifier';
+                                           name,
+                                           type,
+                                       }) => name === 'props' && type === 'Identifier';
 
             // Anonymous function to check if there's a super call
             const hasSuperCall = ({
-                type,
-                expression,
-            }) => type === 'ExpressionStatement'
+                                      type,
+                                      expression,
+                                  }) => type === 'ExpressionStatement'
                 && expression.type === 'CallExpression'
                 && expression.callee.type === 'Super'
                 && expression.arguments.some(hasPropsParameter);
@@ -43,6 +86,7 @@ module.exports = {
                     });
                 }
             }
+
         },
     }),
 };
