@@ -67,7 +67,6 @@ module.exports = {
             ],
             allowSamePrecedence: false,
         }],
-        'no-multiple-empty-lines': ['error', {'max': 1}],
         'no-plusplus': 'off',
         'no-return-assign': 'off',
         'object-curly-spacing': ['error', 'never'],
