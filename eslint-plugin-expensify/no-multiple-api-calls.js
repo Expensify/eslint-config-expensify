@@ -15,19 +15,18 @@ module.exports = {
 
             for (let i = 0; i < tokens.length; i++) {
                 const token = tokens[i];
-                if (token.value !== 'deprecatedAPI' && token.value !== 'API') {
-                    continue;
+                const isAPICall = token.value === 'deprecatedAPI' || token.value === 'API';
+
+                if (isAPICall && hasCalledAPI) {
+                    context.report({
+                        node: token,
+                        message,
+                    });
                 }
 
-                if (!hasCalledAPI) {
+                if (isAPICall && !hasCalledAPI) {
                     hasCalledAPI = true;
-                    continue;
                 }
-
-                context.report({
-                    node: token,
-                    message,
-                });
             }
         }
 
