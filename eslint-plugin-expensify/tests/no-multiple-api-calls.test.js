@@ -1,5 +1,5 @@
 const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-api-in-views');
+const rule = require('../no-multiple-api-calls');
 const message = require('../CONST').MESSAGE.NO_MULTIPLE_API_CALLS;
 
 const ruleTester = new RuleTester({
@@ -9,6 +9,9 @@ const ruleTester = new RuleTester({
     },
 });
 
+// Mock filename - this rule is scoped to the ./actions/ directory.
+const filename = './src/libs/actions/Test.js';
+
 ruleTester.run('no-multiple-api-calls', rule, {
     valid: [
         {
@@ -17,9 +20,7 @@ ruleTester.run('no-multiple-api-calls', rule, {
                     API.call(params);
                 }
             `,
-
-            // Mock filename - it's acceptable to use API in an action file, but not component
-            filename: './src/libs/actions/Test.js',
+            filename,
         },
         {
             code: `
@@ -27,7 +28,7 @@ ruleTester.run('no-multiple-api-calls', rule, {
                     deprecatedAPI.call(params);
                 }
             `,
-            filename: './src/libs/actions/Test.js',
+            filename,
         },
     ],
     invalid: [
@@ -40,7 +41,7 @@ ruleTester.run('no-multiple-api-calls', rule, {
             errors: [{
                 message,
             }],
-            filename: './src/libs/actions/Test.js',
+            filename,
         },
     ],
 });
