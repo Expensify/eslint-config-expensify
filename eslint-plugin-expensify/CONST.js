@@ -10,5 +10,6 @@ module.exports = {
         PREFER_IMPORT_MODULE_CONTENTS: 'Do not import individual exports from local modules. Prefer \'import * as\' syntax.',
         PREFER_ONYX_CONNECT_IN_LIBS: 'Only call Onyx.connect() from inside a /src/libs/** file. React components and non-library code should not use Onyx.connect()',
         PREFER_UNDERSCORE_METHOD: 'Prefer \'_.{{method}}\' over the native function.',
+        PREFER_STR_METHOD: 'Prefer \'Str.{{method}}\' over the native function.',
     },
 };
