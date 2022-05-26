@@ -1,4 +1,3 @@
-
 const _ = require('underscore');
 const lodashGet = require('lodash/get');
 
@@ -13,11 +12,11 @@ function isUsingIncorrectStrMethod(node) {
     const strMethods = ['replaceAll'];
     const callerName = lodashGet(node, 'callee.object.name');
     if (!_.includes(strMethods, astUtil.getMethodName(node))) {
-        return;
+        return false;
     }
 
     if (callerName === 'Str') {
-        return;
+        return false;
     }
 
     return true;
