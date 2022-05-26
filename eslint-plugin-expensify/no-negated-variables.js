@@ -43,7 +43,7 @@ function isFalsePositive(string) {
     const isSuffixNegatedVariableName = isNegatedVariableName(suffix);
 
     return !isPrefixNegatedVariableName && !isSuffixNegatedVariableName;
-};
+}
 
 /**
  * @param {String} name
@@ -56,7 +56,7 @@ function isNegatedVariableName(name) {
 
     return _.any(BANNED_SUBSTRINGS, badSubstring => name.toLowerCase().includes(badSubstring))
         && !isFalsePositive(name);
-};
+}
 
 module.exports = {
     create: context => ({
