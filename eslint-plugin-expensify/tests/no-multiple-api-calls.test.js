@@ -9,9 +9,6 @@ const ruleTester = new RuleTester({
     },
 });
 
-// Mock filename - this rule is scoped to the ./actions/ directory.
-const filename = './src/libs/actions/Test.js';
-
 ruleTester.run('no-multiple-api-calls', rule, {
     valid: [
         {
@@ -20,7 +17,6 @@ ruleTester.run('no-multiple-api-calls', rule, {
                     API.call(params);
                 }
             `,
-            filename,
         },
         {
             code: `
@@ -28,7 +24,6 @@ ruleTester.run('no-multiple-api-calls', rule, {
                     deprecatedAPI.call(params);
                 }
             `,
-            filename,
         },
     ],
     invalid: [
@@ -41,7 +36,6 @@ ruleTester.run('no-multiple-api-calls', rule, {
             errors: [{
                 message,
             }],
-            filename,
         },
     ],
 });
