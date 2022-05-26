@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const {isInActionFile} = require('./utils');
 const message = require('./CONST').MESSAGE.NO_MULTIPLE_API_CALLS;
 
@@ -13,21 +14,23 @@ module.exports = {
             const tokens = context.getSourceCode().getTokens(node);
             let hasCalledAPI = false;
 
-            for (let i = 0; i < tokens.length; i++) {
-                const token = tokens[i];
+            _.each(tokens, (token) => {
                 const isAPICall = token.value === 'deprecatedAPI' || token.value === 'API';
 
-                if (isAPICall && hasCalledAPI) {
-                    context.report({
-                        node: token,
-                        message,
-                    });
+                if (!isAPICall) {
+                    return;
                 }
 
-                if (isAPICall && !hasCalledAPI) {
+                if (!hasCalledAPI) {
                     hasCalledAPI = true;
+                    return;
                 }
-            }
+
+                context.report({
+                    node: token,
+                    message,
+                });
+            });
         }
 
         return {
