@@ -22,8 +22,6 @@ ruleTester.run('no-api-in-views', rule, {
         },
         {
             code: example2,
-
-            // Mock filename - it's acceptable to use API in an action file, but not component
             filename: './src/libs/actions/Test.js',
         },
     ],
