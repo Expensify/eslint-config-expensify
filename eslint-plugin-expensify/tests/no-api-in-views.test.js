@@ -10,6 +10,7 @@ const ruleTester = new RuleTester({
 });
 
 const example = 'API.signIn();';
+const example2 = 'DeprecatedAPI.User_IsUsingExpensifyCard();';
 
 ruleTester.run('no-api-in-views', rule, {
     valid: [
@@ -19,10 +20,21 @@ ruleTester.run('no-api-in-views', rule, {
             // Mock filename - it's acceptable to use API in an action file, but not component
             filename: './src/libs/actions/Test.js',
         },
+        {
+            code: example2,
+            filename: './src/libs/actions/Test.js',
+        },
     ],
     invalid: [
         {
             code: example,
+            errors: [{
+                message,
+            }],
+            filename: './src/components/Test.js',
+        },
+        {
+            code: example2,
             errors: [{
                 message,
             }],

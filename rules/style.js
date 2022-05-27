@@ -38,6 +38,7 @@ module.exports = {
             flatTernaryExpressions: false,
 
             // list derived from https://github.com/benjamn/ast-types/blob/HEAD/def/jsx.js
+            // eslint-disable-next-line max-len
             ignoredNodes: ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
             ignoreComments: false,
         }],

@@ -10,12 +10,13 @@ module.exports = {
         'rulesdir/prefer-underscore-method': 'error',
         'rulesdir/no-useless-compose': 'error',
         'rulesdir/prefer-import-module-contents': 'error',
+        'rulesdir/no-multiple-api-calls': 'error',
         'no-restricted-imports': ['error', {
-            'paths': [{
-                'name': 'react-native',
-                'importNames': ['Button', 'Text', 'TextInput', 'Picker'],
-                'message': 'Please use an Expensify component from src/components/ instead.'
-            }]
-        }]
+            paths: [{
+                name: 'react-native',
+                importNames: ['Button', 'Text', 'TextInput', 'Picker'],
+                message: 'Please use an Expensify component from src/components/ instead.',
+            }],
+        }],
     },
 };
