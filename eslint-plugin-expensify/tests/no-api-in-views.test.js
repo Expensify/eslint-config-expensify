@@ -10,7 +10,7 @@ const ruleTester = new RuleTester({
 });
 
 const example = 'API.signIn();';
-const example2 = 'deprecatedAPI.signIn();';
+const example2 = 'DeprecatedAPI.User_IsUsingExpensifyCard();';
 
 ruleTester.run('no-api-in-views', rule, {
     valid: [

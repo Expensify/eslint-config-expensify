@@ -12,7 +12,7 @@ module.exports = {
                 return;
             }
 
-            if (node.name !== 'API' && node.name !== 'deprecatedAPI') {
+            if (node.name !== 'API' && node.name !== 'DeprecatedAPI') {
                 return;
             }
 

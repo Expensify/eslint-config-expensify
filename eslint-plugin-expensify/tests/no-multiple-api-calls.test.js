@@ -14,14 +14,14 @@ ruleTester.run('no-multiple-api-calls', rule, {
         {
             code: `
                 function test() {
-                    API.call(params);
+                    API.write('Report_AddComment', params);
                 }
             `,
         },
         {
             code: `
                 function test() {
-                    deprecatedAPI.call(params);
+                    DeprecatedAPI.CreateLogin(params);
                 }
             `,
         },
@@ -30,7 +30,7 @@ ruleTester.run('no-multiple-api-calls', rule, {
         {
             code: `
                 function test() {
-                    deprecatedAPI.call(params).then(res => API.call(params2));
+                    DeprecatedAPI.CreateLogin(params).then(res => API.write('PreferredLocale_Update', params2));
                 }
             `,
             errors: [{
