@@ -14,5 +14,6 @@ module.exports = {
 
         // eslint-disable-next-line max-len
         NO_MULTIPLE_API_CALLS: 'Do not call API or DeprecatedAPI multiple times in the same method. The API response should return all the necessary data in a single request, and API calls should not be chained together.',
+        NO_API_SIDE_EFFECTS_ACTIONS: 'Avoid actions with side effects. Each action should have only one API call or one action method call.',
     },
 };
