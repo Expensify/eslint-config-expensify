@@ -17,6 +17,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                     API.write('Report_AddComment', params);
                 }
             `,
+            filename: './src/libs/actions/Test.js',
         },
         {
             code: `
@@ -25,18 +26,44 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                     Action.perform(params);
                 }
             `,
+            filename: './src/libs/actions/Test.js',
+        },
+        {
+            code: `
+                import Action from './src/libs/actions/Action.js'
+                function test() {
+                    API.write('Report_AddComment', params);
+                }
+                function test2() {
+                    Action.perform(params);
+                }
+            `,
+            filename: './src/libs/actions/Test.js',
+        },
+        {
+            code: `
+                import Action from './src/libs/actions/Action.js'
+                function test() {
+                    API.write('Report_AddComment', params);
+                    Action.perform(params);
+                }
+            `,
+            filename: './src/libs/notActions/Test.js',
         },
     ],
     invalid: [
         {
             code: `
+                import Action from './src/libs/actions/Action.js'
                 function test() {
-                    DeprecatedAPI.CreateLogin(params).then(res => API.write('PreferredLocale_Update', params2));
+                    API.write('Report_AddComment', params);
+                    Action.perform(params);
                 }
             `,
             errors: [{
                 message,
             }],
+            filename: './src/libs/actions/Test.js',
         },
     ],
 });
