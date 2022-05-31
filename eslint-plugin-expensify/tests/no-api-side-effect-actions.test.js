@@ -67,5 +67,20 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             }],
             filename: './src/libs/actions/Test.js',
         },
+        {
+            // Make sure chaining the API/Action calls is also invalid
+            code: `
+                import Action from './src/libs/actions/Action.js'
+                function test() {
+                    API.write('Report_AddComment', params).then((value) => {
+                        Action.perform(params);
+                    });
+                }
+            `,
+            errors: [{
+                message,
+            }],
+            filename: './src/libs/actions/Test.js',
+        },
     ],
 });
