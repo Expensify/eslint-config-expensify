@@ -29,6 +29,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             filename: './src/libs/actions/Test.js',
         },
         {
+            // Test that two functions in one file with different API/action calls are valid
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
@@ -41,6 +42,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             filename: './src/libs/actions/Test.js',
         },
         {
+            // Make sure that we will not test a file which is not in '/actions/'
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
