@@ -57,7 +57,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
     ],
     invalid: [
         {
-            // Making an API call and calling an Action shuold be invalid
+            // Making an API call and calling an Action should be invalid
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
