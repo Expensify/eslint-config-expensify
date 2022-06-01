@@ -12,6 +12,7 @@ const ruleTester = new RuleTester({
 ruleTester.run('no-api-side-effect-actions', rule, {
     valid: [
         {
+            // Making one API call should be valid
             code: `
                 function test() {
                     API.write('Report_AddComment', params);
@@ -20,6 +21,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             filename: './src/libs/actions/Test.js',
         },
         {
+            // Making one Action call from another action should be valid
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
@@ -29,7 +31,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             filename: './src/libs/actions/Test.js',
         },
         {
-            // Test that two functions in one file with different API/action calls are valid
+            // Having two functions in one file, each with one API or Action call should be valid
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
@@ -55,6 +57,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
     ],
     invalid: [
         {
+            // Making an API call and calling an Action shuold be invalid
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
@@ -72,7 +75,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             code: `
                 import Action from './src/libs/actions/Action.js'
                 function test() {
-                    API.write('Report_AddComment', params).then((value) => {
+                    API.read('Report_AddComment', params).then((value) => {
                         Action.perform(params);
                     });
                 }
