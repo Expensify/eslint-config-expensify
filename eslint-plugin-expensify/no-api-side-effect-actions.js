@@ -16,7 +16,7 @@ module.exports = {
         
         function hasAPICall(tokens) {
             return _.find(tokens, (token) => {
-                return token.value === 'DeprecatedAPI' || token.value === 'API';
+                return token.value === 'API';
             });
         }
 
