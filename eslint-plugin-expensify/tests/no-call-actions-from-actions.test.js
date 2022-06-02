@@ -1,6 +1,6 @@
 const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-api-side-effect-actions');
-const message = require('../CONST').MESSAGE.NO_API_SIDE_EFFECTS_ACTIONS;
+const rule = require('../no-call-actions-from-actions');
+const message = require('../CONST').MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
 
 const ruleTester = new RuleTester({
     parserOptions: {
@@ -9,7 +9,7 @@ const ruleTester = new RuleTester({
     },
 });
 
-ruleTester.run('no-api-side-effect-actions', rule, {
+ruleTester.run('no-call-actions-from-actions', rule, {
     valid: [
         {
             // Making one API call should be valid
@@ -21,11 +21,12 @@ ruleTester.run('no-api-side-effect-actions', rule, {
             filename: './src/libs/actions/Test.js',
         },
         {
-            // Making one Action call from another action should be valid
+            // Calling DeprecatedAPI should be valid as we focus on rewriting the new API using this best practice
             code: `
-                import Action from './src/libs/actions/Action.js'
                 function test() {
-                    Action.perform(params);
+                    DeprecatedAPI.read('Report_AddComment', params).then((value) => {
+                        Action(params);
+                    });
                 }
             `,
             filename: './src/libs/actions/Test.js',
@@ -38,7 +39,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                     API.write('Report_AddComment', params);
                 }
                 function test2() {
-                    Action.perform(params);
+                    Action(params);
                 }
             `,
             filename: './src/libs/actions/Test.js',
@@ -49,7 +50,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                 import Action from './src/libs/actions/Action.js'
                 function test() {
                     API.write('Report_AddComment', params);
-                    Action.perform(params);
+                    Action(params);
                 }
             `,
             filename: './src/libs/notActions/Test.js',
@@ -62,7 +63,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                 import Action from './src/libs/actions/Action.js'
                 function test() {
                     API.write('Report_AddComment', params);
-                    Action.perform(params);
+                    Action(params);
                 }
             `,
             errors: [{
@@ -76,7 +77,7 @@ ruleTester.run('no-api-side-effect-actions', rule, {
                 import Action from './src/libs/actions/Action.js'
                 function test() {
                     API.read('Report_AddComment', params).then((value) => {
-                        Action.perform(params);
+                        Action(params);
                     });
                 }
             `,
