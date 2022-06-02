@@ -11,7 +11,8 @@ module.exports = {
         'rulesdir/no-useless-compose': 'error',
         'rulesdir/prefer-import-module-contents': 'error',
         'rulesdir/no-multiple-api-calls': 'error',
-        'rulesdir/no-api-side-effects-actions': 'error',
+        'rulesdir/no-call-actions-from-actions': 'error',
+        'rulesdir/no-api-side-effects-method': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
