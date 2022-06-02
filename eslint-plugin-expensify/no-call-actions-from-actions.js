@@ -2,7 +2,7 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const path = require('path');
 const {isInActionFile} = require('./utils');
-const message = require('./CONST').MESSAGE.NO_API_SIDE_EFFECTS_ACTIONS;
+const message = require('./CONST').MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
 
 module.exports = {
     create(context) {
