@@ -8,7 +8,7 @@ module.exports = {
             let hasCalledAPI = false;
 
             _.each(tokens, (token) => {
-                const isAPICall = token.value === 'DeprecatedAPI' || token.value === 'API';
+                const isAPICall = token.value === 'API';
 
                 if (!isAPICall) {
                     return;
