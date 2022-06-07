@@ -30,7 +30,7 @@ ruleTester.run('no-multiple-api-calls', rule, {
         {
             code: `
                 function test() {
-                    DeprecatedAPI.CreateLogin(params).then(res => API.write('PreferredLocale_Update', params2));
+                    API.CreateLogin(params).then(res => API.write('PreferredLocale_Update', params2));
                 }
             `,
             errors: [{
