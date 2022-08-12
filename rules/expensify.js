@@ -13,6 +13,7 @@ module.exports = {
         'rulesdir/no-multiple-api-calls': 'error',
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
+        'rulesdir/display-name-property': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
