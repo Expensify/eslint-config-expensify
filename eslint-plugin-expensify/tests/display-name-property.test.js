@@ -61,6 +61,12 @@ ruleTester.run('display-name-property', rule, {
             code: classComponentWithoutDisplayName,
             filename: './src/components/Test/index.native.js',
         },
+        {
+            code: `
+                const examplePropTypes = {};
+            `,
+            filename: './src/components/examplePropTypes.js',
+        },
     ],
     invalid: [
         {

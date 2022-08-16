@@ -19,7 +19,8 @@ module.exports = {
 
             // Find a root level variable delcaration that matches the component name
             const isFunctionComponent = _.find(node.body, n => n.type === 'VariableDeclaration'
-                    && _.get(n, 'declarations[0].id.name') === componentName);
+                    && _.get(n, 'declarations[0].id.name') === componentName
+                    && ['FunctionExpression', 'ArrowFunctionExpression'].includes(_.get(n, 'declarations[0.init.type')));
 
             // Find a root level class delcaration that matches the component name
             const isClassComponent = _.find(node.body, n => n.type === 'ClassDeclaration'
