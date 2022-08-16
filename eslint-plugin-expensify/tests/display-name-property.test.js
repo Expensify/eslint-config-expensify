@@ -9,86 +9,98 @@ const ruleTester = new RuleTester({
     },
 });
 
+const functionalComponentWithDisplayName = `
+    const Test = () => null;
+    Test.displayName = 'Test';
+`;
+
+const classComponentWithoutDisplayName = `
+    class Test extends Component {
+        render() {
+            return null;
+        }
+    }
+`;
+
+const functionalComponentWithoutDisplayName = `
+    const Test = () => null;
+`;
+
+const classComponentWithDisplayName = `
+    class Test extends Component {
+        render() {
+            return null;
+        }
+    }
+    Test.displayName = 'Test';
+`;
+
 ruleTester.run('display-name-property', rule, {
     valid: [
         {
-            code: `
-                const Test = () => null;
-                Test.displayName = 'Test';
-            `,
+            code: functionalComponentWithDisplayName,
             filename: './src/components/Test.js',
         },
         {
-            code: `
-                class Test extends Component {
-                    render() {
-                        return null;
-                    }
-                }
-            `,
+            code: classComponentWithoutDisplayName,
             filename: './src/components/Test.js',
         },
         {
-            code: `
-                const Test = () => null;
-                Test.displayName = 'Test';
-            `,
+            code: functionalComponentWithDisplayName,
             filename: './src/components/Test/index.js',
         },
         {
-            code: `
-                class Test extends Component {
-                    render() {
-                        return null;
-                    }
-                }
-            `,
+            code: classComponentWithoutDisplayName,
             filename: './src/components/Test/index.js',
+        },
+        {
+            code: functionalComponentWithDisplayName,
+            filename: './src/components/Test/index.native.js',
+        },
+        {
+            code: classComponentWithoutDisplayName,
+            filename: './src/components/Test/index.native.js',
         },
     ],
     invalid: [
         {
-            code: `
-                const Test = () => null;
-            `,
+            code: functionalComponentWithoutDisplayName,
             filename: './src/components/Test.js',
             errors: [{
                 message: DISPLAY_NAME_PROPERTY_FUNCTION,
             }],
         },
         {
-            code: `
-                class Test extends Component {
-                    render() {
-                        return null;
-                    }
-                }
-                Test.displayName = 'Test';
-            `,
+            code: classComponentWithDisplayName,
             filename: './src/components/Test.js',
             errors: [{
                 message: DISPLAY_NAME_PROPERTY_CLASS,
             }],
         },
         {
-            code: `
-                const Test = () => null;
-            `,
+            code: functionalComponentWithoutDisplayName,
             filename: './src/components/Test/index.js',
             errors: [{
                 message: DISPLAY_NAME_PROPERTY_FUNCTION,
             }],
         },
         {
-            code: `
-                class Test extends Component {
-                    render() {
-                        return null;
-                    }
-                }
-                Test.displayName = 'Test';
-            `,
+            code: classComponentWithDisplayName,
             filename: './src/components/Test/index.js',
+            errors: [{
+                message: DISPLAY_NAME_PROPERTY_CLASS,
+            }],
+        },
+        {
+            code: functionalComponentWithoutDisplayName,
+            filename: './src/components/Test/index.native.js',
+            errors: [{
+                message: DISPLAY_NAME_PROPERTY_FUNCTION,
+            }],
+        },
+        {
+            code: classComponentWithDisplayName,
+            filename: './src/components/Test/index.native.js',
             errors: [{
                 message: DISPLAY_NAME_PROPERTY_CLASS,
             }],
