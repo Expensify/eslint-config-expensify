@@ -28,7 +28,7 @@ function isDateUtilsUsedAsProperty(node) {
         return true;
     });
 
-    return dateUtilsProperties.length;
+    return dateUtilsProperties.length > 0;
 }
 
 module.exports = {
