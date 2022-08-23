@@ -6,18 +6,14 @@ const message = require('./CONST').MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
 
 module.exports = {
     create(context) {
-        let actions = [];
+        const actions = [];
 
         function hasActionCall(tokens) {
-            return _.find(tokens, (token) => {
-                return _.includes(actions, token.value);
-            });
+            return _.find(tokens, token => _.includes(actions, token.value));
         }
-        
+
         function hasAPICall(tokens) {
-            return _.find(tokens, (token) => {
-                return token.value === 'API';
-            });
+            return _.find(tokens, token => token.value === 'API');
         }
 
         function checkFunctionBody(node) {
@@ -36,12 +32,12 @@ module.exports = {
         }
 
         return {
-            ImportDeclaration: function(node) {
+            ImportDeclaration(node) {
                 const pathName = path.resolve(lodashGet(node, 'source.value'));
                 if (!pathName || !pathName.includes('/actions/')) {
                     return;
                 }
-                
+
                 const filename = _.last(pathName.split('/'));
                 actions.push(_.first(filename.split('.')));
             },
