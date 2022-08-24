@@ -10,29 +10,33 @@ const ruleTester = new RuleTester({
 });
 
 const functionalComponentWithDisplayName = `
-    const Test = () => null;
+    const Test = () => 'Test';
     Test.displayName = 'Test';
 `;
 
 const classComponentWithoutDisplayName = `
     class Test extends Component {
         render() {
-            return null;
+            return 'Test';
         }
     }
 `;
 
 const functionalComponentWithoutDisplayName = `
-    const Test = () => null;
+    const Test = () => 'Test';
 `;
 
 const classComponentWithDisplayName = `
     class Test extends Component {
         render() {
-            return null;
+            return 'Test';
         }
     }
     Test.displayName = 'Test';
+`;
+
+const functionalNoopComponentWithoutDisplayName = `
+    const Test = () => null;
 `;
 
 ruleTester.run('display-name-property', rule, {
@@ -66,6 +70,10 @@ ruleTester.run('display-name-property', rule, {
                 const examplePropTypes = {};
             `,
             filename: './src/components/examplePropTypes.js',
+        },
+        {
+            code: functionalNoopComponentWithoutDisplayName,
+            filename: './src/components/Test.js',
         },
     ],
     invalid: [

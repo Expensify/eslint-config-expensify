@@ -20,7 +20,7 @@ module.exports = {
             // Find a root level variable delcaration that matches the component name
             const isFunctionComponent = _.find(node.body, n => n.type === 'VariableDeclaration'
                     && _.get(n, 'declarations[0].id.name') === componentName
-                    && ['FunctionExpression', 'ArrowFunctionExpression'].includes(_.get(n, 'declarations[0.init.type')));
+                    && ['FunctionExpression', 'ArrowFunctionExpression'].includes(_.get(n, 'declarations[0].init.type')));
 
             // Find a root level class delcaration that matches the component name
             const isClassComponent = _.find(node.body, n => n.type === 'ClassDeclaration'
@@ -36,9 +36,21 @@ module.exports = {
                 && _.get(bodyNode, 'expression.left.property.name', '') === 'displayName'
                 && _.get(bodyNode, 'expression.left.object.name', '') === componentName);
 
-            // Allow function components with displayName set
-            if (isFunctionComponent && hasDisplayNameProperty) {
-                return;
+            if (isFunctionComponent) {
+                // Allow function components with displayName set
+                if (hasDisplayNameProperty) {
+                    return;
+                }
+
+                // Ignore noop components, ie. const Test = () => null;
+                const component = isFunctionComponent;
+                const isNoopComponent = _.get(component, 'declarations[0].init.type') === 'ArrowFunctionExpression'
+                    && _.get(component, 'declarations[0].init.body.type') === 'Literal'
+                    && _.get(component, 'declarations[0].init.body.value') === null;
+
+                if (isNoopComponent) {
+                    return;
+                }
             }
 
             // Allow class components without displayName set
