@@ -11,6 +11,7 @@ module.exports = {
         PREFER_ONYX_CONNECT_IN_LIBS: 'Only call Onyx.connect() from inside a /src/libs/** file. React components and non-library code should not use Onyx.connect()',
         PREFER_UNDERSCORE_METHOD: 'Prefer \'_.{{method}}\' over the native function.',
         PREFER_STR_METHOD: 'Prefer \'Str.{{method}}\' over the native function.',
+        PREFER_LOCALIZATION: 'Use Localize.translateLocal(\'i18n.key\') over hard coded messages.',
 
         // eslint-disable-next-line max-len
         NO_MULTIPLE_API_CALLS: 'Do not call API multiple times in the same method. The API response should return all the necessary data in a single request, and API calls should not be chained together.',
