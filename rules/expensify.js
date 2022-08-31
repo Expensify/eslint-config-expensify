@@ -14,6 +14,7 @@ module.exports = {
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
         'rulesdir/display-name-property': 'error',
+        'rulesdir/prefer-localization': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
