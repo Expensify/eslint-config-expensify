@@ -1,6 +1,8 @@
 /* eslint-disable max-len */
 module.exports = {
     MESSAGE: {
+        DISPLAY_NAME_PROPERTY_CLASS: 'Class components must not set the displayName property.',
+        DISPLAY_NAME_PROPERTY_FUNCTION: 'Function components must set the displayName property.',
         NO_API_IN_VIEWS: 'Do not call API directly outside of actions methods. Only actions should make API requests.',
         NO_INLINE_NAMED_EXPORT: 'Do not inline named exports.',
         NO_NEGATED_VARIABLES: 'Do not use negated variable names.',
