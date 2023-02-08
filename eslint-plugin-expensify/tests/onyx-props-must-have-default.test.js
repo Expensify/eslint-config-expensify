@@ -12,6 +12,7 @@ const ruleTester = new RuleTester({
         ecmaFeatures: {
             // To support use of < in HOC
             jsx: true,
+
             // To support use of ... operator
             experimentalObjectRestSpread: true,
         },
