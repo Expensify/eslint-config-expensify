@@ -120,7 +120,7 @@ module.exports = {
                 props = getVariableNode(scope.upper.variables, propsVar);
             }
 
-            if (!propsVar || !props) {
+            if (!propsVar || !props || !lodashGet(props, 'defs[0]')) {
                 return undefined;
             }
 
@@ -155,9 +155,9 @@ module.exports = {
         function isDirectAssignment(node, declaration, key) {
             if (lodashGet(declaration, 'expression.right.type') === 'ObjectExpression') {
                 makeReport(node, MUST_USE_VARIABLE_FOR_ASSIGNMENT, key);
-                return 1;
+                return true;
             }
-            return 0;
+            return false;
         }
 
         return {
@@ -223,7 +223,7 @@ module.exports = {
                 // Get the list of properties of withOnyx
                 const onyxProperties = lodashGet(node, 'arguments[0].properties');
 
-                _.forEach(onyxProperties, (property) => {
+                _.each(onyxProperties, (property) => {
                     const onyxKeyName = lodashGet(property, 'key.name');
                     const declaredPropType = _.find(propTypesProperties, p => p.type === 'Property' && lodashGet(p, 'key.name') === onyxKeyName);
                     const defaultPropType = _.find(defaultPropsProperties, p => p.type === 'Property' && lodashGet(p, 'key.name') === onyxKeyName);
