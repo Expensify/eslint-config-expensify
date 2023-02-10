@@ -188,8 +188,9 @@ module.exports = {
                         && lodashGet(n, 'declaration.params[0].name') === 'WrappedComponent',
                 );
 
-                let propTypesDeclaration; let
-                    defaultPropTypesDeclaration;
+                let propTypesDeclaration;
+                let defaultPropTypesDeclaration;
+
                 if (wrappedComponent) {
                     propTypesDeclaration = getPropsDeclaration(wrappedComponent.declaration.body.body, 'propTypes');
                     defaultPropTypesDeclaration = getPropsDeclaration(wrappedComponent.declaration.body.body, 'defaultProps');
