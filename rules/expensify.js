@@ -19,7 +19,7 @@ module.exports = {
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
-                importNames: ['Button', 'Text', 'TextInput', 'Picker'],
+                importNames: ['Button', 'Text', 'TextInput', 'Picker', 'SafeAreaView'],
                 message: 'Please use an Expensify component from src/components/ instead.',
             }],
         }],
