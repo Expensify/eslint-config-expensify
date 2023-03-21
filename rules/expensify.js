@@ -21,6 +21,10 @@ module.exports = {
                 name: 'react-native',
                 importNames: ['Button', 'Text', 'TextInput', 'Picker'],
                 message: 'Please use an Expensify component from src/components/ instead.',
+            }, {
+                name: 'react-native',
+                importNames: ['SafeAreaView'],
+                message: 'Please use SafeAreaView from react-native-safe-area-context',
             }],
         }],
     },
