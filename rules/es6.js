@@ -23,5 +23,7 @@ module.exports = {
         // Do not use these features yet
         'es/no-nullish-coalescing-operators': 'error',
         'es/no-optional-chaining': 'error',
+
+        'no-invalid-this': 'error'
     },
 };
