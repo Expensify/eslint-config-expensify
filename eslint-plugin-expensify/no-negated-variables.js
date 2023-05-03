@@ -13,6 +13,7 @@ const BANNED_SUBSTRINGS = [
 
 const NOTABLE_EXCEPTIONS = [
     'notification',
+    'notify',
     'notch',
     'note',
     'notable',
