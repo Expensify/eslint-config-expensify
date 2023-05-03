@@ -18,7 +18,7 @@ module.exports = {
         NO_MULTIPLE_API_CALLS: 'Do not call API multiple times in the same method. The API response should return all the necessary data in a single request, and API calls should not be chained together.',
         NO_CALL_ACTIONS_FROM_ACTIONS: 'Calling actions from inside other actions is forbidden. If an action needs to call another action combine the two actions into a singular API call instead.',
         NO_API_SIDE_EFFECTS_METHOD: 'Do not use makeRequestWithSideEffects.',
-        PROP_TYPE_REQUIRED_FALSE: 'Prop {{key}} should not be explicily required.',
+        PROP_TYPE_REQUIRED_FALSE: 'Prop {{key}} should not be explicitly required.',
         PROP_TYPE_NOT_DECLARED: 'Prop {{key}} must be declared in propTypes.',
         PROP_DEEFAULT_NOT_DECLARED: 'Prop {{key}} must have a default value.',
         HAVE_PROP_TYPES: 'Component must have prop types declared.',
