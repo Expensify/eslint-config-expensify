@@ -3,27 +3,25 @@ const message = require('./CONST').MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
 
 module.exports = {
     create: (context) => {
-        let withOnyxDetails = [];
+        let withOnyxCount = 0;
 
         return {
             CallExpression(node) {
                 const calleeName = lodashGet(node, 'callee.name');
 
                 if (calleeName === 'withOnyx') {
-                    const details = context.getSourceCode().getText(node.arguments[0]);
+                    withOnyxCount += 1;
 
-                    if (withOnyxDetails.includes(details)) {
+                    if (withOnyxCount > 1) {
                         context.report({
                             node,
                             message,
                         });
-                    } else {
-                        withOnyxDetails.push(details);
                     }
                 }
             },
             'Program:exit': () => {
-                withOnyxDetails = [];
+                withOnyxCount = 0;
             },
         };
     },
