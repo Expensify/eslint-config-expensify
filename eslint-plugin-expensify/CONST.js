@@ -8,7 +8,7 @@ module.exports = {
         NO_NEGATED_VARIABLES: 'Do not use negated variable names.',
         NO_THENABLE_ACTIONS_IN_VIEWS: 'Calling .then() on action method {{method}} is forbidden in React views. Relocate this logic into the actions file and pass values via Onyx.',
         NO_USELESS_COMPOSE: 'compose() is not necessary when passed a single argument',
-        NO_MULTIPLE_ONYX_IN_FILE: 'Only use the same details withOnyx() once. If there are dependent Onyx keys, they can all be handled in a single instance of withOnyx through the use of selectors.',
+        NO_MULTIPLE_ONYX_IN_FILE: 'Only use withOnyx() once. Read here about how to properly work with dependent Onyx keys: https://github.com/Expensify/react-native-onyx#dependent-onyx-keys-and-withonyx',
         PREFER_ACTIONS_SET_DATA: 'Only actions should directly set or modify Onyx data. Please move this logic into a suitable action.',
         PREFER_EARLY_RETURN: 'Prefer an early return to a conditionally-wrapped function body',
         PREFER_IMPORT_MODULE_CONTENTS: 'Do not import individual exports from local modules. Prefer \'import * as\' syntax.',
