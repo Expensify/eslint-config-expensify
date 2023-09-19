@@ -11,6 +11,7 @@ module.exports = {
         'rulesdir/no-useless-compose': 'error',
         'rulesdir/prefer-import-module-contents': 'error',
         'rulesdir/no-multiple-api-calls': 'error',
+        'rulesdir/no-multiple-onyx-in-file': 'error',
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
         'rulesdir/display-name-property': 'error',
