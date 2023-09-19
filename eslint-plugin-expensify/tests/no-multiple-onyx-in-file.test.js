@@ -13,22 +13,25 @@ ruleTester.run('no-multiple-onyx-in-file', rule, {
     valid: [
         {
             code: `
-                withOnyx({
-                    key: 'value',
-                })(Component);
+                compose(
+                    withOnyx({
+                        key: 'value',
+                    })
+                )(Component);
             `,
         },
     ],
     invalid: [
         {
             code: `
-                withOnyx({
-                    key1: 'value1',
-                })(Component1);
-
-                withOnyx({
-                    key1: 'value1',
-                })(Component2);
+                compose(
+                    withOnyx({
+                        key1: 'value1',
+                    }),
+                    withOnyx({
+                        key1: 'value1',
+                    })
+                )(Component);
             `,
             errors: [
                 {
