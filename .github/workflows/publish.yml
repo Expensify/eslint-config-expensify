@@ -21,6 +21,12 @@ jobs:
         with:
           ref: main
 
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ github.token }}
+
       - name: Decrypt & Import OSBotify GPG key
         run: |
           cd .github
@@ -71,12 +77,12 @@ jobs:
       - name: Auto-approve pull request
         run: gh pr review --approve ${{ env.BRANCH_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Auto-merge pull request
         run: gh pr merge --merge --delete-branch ${{ env.BRANCH_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build package
         run: npm run build
@@ -85,3 +91,9 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Comment on PR
+        run: gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body \
+          ":rocket: Published in ${{ env.NEW_VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
