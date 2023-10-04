@@ -93,7 +93,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Comment on PR
-        run: gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body \
-          ":rocket: Published in ${{ env.NEW_VERSION }}"
+        run: |
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body \
+            ":rocket: Published in ${{ env.NEW_VERSION }}"
         env:
           GITHUB_TOKEN: ${{ github.token }}
