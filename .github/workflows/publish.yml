@@ -84,9 +84,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Build package
-        run: npm run build
-
       - name: Publish to npm
         run: npm publish
         env:
