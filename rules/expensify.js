@@ -14,7 +14,6 @@ module.exports = {
         'rulesdir/no-multiple-onyx-in-file': 'error',
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
-        'rulesdir/display-name-property': 'error',
         'rulesdir/prefer-localization': 'error',
         'rulesdir/onyx-props-must-have-default': 'error',
         'no-restricted-imports': ['error', {
