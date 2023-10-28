@@ -16,6 +16,7 @@ module.exports = {
         'rulesdir/no-api-side-effects-method': 'error',
         'rulesdir/prefer-localization': 'error',
         'rulesdir/onyx-props-must-have-default': 'error',
+        'rulesdir/prefer-use-responsive-for-layout': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
