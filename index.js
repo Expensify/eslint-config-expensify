@@ -10,6 +10,7 @@ module.exports = {
         require.resolve('./rules/style'),
         require.resolve('./rules/es6'),
         require.resolve('./rules/react'),
+        'plugin:react-hooks/recommended',
         require.resolve('./rules/expensify'),
     ],
     env: {
