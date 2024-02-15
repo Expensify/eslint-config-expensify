@@ -41,6 +41,6 @@
   },
   "homepage": "https://github.com/Expensify/eslint-config-expensify#readme",
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^27.3.1"
   }
 }
