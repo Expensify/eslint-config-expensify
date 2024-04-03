@@ -19,7 +19,7 @@ module.exports = {
                     });
                 }
             },
-            "ReturnStatement > FunctionExpression, ReturnStatement > ArrowFunctionExpression": function(node) {
+            "ReturnStatement > FunctionExpression, ReturnStatement > ArrowFunctionExpression": function (node) {
                 if (!node.id) {
                     context.report({
                         node,
