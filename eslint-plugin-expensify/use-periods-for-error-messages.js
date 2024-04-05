@@ -18,8 +18,7 @@ module.exports = {
                             node: property,
                             message,
                             fix: function (fixer) {
-                                const lastChar = errorMessage[errorMessage.length - 1];
-                                const fixedMessage = lastChar === '.' ? errorMessage : `${errorMessage}.`;
+                                const fixedMessage = `${errorMessage}.`;
                                 return fixer.replaceText(property.value, `'${fixedMessage}'`);
                             }
                         });
