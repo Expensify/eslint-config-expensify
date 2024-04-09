@@ -28,5 +28,6 @@ module.exports = {
         MUST_USE_VARIABLE_FOR_ASSIGNMENT: '{{key}} must be assigned as a variable instead of direct assignment.',
         NO_DEFAULT_PROPS: 'defaultProps should not be used in function components. Use default Arguments instead.',
         AVOID_ANONYMOUS_FUNCTIONS: 'Prefer named functions.',
+        USE_PERIODS_ERROR_MESSAGES: 'Use periods at the end of error messages.',
     },
 };
