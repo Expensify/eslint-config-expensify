@@ -15,7 +15,6 @@ module.exports = {
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
         'rulesdir/prefer-localization': 'error',
-        'rulesdir/onyx-props-must-have-default': 'error',
         'rulesdir/avoid-anonymous-functions': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
