@@ -27,5 +27,7 @@ module.exports = {
         ONYX_ONE_PARAM: 'The withOnyx HOC must be passed at least one argument.',
         MUST_USE_VARIABLE_FOR_ASSIGNMENT: '{{key}} must be assigned as a variable instead of direct assignment.',
         NO_DEFAULT_PROPS: 'defaultProps should not be used in function components. Use default Arguments instead.',
+        USE_PERIODS_ERROR_MESSAGES: 'Use periods at the end of error messages.',
+        USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN: 'Use !! instead of Boolean().',
     },
 };
