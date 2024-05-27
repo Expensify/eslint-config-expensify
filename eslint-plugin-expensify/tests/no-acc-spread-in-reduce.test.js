@@ -26,6 +26,14 @@ ruleTester.run('no-spread-in-reduce', rule, {
                 , {});
             `,
         },
+        {
+            code: `
+                array.reduce((acc, item) => {
+                    const spread = { ...somethingElse };
+                    return acc[item.key] = item.value;
+                }, {});
+            `,
+        },
     ],
     invalid: [
         {
