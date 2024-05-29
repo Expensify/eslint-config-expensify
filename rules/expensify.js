@@ -16,6 +16,7 @@ module.exports = {
         'rulesdir/no-api-side-effects-method': 'error',
         'rulesdir/prefer-localization': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
+        'rulesdir/no-acc-spread-in-reduce': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',

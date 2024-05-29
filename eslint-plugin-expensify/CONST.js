@@ -29,5 +29,6 @@ module.exports = {
         NO_DEFAULT_PROPS: 'defaultProps should not be used in function components. Use default Arguments instead.',
         USE_PERIODS_ERROR_MESSAGES: 'Use periods at the end of error messages.',
         USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN: 'Use !! instead of Boolean().',
+        NO_ACC_SPREAD_IN_REDUCE: 'Avoid a use of spread (`...`) operator on accumulators in reduce callback. Mutate them directly instead.',
     },
 };
