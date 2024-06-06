@@ -19,25 +19,37 @@ const rule = {
                 }
 
                 // Ensuring that indexType is keyed by type 'keyof'
-                if (node.indexType?.type !== AST_NODE_TYPES.TSTypeOperator && node.indexType?.operator !== 'keyof') {
-                    return;
+                if (node.indexType?.type === AST_NODE_TYPES.TSTypeOperator && node.indexType?.operator === 'keyof') {
+                    // Ensuring that the object type is the same as the index type
+                    if (node.objectType?.exprName.name !== node.indexType?.typeAnnotation?.typeName.name) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        message: PREFER_TYPE_FEST_VALUE_OF,
+                        fix(fixer) {
+                            return fixer.replaceText(
+                                node,
+                                `ValueOf<typeof ${node.objectType.exprName.name}>`,
+                            );
+                        },
+                    });
                 }
 
-                // Ensuring that the object type is the same as the index type
-                if (node.objectType?.exprName.name !== node.indexType?.typeAnnotation?.typeName.name) {
-                    return;
+                // Ensuring that indexType is keyed by type 'number'
+                if (node.indexType?.type === AST_NODE_TYPES.TSNumberKeyword) {
+                    context.report({
+                        node,
+                        message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
+                        fix(fixer) {
+                            return fixer.replaceText(
+                                node,
+                                `TupleToUnion<typeof ${node.objectType.exprName.name}>`,
+                            );
+                        },
+                    });
                 }
-
-                context.report({
-                    node,
-                    message: PREFER_TYPE_FEST_VALUE_OF,
-                    fix(fixer) {
-                        return fixer.replaceText(
-                            node,
-                            `ValueOf<typeof ${node.objectType.exprName.name}>`,
-                        );
-                    },
-                });
             },
         };
     },

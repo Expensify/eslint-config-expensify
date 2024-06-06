@@ -12,21 +12,22 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('prefer-type-fest', rule, {
     valid: [
-        // {
-        //     code: 'const STUFF = [\'a\', \'b\', \'c\'] as const; type Good = TupleToUnion<typeof STUFF>;',
-        //     parser: require.resolve('@typescript-eslint/parser'),
-        // },
+        {
+            code: 'const STUFF = [\'a\', \'b\', \'c\'] as const; type Good = TupleToUnion<typeof STUFF>;',
+            parser: require.resolve('@typescript-eslint/parser'),
+        },
         {
             code: 'const COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Good = ValueOf<typeof COLORS>;',
             parser: require.resolve('@typescript-eslint/parser'),
         },
     ],
     invalid: [
-        // {
-        //     code: 'const STUFF = [\'a\', \'b\', \'c\'] as const; type Bad = (typeof STUFF)[number];',
-        //     errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
-        //     parser: require.resolve('@typescript-eslint/parser'),
-        // },
+        {
+            code: 'const STUFF = [\'a\', \'b\', \'c\'] as const; type Bad = (typeof STUFF)[number];',
+            errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
+            parser: require.resolve('@typescript-eslint/parser'),
+            output: 'const STUFF = [\'a\', \'b\', \'c\'] as const; type Bad = TupleToUnion<typeof STUFF>;',
+        },
         {
             code: 'const COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = (typeof COLORS)[keyof COLORS];',
             errors: [{message: PREFER_TYPE_FEST_VALUE_OF}],
