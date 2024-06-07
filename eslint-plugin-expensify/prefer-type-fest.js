@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 /* eslint-disable es/no-optional-chaining */
 const {AST_NODE_TYPES} = require('@typescript-eslint/utils');
 const {PREFER_TYPE_FEST_VALUE_OF, PREFER_TYPE_FEST_TUPLE_TO_UNION} = require('./CONST').MESSAGE;
@@ -11,7 +12,53 @@ const rule = {
         fixable: 'code',
     },
     create(context) {
+        let typeFestImported = false;
+
+        function valueOfFixer(node, objectName) {
+            return (fixer) => {
+                // Create replacements and add import if necessary
+                const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectName}>`)];
+    
+                if (!typeFestImported) {
+                    fixes.push(
+                        fixer.insertTextBefore(
+                            context.getSourceCode().ast.body[0],
+                            "import type {ValueOf} from 'type-fest';\n"
+                        )
+                    );
+                }
+    
+                return fixes;
+            }
+        }
+
+        function tupleToUnionFixer(node, objectName) {
+            return (fixer) => {
+                // Create replacements and add import if necessary
+                const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectName}>`)];
+    
+                if (!typeFestImported) {
+                    fixes.push(
+                        fixer.insertTextBefore(
+                            context.getSourceCode().ast.body[0],
+                            "import type {TupleToUnion} from 'type-fest';\n"
+                        )
+                    );
+                }
+    
+                return fixes;
+            }
+        }
+
         return {
+            Program(node) {
+                // Find type-fest import declarations
+                node.body.forEach(statement => {
+                  if (statement.type === 'ImportDeclaration' && statement.source.value === 'type-fest') {
+                    typeFestImported = true;
+                  }
+                });
+              },
             TSIndexedAccessType(node) {
                 const objectType = node.objectType;
                 const indexType = node.indexType;
@@ -39,12 +86,7 @@ const rule = {
                             context.report({
                                 node,
                                 message: PREFER_TYPE_FEST_VALUE_OF,
-                                fix(fixer) {
-                                    return fixer.replaceText(
-                                        node,
-                                        `ValueOf<typeof ${objectTypeText}>`,
-                                    );
-                                },
+                                fix: valueOfFixer(node, objectTypeText),
                             });
                         }
                     }
@@ -54,12 +96,7 @@ const rule = {
                         context.report({
                             node,
                             message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
-                            fix(fixer) {
-                                return fixer.replaceText(
-                                    node,
-                                    `TupleToUnion<typeof ${objectTypeText}>`,
-                                );
-                            },
+                            fix: tupleToUnionFixer(node, objectTypeText),
                         });
                     }
                 }
@@ -67,20 +104,6 @@ const rule = {
                 // Case for when the object type is a nested object (CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)
                 if (objectType?.exprName?.type === AST_NODE_TYPES.TSQualifiedName) {
                     const objectTypeText = context.getSourceCode().getText(objectType.exprName);
-
-                    // Ensure that indexType is keyed by type 'number' ((typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number])
-                    if (indexType?.type === AST_NODE_TYPES.TSNumberKeyword) {
-                        context.report({
-                            node,
-                            message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
-                            fix(fixer) {
-                                return fixer.replaceText(
-                                    node,
-                                    `TupleToUnion<typeof ${objectTypeText}>`,
-                                );
-                            },
-                        });
-                    }
 
                     // Ensure that indexType is keyed by type 'keyof' ((typeof CONST.VIDEO_PLAYER)[keyof CONST.VIDEO_PLAYER])
                     if (indexType?.type === AST_NODE_TYPES.TSTypeOperator && indexType?.operator === 'keyof') {
@@ -90,14 +113,18 @@ const rule = {
                             context.report({
                                 node,
                                 message: PREFER_TYPE_FEST_VALUE_OF,
-                                fix(fixer) {
-                                    return fixer.replaceText(
-                                        node,
-                                        `ValueOf<typeof ${objectTypeText}>`,
-                                    );
-                                },
+                                fix: valueOfFixer(node, objectTypeText),
                             });
                         }
+                    }
+
+                    // Ensure that indexType is keyed by type 'number' ((typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number])
+                    if (indexType?.type === AST_NODE_TYPES.TSNumberKeyword) {
+                        context.report({
+                            node,
+                            message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
+                            fix: tupleToUnionFixer(node, objectTypeText),
+                        });
                     }
                 }
             },
