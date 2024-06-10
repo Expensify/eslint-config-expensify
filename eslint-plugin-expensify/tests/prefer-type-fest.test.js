@@ -60,6 +60,12 @@ ruleTester.run('prefer-type-fest', rule, {
             output: 'import type {TupleToUnion} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, TupleToUnion<typeof TIMEZONES>> = { a: \'a\', b: \'b\' };',
         },
         {
+            code: 'import type {Something} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, (typeof TIMEZONES)[number]> = { a: \'a\', b: \'b\' };',
+            errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
+            parser: require.resolve('@typescript-eslint/parser'),
+            output: 'import type {Something, TupleToUnion} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, TupleToUnion<typeof TIMEZONES>> = { a: \'a\', b: \'b\' };',
+        },
+        {
             code: 'const COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = (typeof COLORS)[keyof COLORS];',
             errors: [{message: PREFER_TYPE_FEST_VALUE_OF}],
             parser: require.resolve('@typescript-eslint/parser'),
@@ -82,7 +88,7 @@ ruleTester.run('prefer-type-fest', rule, {
             code: 'import type {TupleToUnion} from \'type-fest\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = (typeof COLORS)[keyof COLORS];',
             errors: [{message: PREFER_TYPE_FEST_VALUE_OF}],
             parser: require.resolve('@typescript-eslint/parser'),
-            output: 'import type {TupleToUnion} from \'type-fest\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = ValueOf<typeof COLORS>;',
+            output: 'import type {TupleToUnion, ValueOf} from \'type-fest\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = ValueOf<typeof COLORS>;',
         },
         {
             code: 'import somethingElse from \'something-else\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = (typeof COLORS)[keyof COLORS];',

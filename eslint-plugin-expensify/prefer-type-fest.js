@@ -1,7 +1,7 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
 /* eslint-disable es/no-optional-chaining */
 const {AST_NODE_TYPES} = require('@typescript-eslint/utils');
 const {PREFER_TYPE_FEST_VALUE_OF, PREFER_TYPE_FEST_TUPLE_TO_UNION} = require('./CONST').MESSAGE;
+const {addNamedImport} = require('./utils/imports');
 
 const rule = {
     meta: {
@@ -12,50 +12,14 @@ const rule = {
         fixable: 'code',
     },
     create(context) {
-        let typeFestImported = false;
-
-        function valueOfFixer(node, objectName) {
-            return (fixer) => {
-                // Create replacements and add import if necessary
-                const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectName}>`)];
-    
-                if (!typeFestImported) {
-                    fixes.push(
-                        fixer.insertTextBefore(
-                            context.getSourceCode().ast.body[0],
-                            "import type {ValueOf} from 'type-fest';\n"
-                        )
-                    );
-                }
-    
-                return fixes;
-            }
-        }
-
-        function tupleToUnionFixer(node, objectName) {
-            return (fixer) => {
-                // Create replacements and add import if necessary
-                const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectName}>`)];
-    
-                if (!typeFestImported) {
-                    fixes.push(
-                        fixer.insertTextBefore(
-                            context.getSourceCode().ast.body[0],
-                            "import type {TupleToUnion} from 'type-fest';\n"
-                        )
-                    );
-                }
-    
-                return fixes;
-            }
-        }
+        let typeFestImport;
 
         return {
             Program(node) {
                 // Find type-fest import declarations
                 node.body.forEach(statement => {
                   if (statement.type === 'ImportDeclaration' && statement.source.value === 'type-fest') {
-                    typeFestImported = true;
+                    typeFestImport = statement;
                   }
                 });
               },
@@ -86,7 +50,11 @@ const rule = {
                             context.report({
                                 node,
                                 message: PREFER_TYPE_FEST_VALUE_OF,
-                                fix: valueOfFixer(node, objectTypeText),
+                                fix: (fixer) => {
+                                    const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectTypeText}>`)];
+                                    fixes.push(...addNamedImport(context, fixer, typeFestImport, 'ValueOf', 'type-fest', true));
+                                    return fixes;
+                                }
                             });
                         }
                     }
@@ -96,7 +64,11 @@ const rule = {
                         context.report({
                             node,
                             message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
-                            fix: tupleToUnionFixer(node, objectTypeText),
+                            fix: (fixer) => {
+                                const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectTypeText}>`)];
+                                fixes.push(...addNamedImport(context, fixer, typeFestImport, 'TupleToUnion', 'type-fest', true));
+                                return fixes;
+                            }
                         });
                     }
                 }
@@ -113,7 +85,11 @@ const rule = {
                             context.report({
                                 node,
                                 message: PREFER_TYPE_FEST_VALUE_OF,
-                                fix: valueOfFixer(node, objectTypeText),
+                                fix: (fixer) => {
+                                    const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectTypeText}>`)];
+                                    fixes.push(...addNamedImport(context, fixer, typeFestImport, 'ValueOf', 'type-fest', true));
+                                    return fixes;
+                                }
                             });
                         }
                     }
@@ -123,7 +99,11 @@ const rule = {
                         context.report({
                             node,
                             message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
-                            fix: tupleToUnionFixer(node, objectTypeText),
+                            fix: (fixer) => {
+                                const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectTypeText}>`)];
+                                fixes.push(...addNamedImport(context, fixer, typeFestImport, 'TupleToUnion', 'type-fest', true));
+                                return fixes;
+                            }
                         });
                     }
                 }

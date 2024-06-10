@@ -30,7 +30,7 @@ module.exports = {
         USE_PERIODS_ERROR_MESSAGES: 'Use periods at the end of error messages.',
         USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN: 'Use !! instead of Boolean().',
         NO_ACC_SPREAD_IN_REDUCE: 'Avoid a use of spread (`...`) operator on accumulators in reduce callback. Mutate them directly instead.',
-        PREFER_TYPE_FEST_TUPLE_TO_UNION: 'Prefer using TupleToUnion from type-fest for converting tuple types to union types.',
-        PREFER_TYPE_FEST_VALUE_OF: 'Prefer using ValueOf from type-fest to extract the type of the properties of an object.',
+        PREFER_TYPE_FEST_TUPLE_TO_UNION: 'Prefer using `TupleToUnion` from `type-fest` for converting tuple types to union types.',
+        PREFER_TYPE_FEST_VALUE_OF: 'Prefer using `ValueOf` from `type-fest` to extract the type of the properties of an object.',
     },
 };
