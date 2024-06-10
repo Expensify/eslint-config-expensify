@@ -17,7 +17,7 @@ function addNamedImport(context, fixer, importNode, importName, importPath, impo
           specifier => specifier.imported.name === importName
       );
 
-      if(!alreadyImported) {
+      if (!alreadyImported) {
           const lastSpecifier = importNode.specifiers[importNode.specifiers.length - 1];
 
           // Add ValueOf to existing type-fest import
