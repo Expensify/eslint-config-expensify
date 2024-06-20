@@ -1,7 +1,13 @@
-require('lodash/get');
 const message = require('./CONST').MESSAGE.USE_PERIODS_ERROR_MESSAGES;
 
 module.exports = {
+    meta: {
+        type: 'suggestion',
+        docs: {
+            description: 'Enforce using periods at the end of error messages',
+        },
+        fixable: 'code',
+    },
     create(context) {
         return {
             Property(node) {
