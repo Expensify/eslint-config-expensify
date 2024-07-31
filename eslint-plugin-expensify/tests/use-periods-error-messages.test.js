@@ -9,27 +9,48 @@ const ruleTester = new RuleTester({
     },
 });
 
-const goodExample = `
+const goodExampleSingleSentence = `
+error: {
+    testMessage: 'This is a test message'
+}
+`;
+
+const goodExampleMultipleSentences = `
+error: {
+    testMessage: 'This is a test message. Last period is mandatory.'
+}
+`;
+
+const badExampleSingleSentence = `
 error: {
     testMessage: 'This is a test message.'
 }
 `;
 
-const badExample = `
+const badExampleMultipleSentences = `
 error: {
-    testMessage: 'This is a test message'
+    testMessage: 'This is a test message. Last period is mandatory'
 }
 `;
 
 ruleTester.run('use-periods-for-error-messages', rule, {
     valid: [
         {
-            code: goodExample,
+            code: goodExampleSingleSentence,
+        },
+        {
+            code: goodExampleMultipleSentences,
         },
     ],
     invalid: [
         {
-            code: badExample,
+            code: badExampleSingleSentence,
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: badExampleMultipleSentences,
             errors: [{
                 message,
             }],

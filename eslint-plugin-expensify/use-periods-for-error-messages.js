@@ -19,7 +19,11 @@ module.exports = {
                         return;
                     }
                     const errorMessage = property.value.value;
-                    if (!errorMessage.endsWith('.')) {
+
+                    // Only enforce period rule if more than one sentence
+                    const sentenceCount = errorMessage.split('.').filter(sentence => sentence.trim().length > 0).length;
+
+                    if (sentenceCount > 1 && !errorMessage.endsWith('.')) {
                         context.report({
                             node: property,
                             message,
