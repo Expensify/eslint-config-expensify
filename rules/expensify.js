@@ -17,7 +17,6 @@ module.exports = {
         'rulesdir/prefer-localization': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
         'rulesdir/no-acc-spread-in-reduce': 'error',
-        'rulesdir/prefer-at': 'error',
         'no-restricted-imports': ['error', {
             paths: [{
                 name: 'react-native',
