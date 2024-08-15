@@ -105,7 +105,7 @@ module.exports = {
         function shouldIgnoreNode(node) {
             return (
                 node.parent &&
-                (node.parent.type === AST_NODE_TYPES.MemberExpression || node.parent.type === AST_NODE_TYPES.OptionalMemberExpression) &&
+                (node.parent.type === AST_NODE_TYPES.MemberExpression) &&
                 node.parent.property === node
             );
         }
