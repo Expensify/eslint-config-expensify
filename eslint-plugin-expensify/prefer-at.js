@@ -67,9 +67,23 @@ module.exports = {
             return indexExpression;
         }
 
+        function isAssignmentExpression(node) {
+            return node.parent && node.parent.type === AST_NODE_TYPES.AssignmentExpression && node.parent.left === node;
+        }
+
         function checkNode(node) {
             if (node.type === AST_NODE_TYPES.MemberExpression && node.property) {
                 if (!isArrayType(node.object)) {
+                    return;
+                }
+
+                // Skip if the property is a method (like a?.map)
+                if (node.parent && node.parent.type === AST_NODE_TYPES.CallExpression && node.parent.callee === node) {
+                    return;
+                }
+
+                // Skip if the node is part of an assignment expression
+                if (isAssignmentExpression(node)) {
                     return;
                 }
 
@@ -91,7 +105,7 @@ module.exports = {
         function shouldIgnoreNode(node) {
             return (
                 node.parent &&
-                node.parent.type === AST_NODE_TYPES.MemberExpression &&
+                (node.parent.type === AST_NODE_TYPES.MemberExpression || node.parent.type === AST_NODE_TYPES.OptionalMemberExpression) &&
                 node.parent.property === node
             );
         }

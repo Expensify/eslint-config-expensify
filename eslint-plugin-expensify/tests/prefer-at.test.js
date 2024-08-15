@@ -66,6 +66,12 @@ ruleTester.run('prefer-at', rule, {
         {
             code: 'const a = ["a", "b", "c"] as const; a[0]',
         },
+        {
+            code: 'const example = [1, 2, 3, 4]; example.map(x => x * 2);',
+        },
+        {
+            code: 'const example = [1, 2, 3, 4]; const x = 1; example[x] = 5;',
+        },
     ],
     invalid: [
         {
