@@ -77,12 +77,12 @@ module.exports = {
                     return;
                 }
 
-                // Skip if the property is a method (like a?.map)
+                // Skip if the property is a method (like a.map)
                 if (node.parent && node.parent.type === AST_NODE_TYPES.CallExpression && node.parent.callee === node) {
                     return;
                 }
 
-                // Skip if the node is part of an assignment expression
+                // Skip if the node is part of an assignment expression (like a[i] = 2)
                 if (isAssignmentExpression(node)) {
                     return;
                 }
