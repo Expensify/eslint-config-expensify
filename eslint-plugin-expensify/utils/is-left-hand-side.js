@@ -1,22 +1,26 @@
 // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/rules/utils/is-left-hand-side.js
 
+const { AST_NODE_TYPES } = require('@typescript-eslint/utils');
+
 function isLeftHandSide(node) {
+	const { parent } = node;
+
 	return (
-		(node.parent.type === 'AssignmentExpression' || node.parent.type === 'AssignmentPattern')
-		&& node.parent.left === node
+		(parent.type === AST_NODE_TYPES.AssignmentExpression || parent.type === AST_NODE_TYPES.AssignmentPattern)
+		&& parent.left === node
 	)
-	|| (node.parent.type === 'UpdateExpression' && node.parent.argument === node)
-	|| (node.parent.type === 'ArrayPattern' && node.parent.elements.includes(node))
+	|| (parent.type === AST_NODE_TYPES.UpdateExpression && parent.argument === node)
+	|| (parent.type === AST_NODE_TYPES.ArrayPattern && parent.elements.includes(node))
 	|| (
-		node.parent.type === 'Property'
-		&& node.parent.value === node
-		&& node.parent.parent.type === 'ObjectPattern'
-		&& node.parent.parent.properties.includes(node.parent)
+		parent.type === AST_NODE_TYPES.Property
+		&& parent.value === node
+		&& parent.parent.type === AST_NODE_TYPES.ObjectPattern
+		&& parent.parent.properties.includes(parent)
 	)
 	|| (
-		node.parent.type === 'UnaryExpression'
-		&& node.parent.operator === 'delete'
-		&& node.parent.argument === node
+		parent.type === AST_NODE_TYPES.UnaryExpression
+		&& parent.operator === 'delete'
+		&& parent.argument === node
 	);
 }
 
