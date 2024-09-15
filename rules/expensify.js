@@ -28,6 +28,7 @@ module.exports = {
                 message: 'Please use SafeAreaView from react-native-safe-area-context',
             }],
         }],
+        "rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth": "error",
     },
 };
 
