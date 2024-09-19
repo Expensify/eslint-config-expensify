@@ -1,3 +1,4 @@
+const {AST_NODE_TYPES} = require("@typescript-eslint/utils");
 const _ = require("underscore");
 const CONST = require("./CONST");
 
@@ -22,7 +23,7 @@ module.exports = {
         }
 
         // Check for 'const {isSmallScreenWidth, ...} = useResponsiveLayout();' pattern
-        if (node.id.type === "ObjectPattern") {
+        if (node.id.type === AST_NODE_TYPES.ObjectPattern) {
           node.id.properties.forEach((property) => {
             if (!property.key || property.key.name !== "isSmallScreenWidth") {
               return;
@@ -45,9 +46,9 @@ module.exports = {
         variableUsages.forEach((usage) => {
           const parent = usage.identifier.parent;
 
-          // Check for 'const isSmallScreen = var.isSmallScreenWidth;' pattern
+          // Check for 'const isSmallScreenWidth = var.isSmallScreenWidth;' pattern
           if (
-            parent.type === "MemberExpression" &&
+            parent.type === AST_NODE_TYPES.MemberExpression &&
             parent.property.name === "isSmallScreenWidth"
           ) {
             context.report({
@@ -60,8 +61,8 @@ module.exports = {
 
           // Check for 'const {isSmallScreenWidth} = var;' pattern
           if (
-            parent.type === "VariableDeclarator" &&
-            parent.id.type === "ObjectPattern"
+            parent.type === AST_NODE_TYPES.VariableDeclarator &&
+            parent.id.type === AST_NODE_TYPES.ObjectPattern
           ) {
             parent.id.properties.forEach((property) => {
               if (!property.key || property.key.name !== "isSmallScreenWidth") {

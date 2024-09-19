@@ -33,6 +33,6 @@ module.exports = {
         PREFER_TYPE_FEST_TUPLE_TO_UNION: 'Prefer using `TupleToUnion` from `type-fest` for converting tuple types to union types.',
         PREFER_TYPE_FEST_VALUE_OF: 'Prefer using `ValueOf` from `type-fest` to extract the type of the properties of an object.',
         PREFER_AT: 'Prefer using the `.at()` method for array element access.',
-        PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH: 'Avoid using isSmallScreenWidth from useResponsiveLayout; use shouldUseNarrowLayout instead whenever possible.',  
+        PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH: 'Prefer using `shouldUseNarrowLayout` instead of `isSmallScreenWidth` from `useResponsiveLayout`.',  
     },
 };
