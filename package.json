@@ -29,6 +29,13 @@
     "lodash": "^4.17.21",
     "underscore": "^1.13.6"
   },
+  "files": [
+    "eslint-plugin-expensify",
+    "rules",
+    "legacy.js",
+    "sample-props.js",
+    "index.js"
+  ],
   "keywords": [
     "eslint",
     "eslintconfig",
