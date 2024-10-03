@@ -19,8 +19,9 @@ module.exports = {
         jquery: true,
         node: true,
     },
-    parser: 'babel-eslint',
+    parser: '@babel/eslint-parser',
     parserOptions: {
+        requireConfigFile: false,
         ecmaVersion: 2018,
         sourceType: 'module',
         ecmaFeatures: {
