@@ -10,27 +10,39 @@ const ruleTester = new RuleTester({
 });
 
 const goodExampleSingleSentence = `
-error: {
-    testMessage: 'This is a test message'
-}
+const err = new Error('This is a test message'); 
 `;
 
 const goodExampleMultipleSentences = `
-error: {
-    testMessage: 'This is a test message. Last period is mandatory.'
-}
+const err = new Error('This is a test message. Last period is mandatory.');
+`;
+
+const goodExampleSingleSentenceWithVar = `
+const errorMessage = 'This is a test message';
+const err = new Error(errorMessage);
+`;
+
+const goodExampleMultipleSentencesWithVar = `
+const errorMessage = 'This is a test message. Last period is mandatory.';
+const err = new Error(errorMessage);
 `;
 
 const badExampleSingleSentence = `
-error: {
-    testMessage: 'This is a test message.'
-}
+const err = new Error('This is a test message.');
+`;
+
+const badExampleSingleSentenceWithVar = `
+const errorMessage = 'This is a test message.';
+const err = new Error(errorMessage);
 `;
 
 const badExampleMultipleSentences = `
-error: {
-    testMessage: 'This is a test message. Last period is mandatory'
-}
+const err = new Error('This is a test message. Last period is mandatory');
+`;
+
+const badExampleMultipleSentencesWithVar = `
+const errorMessage = 'This is a test message. Last period is mandatory';
+const err = new Error(errorMessage);
 `;
 
 ruleTester.run('use-periods-for-error-messages', rule, {
@@ -41,6 +53,12 @@ ruleTester.run('use-periods-for-error-messages', rule, {
         {
             code: goodExampleMultipleSentences,
         },
+        {
+            code: goodExampleSingleSentenceWithVar,
+        },
+        {
+            code: goodExampleMultipleSentencesWithVar,
+        },
     ],
     invalid: [
         {
@@ -50,7 +68,19 @@ ruleTester.run('use-periods-for-error-messages', rule, {
             }],
         },
         {
+            code: badExampleSingleSentenceWithVar,
+            errors: [{
+                message,
+            }],
+        },
+        {
             code: badExampleMultipleSentences,
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: badExampleMultipleSentencesWithVar,
             errors: [{
                 message,
             }],
