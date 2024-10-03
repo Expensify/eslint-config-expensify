@@ -13,8 +13,7 @@ module.exports = {
         },
         schema: [],
         messages: {
-            nonBooleanConditional:
-        'The left side of conditional rendering should be a boolean, not "{{type}}".',
+            nonBooleanConditional: 'The left side of conditional rendering should be a boolean, not "{{type}}".',
         },
     },
     defaultOptions: [],
