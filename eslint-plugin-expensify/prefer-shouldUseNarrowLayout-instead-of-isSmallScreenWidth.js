@@ -12,6 +12,9 @@ module.exports = {
     schema: [],
   },
   create(context) {
+
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+
     return {
       VariableDeclarator(node) {
         if (
@@ -37,10 +40,12 @@ module.exports = {
           });
         }
 
+        const scope = sourceCode.getScope ? sourceCode.getScope(node) : context.getScope();
+
         // Check for 'const var = useResponsiveLayout();' and use of this var
         const variableName = node.id.name;
         const variableUsages = _.filter(
-          context.getScope().references,
+          scope.references,
           (reference) => reference.identifier.name === variableName
         );
         variableUsages.forEach((usage) => {
