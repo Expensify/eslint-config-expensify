@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const message = require('./CONST').MESSAGE.USE_PERIODS_ERROR_MESSAGES;
 
 module.exports = {
@@ -21,16 +22,16 @@ module.exports = {
                     const errorMessage = property.value.value;
 
                     // Only enforce period rule if more than one sentence
-                    const sentenceCount = errorMessage.split('.').filter(sentence => sentence.trim().length > 0).length;
+                    const sentenceCount = _.filter(errorMessage.split('.'), sentence => sentence.trim().length > 0).length;
 
                     if (sentenceCount > 1 && !errorMessage.endsWith('.')) {
                         context.report({
                             node: property,
                             message,
-                            fix: function (fixer) {
+                            fix(fixer) {
                                 const fixedMessage = `${errorMessage}.`;
                                 return fixer.replaceText(property.value, `'${fixedMessage}'`);
-                            }
+                            },
                         });
                     }
                 });

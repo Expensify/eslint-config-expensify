@@ -17,12 +17,13 @@ const rule = {
         return {
             Program(node) {
                 // Find type-fest import declarations
-                node.body.forEach(statement => {
-                  if (statement.type === 'ImportDeclaration' && statement.source.value === 'type-fest') {
+                node.body.forEach((statement) => {
+                    if (statement.type !== 'ImportDeclaration' || statement.source.value !== 'type-fest') {
+                        return;
+                    }
                     typeFestImport = statement;
-                  }
                 });
-              },
+            },
             TSIndexedAccessType(node) {
                 const objectType = node.objectType;
                 const indexType = node.indexType;
@@ -54,7 +55,7 @@ const rule = {
                                     const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectTypeText}>`)];
                                     fixes.push(...addNamedImport(context, fixer, typeFestImport, 'ValueOf', 'type-fest', true));
                                     return fixes;
-                                }
+                                },
                             });
                         }
                     }
@@ -68,7 +69,7 @@ const rule = {
                                 const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectTypeText}>`)];
                                 fixes.push(...addNamedImport(context, fixer, typeFestImport, 'TupleToUnion', 'type-fest', true));
                                 return fixes;
-                            }
+                            },
                         });
                     }
                 }
@@ -89,7 +90,7 @@ const rule = {
                                     const fixes = [fixer.replaceText(node, `ValueOf<typeof ${objectTypeText}>`)];
                                     fixes.push(...addNamedImport(context, fixer, typeFestImport, 'ValueOf', 'type-fest', true));
                                     return fixes;
-                                }
+                                },
                             });
                         }
                     }
@@ -103,7 +104,7 @@ const rule = {
                                 const fixes = [fixer.replaceText(node, `TupleToUnion<typeof ${objectTypeText}>`)];
                                 fixes.push(...addNamedImport(context, fixer, typeFestImport, 'TupleToUnion', 'type-fest', true));
                                 return fixes;
-                            }
+                            },
                         });
                     }
                 }

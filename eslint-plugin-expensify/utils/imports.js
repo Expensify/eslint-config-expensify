@@ -1,3 +1,5 @@
+const _ = require('underscore');
+
 /**
  * Adds a named import to the import statement or creates a new import statement if it doesn't exist.
  *
@@ -10,32 +12,30 @@
  * @returns {Array} An array of fixes to be applied by the fixer.
  */
 function addNamedImport(context, fixer, importNode, importName, importPath, importAsType = false) {
-  const fixes = [];
-  
-  if (importNode) {
-      const alreadyImported = importNode.specifiers.some(
-          specifier => specifier.imported.name === importName
-      );
+    const fixes = [];
 
-      if (!alreadyImported) {
-          const lastSpecifier = importNode.specifiers[importNode.specifiers.length - 1];
+    if (importNode) {
+        const alreadyImported = _.some(importNode.specifiers, specifier => specifier.imported.name === importName);
 
-          // Add ValueOf to existing type-fest import
-          fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${importName}`));
-      }
-  } else {
-      // Add import if it doesn't exist
-      fixes.push(
-          fixer.insertTextBefore(
-              context.getSourceCode().ast.body[0],
-              `import ${importAsType ? "type " : ""}{${importName}} from '${importPath}';\n`
-          )
-      );
-  }
+        if (!alreadyImported) {
+            const lastSpecifier = importNode.specifiers[importNode.specifiers.length - 1];
 
-  return fixes;
+            // Add ValueOf to existing type-fest import
+            fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${importName}`));
+        }
+    } else {
+        // Add import if it doesn't exist
+        fixes.push(
+            fixer.insertTextBefore(
+                context.getSourceCode().ast.body[0],
+                `import ${importAsType ? 'type ' : ''}{${importName}} from '${importPath}';\n`,
+            ),
+        );
+    }
+
+    return fixes;
 }
 
 module.exports = {
-  addNamedImport
+    addNamedImport,
 };

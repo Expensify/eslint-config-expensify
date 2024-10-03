@@ -51,18 +51,21 @@ ruleTester.run('prefer-type-fest', rule, {
             code: 'const CONST = { VIDEO_PLAYER: { PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2] } } as const; type Bad = (typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number];',
             errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
             parser: require.resolve('@typescript-eslint/parser'),
+            // eslint-disable-next-line max-len
             output: 'import type {TupleToUnion} from \'type-fest\';\nconst CONST = { VIDEO_PLAYER: { PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2] } } as const; type Bad = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;',
         },
         {
             code: 'const TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, (typeof TIMEZONES)[number]> = { a: \'a\', b: \'b\' };',
             errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
             parser: require.resolve('@typescript-eslint/parser'),
+            // eslint-disable-next-line max-len
             output: 'import type {TupleToUnion} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, TupleToUnion<typeof TIMEZONES>> = { a: \'a\', b: \'b\' };',
         },
         {
             code: 'import type {Something} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, (typeof TIMEZONES)[number]> = { a: \'a\', b: \'b\' };',
             errors: [{message: PREFER_TYPE_FEST_TUPLE_TO_UNION}],
             parser: require.resolve('@typescript-eslint/parser'),
+            // eslint-disable-next-line max-len
             output: 'import type {Something, TupleToUnion} from \'type-fest\';\nconst TIMEZONES = [\'a\', \'b\'] as const; const test: Record<string, TupleToUnion<typeof TIMEZONES>> = { a: \'a\', b: \'b\' };',
         },
         {
@@ -76,6 +79,7 @@ ruleTester.run('prefer-type-fest', rule, {
             code: 'const CONST = { AVATAR_SIZE: { SMALL: \'small\', MEDIUM: \'medium\', LARGE: \'large\' } } as const; type Bad = { avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE]; }',
             errors: [{message: PREFER_TYPE_FEST_VALUE_OF}],
             parser: require.resolve('@typescript-eslint/parser'),
+            // eslint-disable-next-line max-len
             output: 'import type {ValueOf} from \'type-fest\';\nconst CONST = { AVATAR_SIZE: { SMALL: \'small\', MEDIUM: \'medium\', LARGE: \'large\' } } as const; type Bad = { avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>; }',
         },
         {
@@ -94,6 +98,7 @@ ruleTester.run('prefer-type-fest', rule, {
             code: 'import somethingElse from \'something-else\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = (typeof COLORS)[keyof COLORS];',
             errors: [{message: PREFER_TYPE_FEST_VALUE_OF}],
             parser: require.resolve('@typescript-eslint/parser'),
+            // eslint-disable-next-line max-len
             output: 'import type {ValueOf} from \'type-fest\';\nimport somethingElse from \'something-else\';\nconst COLORS = { GREEN: \'green\', BLUE: \'blue\' } as const; type Bad = ValueOf<typeof COLORS>;',
         },
     ],
