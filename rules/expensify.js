@@ -28,7 +28,6 @@ module.exports = {
                 message: 'Please use SafeAreaView from react-native-safe-area-context',
             }],
         }],
-        'rulesdir/boolean-conditional-rendering': 'error',
     },
 };
 

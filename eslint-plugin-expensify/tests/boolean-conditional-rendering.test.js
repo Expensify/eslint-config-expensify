@@ -95,7 +95,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'string' },
+                    data: {type: 'string'},
                 },
             ],
         },
@@ -107,7 +107,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'number' },
+                    data: {type: 'number'},
                 },
             ],
         },
@@ -119,7 +119,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'any[]' },
+                    data: {type: 'any[]'},
                 },
             ],
         },
@@ -131,7 +131,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: '{}' },
+                    data: {type: '{}'},
                 },
             ],
         },
@@ -143,7 +143,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'any' },
+                    data: {type: 'any'},
                 },
             ],
         },
@@ -155,7 +155,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'any' },
+                    data: {type: 'any'},
                 },
             ],
         },
@@ -167,7 +167,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'void' },
+                    data: {type: 'void'},
                 },
             ],
         },
@@ -179,7 +179,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'unknown' },
+                    data: {type: 'unknown'},
                 },
             ],
         },
@@ -191,7 +191,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'string | boolean' },
+                    data: {type: 'string | boolean'},
                 },
             ],
         },
@@ -203,7 +203,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'any' },
+                    data: {type: 'any'},
                 },
             ],
         },
@@ -216,7 +216,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'string' },
+                    data: {type: 'string'},
                 },
             ],
         },
@@ -228,7 +228,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'Promise<boolean>' },
+                    data: {type: 'Promise<boolean>'},
                 },
             ],
         },
@@ -240,7 +240,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'string' },
+                    data: {type: 'string'},
                 },
             ],
         },
@@ -252,7 +252,7 @@ ruleTester.run('boolean-conditional-rendering', rule, {
             errors: [
                 {
                     messageId: 'nonBooleanConditional',
-                    data: { type: 'string' },
+                    data: {type: 'string'},
                 },
             ],
         },
