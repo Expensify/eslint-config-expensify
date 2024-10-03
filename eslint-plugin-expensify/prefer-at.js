@@ -1,7 +1,7 @@
-const { AST_NODE_TYPES, ESLintUtils } = require('@typescript-eslint/utils');
+const {AST_NODE_TYPES, ESLintUtils} = require('@typescript-eslint/utils');
 const message = require('./CONST').MESSAGE.PREFER_AT;
 
-const { isLeftHandSide } = require('./utils/is-left-hand-side');
+const {isLeftHandSide} = require('./utils/is-left-hand-side');
 
 module.exports = {
     meta: {
@@ -34,7 +34,9 @@ module.exports = {
                     return null;
 
                 case AST_NODE_TYPES.BinaryExpression:
+                    // eslint-disable-next-line no-case-declarations
                     const left = parseExpression(node.left);
+                    // eslint-disable-next-line no-case-declarations
                     const right = parseExpression(node.right);
                     if (left !== null && right !== null) {
                         return `(${left} ${node.operator} ${right})`;
@@ -42,6 +44,7 @@ module.exports = {
                     return null;
 
                 case AST_NODE_TYPES.UnaryExpression:
+                    // eslint-disable-next-line no-case-declarations
                     const argument = parseExpression(node.argument);
                     if (argument !== null) {
                         return `${node.operator}${argument}`;
@@ -70,49 +73,52 @@ module.exports = {
         }
 
         function checkNode(node) {
-            if (node.type === AST_NODE_TYPES.MemberExpression && node.property) {
-                if (!isArrayType(node.object)) {
-                    return;
-                }
+            if (node.type !== AST_NODE_TYPES.MemberExpression || !node.property) {
+                return;
+            }
 
-                // Skip if the property is a method (like a?.map)
-                if (node.parent && node.parent.type === AST_NODE_TYPES.CallExpression && node.parent.callee === node) {
-                    return;
-                }
+            if (!isArrayType(node.object)) {
+                return;
+            }
 
-                // Skip if the node is part of an assignment expression
-                if (isLeftHandSide(node)) {
-                    return;
-                }
+            // Skip if the property is a method (like a?.map)
+            if (node.parent && node.parent.type === AST_NODE_TYPES.CallExpression && node.parent.callee === node) {
+                return;
+            }
 
-                const indexExpression = parseExpression(node.property);
+            // Skip if the node is part of an assignment expression
+            if (isLeftHandSide(node)) {
+                return;
+            }
 
-                if (indexExpression !== null && indexExpression !== 'length' && indexExpression !== 'at') {
-                    context.report({
-                        node,
-                        message,
-                        fix(fixer) {
-                            const objectText = getSourceCode(node.object);
-                            return fixer.replaceText(node, `${objectText}.at(${getExpressionWithUpdatedBrackets(indexExpression)})`);
-                        },
-                    });
-                }
+            const indexExpression = parseExpression(node.property);
+
+            if (indexExpression !== null && indexExpression !== 'length' && indexExpression !== 'at') {
+                context.report({
+                    node,
+                    message,
+                    fix(fixer) {
+                        const objectText = getSourceCode(node.object);
+                        return fixer.replaceText(node, `${objectText}.at(${getExpressionWithUpdatedBrackets(indexExpression)})`);
+                    },
+                });
             }
         }
 
         function shouldIgnoreNode(node) {
             return (
-                node.parent &&
-                node.parent.type === AST_NODE_TYPES.MemberExpression &&
-                node.parent.property === node
+                node.parent
+                && node.parent.type === AST_NODE_TYPES.MemberExpression
+                && node.parent.property === node
             );
         }
 
         return {
             MemberExpression(node) {
-                if (!shouldIgnoreNode(node)) {
-                    checkNode(node);
+                if (shouldIgnoreNode(node)) {
+                    return;
                 }
+                checkNode(node);
             },
         };
     },
