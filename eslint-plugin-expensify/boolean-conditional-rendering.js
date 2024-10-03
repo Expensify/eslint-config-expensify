@@ -1,5 +1,7 @@
+/* eslint-disable no-bitwise */
 const _ = require('underscore');
 const {ESLintUtils} = require('@typescript-eslint/utils');
+const ts = require('typescript');
 
 module.exports = {
     name: 'boolean-conditional-rendering',
@@ -22,11 +24,20 @@ module.exports = {
         }
         function isBoolean(type) {
             return (
-            // eslint-disable-next-line no-bitwise
-                (type.getFlags() & (16 | 528 | 512)) !== 0 // TypeFlags.Boolean | TypeFlags.BooleanLike | TypeFlags.BooleanLiteral
+                (type.getFlags()
+          & (ts.TypeFlags.Boolean
+            | ts.TypeFlags.BooleanLike
+            | ts.TypeFlags.BooleanLiteral))
+          !== 0
         || (type.isUnion()
-        // eslint-disable-next-line no-bitwise
-          && _.every(type.types, t => (t.getFlags() & (16 | 528 | 512)) !== 0))
+          && _.every(
+              type.types,
+              t => (t.getFlags()
+                & (ts.TypeFlags.Boolean
+                  | ts.TypeFlags.BooleanLike
+                  | ts.TypeFlags.BooleanLiteral))
+              !== 0,
+          ))
             );
         }
         const parserServices = ESLintUtils.getParserServices(context);
