@@ -13,7 +13,7 @@ jobs:
   get_pull_request:
     runs-on: ubuntu-latest
     outputs:
-      pull_request_number: ${{ steps.getMergedPullRequest.outputs.pull_request_number }}
+      pull_request_number: ${{ steps.getMergedPullRequest.outputs.number }}
     steps:
       - uses: actions/checkout@v3
         with:
