@@ -38,4 +38,4 @@ Just add `extends: 'expensify/legacy'` to the `.eslintrc` file in the root direc
 
 ## Style Guide
 
-Feel free to also check out our [Javascript style guide](https://github.com/Expensify/Style-Guide/blob/main/javascript.md), our [general language-agnostic coding standards](https://github.com/Expensify/Style-Guide/blob/main/general.md), and the [ESlint config docs](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information.
+Feel free to also check out our [Javascript style guide](https://github.com/Expensify/Style-Guides/blob/main/javascript.md), our [general language-agnostic coding standards](https://github.com/Expensify/Style-Guides/blob/main/general.md), and the [ESlint config docs](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information.
