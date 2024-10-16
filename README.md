@@ -17,15 +17,8 @@ After you have submitted a PR,
 3. Now, you can run `npm run lint` or perform any other tests you want in that repo.
 
 ### After PR is merged
-You need to publish the newest version of this to NPM so that we can update it in the other repos
-1. From the command line, in the directory for this repo:
-1. Run `npm login`
-1. Enter username: 'expensify'
-1. Enter password: this is in 1Password for npmjs.com
-1. Enter the email: infra@expensify.com
-1. Ask for the 2FA code in #infra (feel free to ping @ring0 if you don't get a timely response)
-1. Run `npm publish`
-1. Go into the App, Web-Expensify and Web-Secure repos and run `npm install eslint-config-expensify@latest`. This should update the `package.json` and `package-lock.json` file and you can submit a PR with those changes.
+1. A GitHub action will automatically bump the version and publish the package to npm after PR is merged.
+1. Go into the App, Web-Expensify and Web-Secure repos and run `npm install eslint-config-expensify@latest`. This should update the `package.json` and `package-lock.json` file, and you can submit a PR with those changes.
 
 **Note** as of now we have no way of testing these PRs without a separate App, Web or Web Secure PR
 
