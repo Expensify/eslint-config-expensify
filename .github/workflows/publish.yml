@@ -12,6 +12,10 @@ concurrency: ${{ github.workflow }}
 jobs:
   get_pull_request:
     runs-on: ubuntu-latest
+
+    # os-botify[bot] will update the version on `main`, so this check is important to prevent an infinite loop
+    if: ${{ github.actor != 'os-botify[bot]' }}
+
     outputs:
       pull_request_number: ${{ steps.getMergedPullRequest.outputs.number }}
     steps:
