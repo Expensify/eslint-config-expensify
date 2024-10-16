@@ -7,7 +7,7 @@ This package provides Expensify's .eslintrc as an extensible shared config. Most
 ## How to Develop
 
 1. You only need to make a PR with the changes. There is no need to bump the version in `package.json` file in your PR. A github action will automatically bump the version and publish the package to npm after PR is merged.
-`
+
 ### Testing
 
 After you have submitted a PR,
