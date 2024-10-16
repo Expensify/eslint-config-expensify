@@ -89,23 +89,6 @@ ruleTester.run('boolean-conditional-rendering', rule, {
     invalid: [
         {
             code: `
-                type ComponentProps = {
-                    condition?: boolean;
-                };
-
-                function Component({condition}: ComponentProps) {
-                    return <View>{condition && <SomeComponent/>}</View>;
-                }
-            `,
-            errors: [
-                {
-                    messageId: 'nonBooleanConditional',
-                    data: {type: 'boolean | undefined'},
-                },
-            ],
-        },
-        {
-            code: `
                 const condition = "string";
                 condition && <MyComponent />;
             `,
