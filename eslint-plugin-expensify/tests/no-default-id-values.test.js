@@ -1,5 +1,5 @@
 const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-default-values');
+const rule = require('../no-default-id-values');
 
 const ruleTester = new RuleTester({
     parserOptions: {
@@ -8,7 +8,7 @@ const ruleTester = new RuleTester({
     },
 });
 
-ruleTester.run('no-default-values', rule, {
+ruleTester.run('no-default-id-values', rule, {
     valid: [
         // Number IDs
         {

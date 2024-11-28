@@ -1,5 +1,5 @@
 module.exports = {
-    name: 'no-default-values',
+    name: 'no-default-id-values',
     meta: {
         type: 'problem',
         docs: {
