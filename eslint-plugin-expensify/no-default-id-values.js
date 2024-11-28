@@ -1,3 +1,28 @@
+function createPatternRegex(pattern) {
+    return new RegExp(pattern.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), 'g');
+}
+
+function searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, messageId) {
+    const regex = createPatternRegex(pattern);
+    let match = regex.exec(soureCodeStr);
+    while (match !== null) {
+        const index = match.index;
+
+        const defaultStr = match[0];
+        const defaultStrPosition = sourceCode.getLocFromIndex(index);
+
+        context.report({
+            messageId,
+            loc: {
+                start: {line: defaultStrPosition.line, column: defaultStrPosition.column + defaultStr.indexOf(' ')},
+                end: {line: defaultStrPosition.line, column: defaultStrPosition.column + defaultStr.length},
+            },
+        });
+
+        match = regex.exec(soureCodeStr);
+    }
+}
+
 module.exports = {
     name: 'no-default-id-values',
     meta: {
@@ -15,31 +40,6 @@ module.exports = {
         },
     },
     create(context) {
-        function createPatternRegex(pattern) {
-            return new RegExp(pattern.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), 'g');
-        }
-
-        function searchForPatternsAndReport(sourceCode, soureCodeStr, pattern, messageId) {
-            const regex = createPatternRegex(pattern);
-            let match = regex.exec(soureCodeStr);
-            while (match !== null) {
-                const index = match.index;
-
-                const defaultStr = match[0];
-                const defaultStrPosition = sourceCode.getLocFromIndex(index);
-
-                context.report({
-                    messageId,
-                    loc: {
-                        start: {line: defaultStrPosition.line, column: defaultStrPosition.column + defaultStr.indexOf(' ')},
-                        end: {line: defaultStrPosition.line, column: defaultStrPosition.column + defaultStr.length},
-                    },
-                });
-
-                match = regex.exec(soureCodeStr);
-            }
-        }
-
         const sourceCode = context.getSourceCode();
         const soureCodeStr = sourceCode.text; // This gets all the text in the file
 
@@ -74,11 +74,11 @@ module.exports = {
         ];
 
         disallowedNumberDefaults.forEach((pattern) => {
-            searchForPatternsAndReport(sourceCode, soureCodeStr, pattern, 'disallowedNumberDefault');
+            searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedNumberDefault');
         });
 
         disallowedStringDefaults.forEach((pattern) => {
-            searchForPatternsAndReport(sourceCode, soureCodeStr, pattern, 'disallowedStringDefault');
+            searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedStringDefault');
         });
 
         return {};
