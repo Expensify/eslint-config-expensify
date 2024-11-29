@@ -28,8 +28,11 @@ module.exports = {
 
                 const firstArg = node.arguments[0];
 
-                // Return early if the first argument is not a function call
-                if (firstArg.type !== 'CallExpression') {
+                // Return early if the first argument is not a function call or a member expression with a function call
+                if (
+                    firstArg.type !== 'CallExpression'
+                    && !(firstArg.type === 'MemberExpression' && firstArg.object.type === 'CallExpression')
+                ) {
                     return;
                 }
 
@@ -61,8 +64,11 @@ module.exports = {
                     return; // Valid case, do nothing
                 }
 
-                // If it's a direct function call, report it
-                if (firstArg.type === 'CallExpression') {
+                // If it's a direct function call or a member expression with a function call, report it
+                if (
+                    firstArg.type === 'CallExpression'
+                    || (firstArg.type === 'MemberExpression' && firstArg.object.type === 'CallExpression')
+                ) {
                     context.report({
                         node: firstArg,
                         messageId: 'noDirectCall',

@@ -17,12 +17,29 @@ ruleTester.run('no-use-state-initializer-functions', rule, {
                 useState(() => testFunc());
             `,
         },
+        {
+            // Calling a callback should be valid
+            code: `
+                useState(() => testFunc().value);
+            `,
+        },
     ],
     invalid: [
         {
             // Calling a function should be invalid
             code: `
                 useState(testFunc());
+            `,
+            errors: [
+                {
+                    message,
+                },
+            ],
+        },
+        {
+            // Calling a function should be invalid
+            code: `
+                useState(testFunc().value);
             `,
             errors: [
                 {
