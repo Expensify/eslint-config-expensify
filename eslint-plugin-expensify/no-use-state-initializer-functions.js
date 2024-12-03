@@ -28,10 +28,12 @@ module.exports = {
 
                 const firstArg = node.arguments[0];
 
-                // Return early if the first argument is not a function call or a member expression with a function call
+                // Return early if the first argument is not a function call, member expression with a function call, or conditional expression with function calls
                 if (
                     firstArg.type !== 'CallExpression'
                     && !(firstArg.type === 'MemberExpression' && firstArg.object.type === 'CallExpression')
+                    && !(firstArg.type === 'ConditionalExpression'
+                        && (firstArg.consequent.type === 'CallExpression' || firstArg.alternate.type === 'CallExpression'))
                 ) {
                     return;
                 }
@@ -64,10 +66,12 @@ module.exports = {
                     return; // Valid case, do nothing
                 }
 
-                // If it's a direct function call or a member expression with a function call, report it
+                // If it's a direct function call, member expression with a function call, or conditional expression with function calls, report it
                 if (
                     firstArg.type === 'CallExpression'
                     || (firstArg.type === 'MemberExpression' && firstArg.object.type === 'CallExpression')
+                    || (firstArg.type === 'ConditionalExpression'
+                        && (firstArg.consequent.type === 'CallExpression' || firstArg.alternate.type === 'CallExpression'))
                 ) {
                     context.report({
                         node: firstArg,

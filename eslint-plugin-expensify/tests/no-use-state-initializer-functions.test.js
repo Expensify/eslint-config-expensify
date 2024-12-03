@@ -23,6 +23,18 @@ ruleTester.run('no-use-state-initializer-functions', rule, {
                 useState(() => testFunc().value);
             `,
         },
+        {
+            // Calling a callback should be valid
+            code: `
+                useState(condition ? testFunc : testFunc);
+            `,
+        },
+        {
+            // Calling a callback should be valid
+            code: `
+                useState(condition ? () => testFunc() : () => testFunc());
+            `,
+        },
     ],
     invalid: [
         {
@@ -40,6 +52,28 @@ ruleTester.run('no-use-state-initializer-functions', rule, {
             // Calling a function should be invalid
             code: `
                 useState(testFunc().value);
+            `,
+            errors: [
+                {
+                    message,
+                },
+            ],
+        },
+        {
+            // Calling a function should be invalid
+            code: `
+                useState(condition ? testFunc() : testFunc());
+            `,
+            errors: [
+                {
+                    message,
+                },
+            ],
+        },
+        {
+            // Calling a function should be invalid
+            code: `
+                useState(condition ? (() => testFunc())() : (() => testFunc())());
             `,
             errors: [
                 {
