@@ -29,6 +29,7 @@ module.exports = {
             }],
         }],
         'rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth': 'warn',
+        'rulesdir/no-use-state-initializer-functions': 'error',
     },
 };
 
