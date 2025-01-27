@@ -71,6 +71,7 @@ module.exports = {
             "id || '0'",
             " : '-1'",
             " : '0'",
+            'CONST.DEFAULT_NUMBER_ID}`',
         ];
 
         disallowedNumberDefaults.forEach((pattern) => {
