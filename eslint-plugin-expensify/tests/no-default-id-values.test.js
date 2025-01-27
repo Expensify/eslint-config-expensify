@@ -256,5 +256,33 @@ ruleTester.run('no-default-id-values', rule, {
                 messageId: 'disallowedStringDefault',
             }],
         },
+        {
+            // eslint-disable-next-line no-template-curly-in-string
+            code: 'const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);',
+            errors: [{
+                messageId: 'disallowedStringDefault',
+            }],
+        },
+        {
+            // eslint-disable-next-line no-template-curly-in-string
+            code: 'useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);',
+            errors: [{
+                messageId: 'disallowedStringDefault',
+            }],
+        },
+        {
+            // eslint-disable-next-line no-template-curly-in-string
+            code: 'const policyID = policy ? policy.id : `${CONST.DEFAULT_NUMBER_ID}`;',
+            errors: [{
+                messageId: 'disallowedStringDefault',
+            }],
+        },
+        {
+            // eslint-disable-next-line no-template-curly-in-string
+            code: 'const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;',
+            errors: [{
+                messageId: 'disallowedStringDefault',
+            }],
+        },
     ],
 });
