@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/eslint-config-expensify.svg)](http://badge.fury.io/js/eslint-config-expensify)
 
-This package provides Expensify's .eslintrc as an extensible shared config. Most of our rules are based on [Airbnb's style guide](https://github.com/airbnb/javascript).
+This package provides Expensify's `.eslintrc` as an extensible shared config. Most of our rules are based on [Airbnb's style guide](https://github.com/airbnb/javascript).
 
 ## How to Develop
 
