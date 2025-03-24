@@ -36,5 +36,6 @@ module.exports = {
         PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH: 'Prefer using `shouldUseNarrowLayout` instead of `isSmallScreenWidth` from `useResponsiveLayout`.',
         NO_USE_STATE_INITIALIZER_CALL_FUNCTION:
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
+        PREFER_TOKENIZED_SEARCH: 'Use tokenizedSearch instead of filter().includes() for better search performance and accuracy.',
     },
 };
