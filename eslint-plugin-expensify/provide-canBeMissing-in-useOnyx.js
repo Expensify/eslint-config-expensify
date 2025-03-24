@@ -16,7 +16,7 @@ module.exports = {
         },
         schema: [],
         messages: {
-            provideCanBeMissing: 'Provide the "canBeMissing" option to the useOnyx() call.',
+            provideCanBeMissing: 'useOnyx() calls require you to pass the "canBeMissing" param.',
         },
     },
     create(context) {
