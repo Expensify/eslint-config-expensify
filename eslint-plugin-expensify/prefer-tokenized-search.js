@@ -1,9 +1,4 @@
-const lodashGet = require('lodash/get');
-const lodashSome = require('lodash/some');
-const lodashIsArray = require('lodash/isArray');
-const lodashIsObject = require('lodash/isObject');
-const lodashFilter = require('lodash/filter');
-const lodashEntries = require('lodash/entries');
+const _ = require('lodash');
 const message = require('./CONST').MESSAGE.PREFER_TOKENIZED_SEARCH;
 
 /**
@@ -22,20 +17,24 @@ function extractCallExpression(node) {
  * @returns {Boolean}
  */
 function containsToLowerCase(node) {
-    if (!node || typeof node !== 'object') { return false; }
+    if (!node || typeof node !== 'object') {
+        return false;
+    }
 
     if (node.type === 'CallExpression') {
         const callExp = extractCallExpression(node);
-        if (lodashGet(callExp, 'callee.property.name') === 'toLowerCase') {
+        if (_.get(callExp, 'callee.property.name') === 'toLowerCase') {
             return true;
         }
     }
 
-    return lodashSome(Object.entries(node), ([key, child]) => {
-        if (key === 'parent') { return false; }
+    return _.some(Object.entries(node), ([key, child]) => {
+        if (key === 'parent') {
+            return false;
+        }
 
-        if (lodashIsArray(child)) {
-            return lodashSome(child, c => containsToLowerCase(c));
+        if (_.isArray(child)) {
+            return _.some(child, c => containsToLowerCase(c));
         }
 
         return child && typeof child === 'object' && containsToLowerCase(child);
@@ -57,8 +56,8 @@ function checkExpression(expr) {
     // If the expression is a call expression, check if it's an includes call.
     if (expr.type === 'CallExpression') {
         const callExp = extractCallExpression(expr);
-        if (lodashGet(callExp, 'callee.property.name') === 'includes') {
-            const lowerCaseCall = lodashGet(callExp, 'callee.object');
+        if (_.get(callExp, 'callee.property.name') === 'includes') {
+            const lowerCaseCall = _.get(callExp, 'callee.object');
             if (containsToLowerCase(lowerCaseCall)) {
                 return true;
             }
@@ -69,6 +68,7 @@ function checkExpression(expr) {
     if (expr.type === 'LogicalExpression') {
         return checkExpression(expr.left) || checkExpression(expr.right);
     }
+
     return false;
 }
 
@@ -79,19 +79,21 @@ function checkExpression(expr) {
  * @returns {Boolean}
  */
 function findSuspiciousCall(node) {
-    if (!node || !lodashIsObject(node)) { return false; }
+    if (!node || !_.isObject(node)) {
+        return false;
+    }
 
     if (node.type === 'CallExpression' && checkExpression(node)) {
         return true;
     }
 
-    const entries = lodashFilter(lodashEntries(node), ([key]) => key !== 'parent');
+    const entries = _.filter(_.entries(node), ([key]) => key !== 'parent');
 
-    return lodashSome(entries, ([, child]) => {
-        if (lodashIsArray(child)) {
-            return lodashSome(child, c => findSuspiciousCall(c));
+    return _.some(entries, ([, child]) => {
+        if (_.isArray(child)) {
+            return _.some(child, c => findSuspiciousCall(c));
         }
-        return lodashIsObject(child) && findSuspiciousCall(child);
+        return _.isObject(child) && findSuspiciousCall(child);
     });
 }
 
@@ -102,11 +104,11 @@ function findSuspiciousCall(node) {
  * @returns {Boolean}
  */
 function isUsingFilterIncludes(node) {
-    if (lodashGet(node, 'callee.property.name') !== 'filter') {
+    if (_.get(node, 'callee.property.name') !== 'filter') {
         return false;
     }
 
-    const callback = lodashGet(node, 'arguments[0]');
+    const callback = _.get(node, 'arguments[0]');
     if (!callback || callback.type !== 'ArrowFunctionExpression') {
         return false;
     }
