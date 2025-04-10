@@ -26,5 +26,8 @@ module.exports = {
 
         // Use of `this` outside class methods can lead to crashes on minified code
         'no-invalid-this': 'error',
+
+        // Override no-restricted-syntax to allow for...of loops
+        'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
     },
 };
