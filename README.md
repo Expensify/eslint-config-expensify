@@ -20,7 +20,7 @@ After you have submitted a PR,
 1. A GitHub action will automatically bump the version and publish the package to npm after PR is merged.
 1. Go into the App, Web-Expensify and Web-Secure repos and run `npm install eslint-config-expensify@latest`. This should update the `package.json` and `package-lock.json` file, and you can submit a PR with those changes.
 
-**Note** as of now we have no way of testing these PRs without a separate App, Web or Web Secure PR
+**Note** as of now we have no way of testing these PRs without a separate App, Web or Web-Secure PR
 
 ## Usage
 
