@@ -1,5 +1,6 @@
-const rule = require('../no-onyx-connect');
+
 const RuleTester = require('eslint').RuleTester;
+const rule = require('../no-onyx-connect');
 
 const ruleTester = new RuleTester({
     parserOptions: {
