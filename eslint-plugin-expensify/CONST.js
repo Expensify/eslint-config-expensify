@@ -6,6 +6,7 @@ module.exports = {
         NO_API_IN_VIEWS: 'Do not call API directly outside of actions methods. Only actions should make API requests.',
         NO_INLINE_NAMED_EXPORT: 'Do not inline named exports.',
         NO_NEGATED_VARIABLES: 'Do not use negated variable names.',
+        NO_ONYX_CONNECT: 'Onyx.connect() is deprecated. Use useOnyx() hook instead and pass the data as parameters to a pure function.',
         NO_THENABLE_ACTIONS_IN_VIEWS: 'Calling .then() on action method {{method}} is forbidden in React views. Relocate this logic into the actions file and pass values via Onyx.',
         NO_USELESS_COMPOSE: 'compose() is not necessary when passed a single argument',
         NO_MULTIPLE_ONYX_IN_FILE: 'Only use withOnyx() once. Read here about how to properly work with dependent Onyx keys: https://github.com/Expensify/react-native-onyx#dependent-onyx-keys-and-withonyx',

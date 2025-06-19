@@ -2,6 +2,7 @@ module.exports = {
     rules: {
         'rulesdir/no-negated-variables': 'error',
         'rulesdir/no-api-in-views': 'error',
+        'rulesdir/no-onyx-connect': 'warn',
         'rulesdir/prefer-actions-set-data': 'error',
         'rulesdir/prefer-onyx-connect-in-libs': 'error',
         'rulesdir/no-thenable-actions-in-views': 'error',
