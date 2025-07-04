@@ -100,7 +100,7 @@ module.exports = {
             // Visit FunctionDeclaration nodes (e.g., `function canUseAutoSubmit(...) { ... }`)
             FunctionDeclaration(node) {
                 // Check if the function body is a block statement
-                if (node.id.name === 'isBetaEnabled' || !node.body || node.body.type !== 'BlockStatement') {
+                if ((node.id && node.id.name === 'isBetaEnabled') || !node.body || node.body.type !== 'BlockStatement') {
                     return;
                 }
                 for (const statement of node.body.body) {
@@ -117,7 +117,7 @@ module.exports = {
             // Visit VariableDeclarator nodes (e.g., `const canUseAutoSubmit = (betas) => { ... };`)
             VariableDeclarator(node) {
                 // Ensure it's an arrow function or function expression
-                if (node.id.name === 'isBetaEnabled' || !node.init || !(node.init.type === 'ArrowFunctionExpression' || node.init.type === 'FunctionExpression')) {
+                if ((node.id && node.id.name === 'isBetaEnabled') || !node.init || !(node.init.type === 'ArrowFunctionExpression' || node.init.type === 'FunctionExpression')) {
                     return;
                 }
                 const funcBody = node.init.body;
