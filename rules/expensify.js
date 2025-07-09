@@ -31,6 +31,7 @@ module.exports = {
         }],
         'rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth': 'warn',
         'rulesdir/no-use-state-initializer-functions': 'error',
+        'rulesdir/no-empty-array-object-default-in-useOnyx': 'error',
     },
 };
 
