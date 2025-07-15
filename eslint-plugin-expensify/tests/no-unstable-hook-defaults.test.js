@@ -66,7 +66,7 @@ ruleTester.run('no-unstable-hook-defaults', rule, {
             code: `
                 const CONST_VALUE = {key: "value"};
                 function Component() {
-                    const {value1 = CONST_VALUE} = useHook();
+                    const {value = CONST_VALUE} = useHook();
                 }
             `,
         },
@@ -74,7 +74,7 @@ ruleTester.run('no-unstable-hook-defaults', rule, {
             code: `
                 function Component() {
                     const memoizedValue = useMemo(() => ({key: "value"}), []);
-                    const {value1 = memoizedValue} = useHook();
+                    const {value = memoizedValue} = useHook();
                 }
             `,
         },
@@ -114,26 +114,26 @@ ruleTester.run('no-unstable-hook-defaults', rule, {
             errors: [{messageId: 'noUnstableIdentifierDefault'}],
         },
         {
-            code: 'const {value1 = []} = useHook();',
+            code: 'const {value = []} = useHook();',
             errors: [{messageId: 'noEmptyArrayDefault'}],
         },
         {
-            code: 'const {value1 = {}} = useHook();',
+            code: 'const {value = {}} = useHook();',
             errors: [{messageId: 'noEmptyObjectDefault'}],
         },
         {
-            code: 'const {value1 = {key: "value"}} = useHook();',
+            code: 'const {value = {key: "value"}} = useHook();',
             errors: [{messageId: 'noInlineObjectDefault'}],
         },
         {
-            code: 'const {value1 = ["item"]} = useHook();',
+            code: 'const {value = ["item"]} = useHook();',
             errors: [{messageId: 'noInlineArrayDefault'}],
         },
         {
             code: `
                 function Component() {
                     const notMemoizedValue = {key: "value"};
-                    const {value1 = notMemoizedValue} = useHook();
+                    const {value = notMemoizedValue} = useHook();
                 }
             `,
             errors: [{messageId: 'noUnstableIdentifierDefault'}],
