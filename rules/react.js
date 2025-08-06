@@ -360,7 +360,7 @@ module.exports = {
         'react/no-unstable-nested-components': 'error',
 
         // Enforce that namespaces are not used in React elements
-        'react/jsx-no-leaked-render': 'error',
+        'react/jsx-no-leaked-render': ['error', {validStrategies: ['coerce']}],
 
         // Enforce sandbox attribute on iframe elements
         'react/iframe-missing-sandbox': 'error',
