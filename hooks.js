@@ -1,6 +1,8 @@
+const _ = require('lodash');
+
 module.exports = {
-    extends: [
+    extends: _.map([
         './rules/react-hooks.js',
-    ].map(require.resolve),
+    ], require.resolve),
     rules: {},
 };
