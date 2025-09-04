@@ -50,6 +50,14 @@ module.exports = {
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/display-name.md
         'react/display-name': ['off', {ignoreTranspilerName: false}],
 
+        // Forbid certain propTypes (any, array, object)
+        // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/forbid-prop-types.md
+        'react/forbid-prop-types': ['error', {
+            forbid: ['any', 'array', 'object'],
+            checkContextTypes: true,
+            checkChildContextTypes: true,
+        }],
+
         // Forbid certain props on DOM Nodes
         // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/forbid-dom-props.md
         'react/forbid-dom-props': ['off', {forbid: []}],
@@ -77,6 +85,10 @@ module.exports = {
             eventHandlerPropPrefix: 'on',
         }],
 
+        // Validate props indentation in JSX
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-indent-props.md
+        'react/jsx-indent-props': ['error', 4],
+
         // Validate JSX has key prop when in array or iterator
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-key.md
         // Turned off because it has too many false positives
@@ -103,6 +115,12 @@ module.exports = {
         // Prevent usage of unwrapped JSX strings
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-literals.md
         'react/jsx-no-literals': ['off', {noStrings: true}],
+
+        // Disallow undeclared variables in JSX
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-undef.md
+        'react/jsx-no-undef': ['error', {
+            allowGlobals: true,
+        }],
 
         // Enforce PascalCase for user-defined JSX components
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-pascal-case.md
@@ -177,13 +195,41 @@ module.exports = {
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-is-mounted.md
         'react/no-is-mounted': 'error',
 
+        // Do not prevent multiple component definition per file
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-multi-comp.md
+        'react/no-multi-comp': 'off',
+
         // Prevent usage of setState
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-set-state.md
         'react/no-set-state': 'off',
 
+        // Prevent using string references
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-string-refs.md
+        'react/no-string-refs': 'error',
+
         // Prevent usage of unknown DOM property
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-unknown-property.md
         'react/no-unknown-property': 'error',
+
+        // Require ES6 class declarations over React.createClass
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-es6-class.md
+        'react/prefer-es6-class': ['error', 'always'],
+
+        // Require stateless functions when not using lifecycle methods, setState or ref
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-stateless-function.md
+        'react/prefer-stateless-function': ['error', {ignorePureComponents: true}],
+
+        // Prevent missing props validation in a React component definition
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prop-types.md
+        'react/prop-types': ['error', {
+            ignore: [],
+            customValidators: [],
+            skipUndeclared: false,
+        }],
+
+        // Do not prevent missing React when using JSX
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/react-in-jsx-scope.md
+        'react/react-in-jsx-scope': 'off',
 
         // Require render() methods to return something
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/require-render-return.md
@@ -265,9 +311,17 @@ module.exports = {
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-equals-spacing.md
         'react/jsx-equals-spacing': ['error', 'never'],
 
+        // Enforce JSX indentation
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-indent.md
+        'react/jsx-indent': ['error', 4],
+
         // Disallow target="_blank" on links
         // https://github.com/yannickcr/eslint-plugin-react/blob/ac102885765be5ff37847a871f239c6703e1c7cc/docs/rules/jsx-no-target-blank.md
         'react/jsx-no-target-blank': ['error', {enforceDynamicLinks: 'always'}],
+
+        // Only .js files may have JSX
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-filename-extension.md
+        'react/jsx-filename-extension': [1, {extensions: ['.js']}],
 
         // prevent accidental JS comments from being injected into JSX as text
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-comment-textnodes.md
@@ -280,6 +334,10 @@ module.exports = {
         // require a shouldComponentUpdate method, or PureRenderMixin
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/require-optimization.md
         'react/require-optimization': ['off', {allowDecorators: []}],
+
+        // warn against using findDOMNode()
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-find-dom-node.md
+        'react/no-find-dom-node': 'error',
 
         // Forbid certain props on Components
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/forbid-component-props.md
@@ -379,6 +437,10 @@ module.exports = {
         // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/jsx-one-expression-per-line.md
         'react/jsx-one-expression-per-line': ['error', {allow: 'single-child'}],
 
+        // Do not enforce consistent usage of destructuring assignment of props, state, and context
+        // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/destructuring-assignment.md
+        'react/destructuring-assignment': ['off', 'always'],
+
         // Prevent using this.state within a this.setState
         // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/no-access-state-in-setstate.md
         'react/no-access-state-in-setstate': 'error',
@@ -401,6 +463,17 @@ module.exports = {
         // Validate JSX maximum depth
         // https://github.com/yannickcr/eslint-plugin-react/blob/abe8381c0d6748047224c430ce47f02e40160ed0/docs/rules/jsx-max-depth.md
         'react/jsx-max-depth': 'off',
+
+        // Allow multiple spaces between inline JSX props
+        // https://github.com/yannickcr/eslint-plugin-react/blob/ac102885765be5ff37847a871f239c6703e1c7cc/docs/rules/jsx-props-no-multi-spaces.md
+        'react/jsx-props-no-multi-spaces': 'off',
+
+        // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
+        // We need to prevent more usages of these methods and their aliases from being added
+        // https://github.com/yannickcr/eslint-plugin-react/blob/157cc932be2cfaa56b3f5b45df6f6d4322a2f660/docs/rules/no-unsafe.md
+        'react/no-unsafe': ['error', {
+            checkAliases: true,
+        }],
 
         // Enforce shorthand or standard form for React fragments
         // https://github.com/yannickcr/eslint-plugin-react/blob/bc976b837abeab1dffd90ac6168b746a83fc83cc/docs/rules/jsx-fragments.md
@@ -454,6 +527,16 @@ module.exports = {
         // TODO: enable? semver-major
         'react/no-adjacent-inline-elements': 'off',
 
+        // Enforce a specific function type for function components
+        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/function-component-definition.md
+        'react/function-component-definition': [
+            'error',
+            {
+                namedComponents: 'function-declaration',
+                unnamedComponents: 'arrow-function',
+            },
+        ],
+
         // Enforce a new line after jsx elements and expressions
         // https://github.com/yannickcr/eslint-plugin-react/blob/e2eaadae316f9506d163812a09424eb42698470a/docs/rules/jsx-newline.md
         'react/jsx-newline': 'off',
@@ -485,41 +568,6 @@ module.exports = {
         // Prevent declaring unused methods of component class
         // https://github.com/yannickcr/eslint-plugin-react/blob/21e01b61af7a38fc86d94f27eb66cda8054582ed/docs/rules/no-unused-class-component-methods.md
         'react/no-unused-class-component-methods': 'error',
-
-        // Do not prevent multiple component definition per file
-        'react/no-multi-comp': 'off',
-
-        // Do not prevent missing React when using JSX
-        'react/react-in-jsx-scope': 'off',
-
-        // Enforce indentation of 4 spaces
-        'react/jsx-indent-props': ['error', 4],
-        'react/jsx-indent': ['error', 4],
-        'react/jsx-no-undef': ['error', {
-            allowGlobals: true,
-        }],
-        'react/prefer-es6-class': 'error',
-        'react/prefer-stateless-function': 'error',
-        'react/prop-types': 'error',
-        'react/jsx-props-no-multi-spaces': 'off',
-        'react/no-find-dom-node': 'error',
-        'react/forbid-prop-types': 'error',
-        'react/no-string-refs': 'error',
-        'react/jsx-filename-extension': [1, {extensions: ['.js']}],
-        'react/destructuring-assignment': 'off',
-        'react/function-component-definition': [
-            'error',
-            {
-                namedComponents: 'function-declaration',
-                unnamedComponents: 'arrow-function',
-            },
-        ],
-
-        // New versions of react are removing some methods, and those methods have been prefixed with "UNSAFE_" for now.
-        // We need to prevent more usages of these methods and their aliases from being added
-        'react/no-unsafe': ['error', {
-            checkAliases: true,
-        }],
     },
 
     settings: {
