@@ -3,9 +3,9 @@ const eslintPkg = require('eslint/package.json');
 
 module.exports = {
     rules: {
-    // enforce line breaks after opening and before closing array brackets
-    // https://eslint.org/docs/rules/array-bracket-newline
-    // TODO: enable? semver-major
+        // enforce line breaks after opening and before closing array brackets
+        // https://eslint.org/docs/rules/array-bracket-newline
+        // TODO: enable? semver-major
         'array-bracket-newline': ['off', 'consistent'], // object option alternative: { multiline: true, minItems: 3 }
 
         // enforce line breaks between array elements

@@ -2,7 +2,7 @@ const confusingBrowserGlobals = require('confusing-browser-globals');
 
 module.exports = {
     rules: {
-    // enforce or disallow variable initializations at definition
+        // enforce or disallow variable initializations at definition
         'init-declarations': 'off',
 
         // disallow the catch clause parameter name being the same as a variable in the outer scope

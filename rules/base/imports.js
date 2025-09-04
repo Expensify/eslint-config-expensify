@@ -30,7 +30,7 @@ module.exports = {
     },
 
     rules: {
-    // Static analysis:
+        // Static analysis:
 
         // ensure imports point to files/modules that can be resolved
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-unresolved.md

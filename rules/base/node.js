@@ -4,7 +4,7 @@ module.exports = {
     },
 
     rules: {
-    // enforce return after a callback
+        // enforce return after a callback
         'callback-return': 'off',
 
         // require all requires be top-level

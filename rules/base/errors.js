@@ -1,7 +1,7 @@
 module.exports = {
     rules: {
-    // Enforce “for” loop update clause moving the counter in the right direction
-    // https://eslint.org/docs/rules/for-direction
+        // Enforce “for” loop update clause moving the counter in the right direction
+        // https://eslint.org/docs/rules/for-direction
         'for-direction': 'error',
 
         // Enforces that a return statement is present in property getters

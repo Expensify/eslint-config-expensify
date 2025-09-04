@@ -1,7 +1,7 @@
 module.exports = {
     rules: {
-    // enforces getter/setter pairs in objects
-    // https://eslint.org/docs/rules/accessor-pairs
+        // enforces getter/setter pairs in objects
+        // https://eslint.org/docs/rules/accessor-pairs
         'accessor-pairs': 'off',
 
         // enforces return statements in callbacks of array's methods
