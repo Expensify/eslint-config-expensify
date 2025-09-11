@@ -44,6 +44,43 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
         {
             code: 'const [data] = useOnyx(ONYXKEYS.DATA);',
         },
+
+        // Selector defined with useCallback within component - should not error
+        {
+            code: `function MyComponent() {
+                const memoizedSelector = useCallback((val) => ({someProp: val.someProp}), []);
+                const [data] = useOnyx(ONYXKEYS.DATA, {selector: memoizedSelector});
+                return null;
+            }`,
+        },
+
+        // Selector defined outside component - should not error
+        {
+            code: `const externalSelector = (val) => ({someProp: val.someProp});
+            function MyComponent() {
+                const [data] = useOnyx(ONYXKEYS.DATA, {selector: externalSelector});
+                return null;
+            }`,
+        },
+
+        // Selector defined with useCallback in options object within component - should not error
+        {
+            code: `function MyComponent() {
+                const memoizedSelector = useCallback((val) => ({someProp: val.someProp}), []);
+                const options = {selector: memoizedSelector};
+                const [data] = useOnyx(ONYXKEYS.DATA, options);
+                return null;
+            }`,
+        },
+
+        // Non-component function with non-memoized selector - should not error
+        {
+            code: `function normalFunction() {
+                const nonMemoizedSelector = (val) => ({someProp: val.someProp});
+                const [data] = useOnyx(ONYXKEYS.DATA, {selector: nonMemoizedSelector});
+                return null;
+            }`,
+        },
     ],
     invalid: [
         // Inline arrow function selector - should error
@@ -99,6 +136,43 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
             code: 'const [data1] = useOnyx(ONYXKEYS.DATA1, {canBeMissing: false}); const [data2] = useOnyx(ONYXKEYS.DATA2, {selector: (data) => data.value, canBeMissing: false});',
             errors: [{
                 messageId: 'noInlineSelector',
+            }],
+        },
+
+        // Non-memoized selector defined within component - should error
+        {
+            code: `function MyComponent() {
+                const myNonMemoizedSelector = (val) => ({someProp: val.someProp, someOtherProp: val.someOtherProp});
+                const [data] = useOnyx(MY_ONYX_KEY, {selector: myNonMemoizedSelector});
+                return null;
+            }`,
+            errors: [{
+                messageId: 'noNonMemoizedSelector',
+            }],
+        },
+
+        // Non-memoized selector in options object within component - should error
+        {
+            code: `function MyComponent() {
+                const myNonMemoizedSelector = (val) => ({someProp: val.someProp});
+                const options = {selector: myNonMemoizedSelector, canBeMissing: false};
+                const [data] = useOnyx(MY_ONYX_KEY, options);
+                return null;
+            }`,
+            errors: [{
+                messageId: 'noNonMemoizedSelector',
+            }],
+        },
+
+        // Arrow function component with non-memoized selector - should error
+        {
+            code: `const MyComponent = () => {
+                const myNonMemoizedSelector = (val) => ({someProp: val.someProp});
+                const [data] = useOnyx(MY_ONYX_KEY, {selector: myNonMemoizedSelector});
+                return null;
+            };`,
+            errors: [{
+                messageId: 'noNonMemoizedSelector',
             }],
         },
     ],
