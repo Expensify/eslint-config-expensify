@@ -1,4 +1,6 @@
-module.exports = {
+import {defineConfig} from 'eslint/config';
+
+const config = defineConfig([{
     rules: {
         'rulesdir/no-negated-variables': 'error',
         'rulesdir/no-api-in-views': 'error',
@@ -33,5 +35,6 @@ module.exports = {
         'rulesdir/no-use-state-initializer-functions': 'error',
         'rulesdir/no-unstable-hook-defaults': 'error',
     },
-};
+}]);
 
+export default config;

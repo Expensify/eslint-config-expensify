@@ -1,14 +1,15 @@
-module.exports = {
-    env: {
-        es6: true,
-    },
-    parserOptions: {
+import {defineConfig} from 'eslint/config';
+import importPlugin from 'eslint-plugin-import';
+
+const config = defineConfig([{
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },
-    plugins: [
-        'import',
-    ],
+
+    plugins: {
+        import: importPlugin,
+    },
 
     settings: {
         'import/resolver': {
@@ -270,4 +271,6 @@ module.exports = {
         // https://github.com/benmosher/eslint-plugin-import/blob/1012eb951767279ce3b540a4ec4f29236104bb5b/docs/rules/no-relative-packages.md
         'import/no-relative-packages': 'error',
     },
-};
+}]);
+
+export default config;

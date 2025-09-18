@@ -1,40 +1,68 @@
-const path = require('path');
-const rulesDirPlugin = require('eslint-plugin-rulesdir');
+import {defineConfig} from 'eslint/config';
+import eslintPluginLwc from '@lwc/eslint-plugin-lwc';
+import es from 'eslint-plugin-es';
+import rulesdir from 'eslint-plugin-rulesdir';
+import globals from 'globals';
+import babelParser from '@babel/eslint-parser';
+import path from 'node:path';
+import reactHooks from 'eslint-plugin-react-hooks';
 
-rulesDirPlugin.RULES_DIR = path.resolve(__dirname, 'eslint-plugin-expensify');
+import bestPractices from './rules/base/best-practices.js';
+import errors from './rules/base/errors.js';
+import node from './rules/base/node.js';
+import styleBase from './rules/base/style.js';
+import variables from './rules/base/variables.js';
+import es6Base from './rules/base/es6.js';
+import imports from './rules/base/imports.js';
+import strictBase from './rules/base/strict.js';
+import react from './rules/react.js';
+import reactA11y from './rules/react-a11y.js';
+import es6 from './rules/es6.js';
+import style from './rules/style.js';
+import expensify from './rules/expensify.js';
 
-module.exports = {
-    plugins: ['@lwc/eslint-plugin-lwc', 'eslint-plugin-es', 'rulesdir'],
-    extends: [
-        require.resolve('./rules/base/best-practices'),
-        require.resolve('./rules/base/errors'),
-        require.resolve('./rules/base/node'),
-        require.resolve('./rules/base/style'),
-        require.resolve('./rules/base/variables'),
-        require.resolve('./rules/base/es6'),
-        require.resolve('./rules/base/imports'),
-        require.resolve('./rules/base/strict'),
-        require.resolve('./rules/react'),
-        require.resolve('./rules/react-a11y'),
-        require.resolve('./rules/es6'),
-        require.resolve('./rules/style'),
-        'plugin:react-hooks/recommended',
-        require.resolve('./rules/expensify'),
-    ],
-    env: {
-        browser: true,
-        es6: true,
-        jquery: true,
-        node: true,
-    },
-    parser: '@babel/eslint-parser',
-    parserOptions: {
-        requireConfigFile: false,
-        ecmaVersion: 2018,
-        sourceType: 'module',
-        ecmaFeatures: {
-            generators: true,
-            objectLiteralDuplicateProperties: true,
+rulesdir.RULES_DIR = path.resolve(import.meta.dirname, 'eslint-plugin-expensify');
+
+const config = defineConfig([
+    bestPractices,
+    errors,
+    node,
+    styleBase,
+    variables,
+    es6Base,
+    imports,
+    strictBase,
+    react,
+    reactA11y,
+    es6,
+    style,
+    reactHooks.configs['recommended-latest'],
+    expensify,
+    {
+        plugins: {
+            '@lwc/lwc': eslintPluginLwc,
+            es,
+            rulesdir,
+        },
+
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                ...globals.jquery,
+                ...globals.node,
+            },
+            parser: babelParser,
+            ecmaVersion: 2018,
+            sourceType: 'module',
+            parserOptions: {
+                requireConfigFile: false,
+                ecmaFeatures: {
+                    generators: true,
+                    objectLiteralDuplicateProperties: true,
+                },
+            },
         },
     },
-};
+]);
+
+export default config;

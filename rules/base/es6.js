@@ -1,13 +1,14 @@
-module.exports = {
-    env: {
-        es6: true,
-    },
-    parserOptions: {
+import {defineConfig} from 'eslint/config';
+
+const config = defineConfig([{
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
-        ecmaFeatures: {
-            generators: false,
-            objectLiteralDuplicateProperties: false,
+        parserOptions: {
+            ecmaFeatures: {
+                generators: false,
+                objectLiteralDuplicateProperties: false,
+            },
         },
     },
 
@@ -182,4 +183,6 @@ module.exports = {
         // https://eslint.org/docs/rules/yield-star-spacing
         'yield-star-spacing': ['error', 'after'],
     },
-};
+}]);
+
+export default config;

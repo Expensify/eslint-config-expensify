@@ -35,7 +35,6 @@ module.exports = {
         messages: {
             // eslint-disable-next-line max-len
             disallowedNumberDefault: 'Default the number ID to `CONST.DEFAULT_NUMBER_ID` instead. See: https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#default-value-for-inexistent-IDs',
-            // eslint-disable-next-line max-len
             disallowedStringDefault: 'Do not default string IDs to any value. See: https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#default-value-for-inexistent-IDs',
         },
     },

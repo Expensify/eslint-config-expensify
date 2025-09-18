@@ -1,6 +1,7 @@
-const confusingBrowserGlobals = require('confusing-browser-globals');
+import {defineConfig} from 'eslint/config';
+import confusingBrowserGlobals from 'confusing-browser-globals';
 
-module.exports = {
+const config = defineConfig([{
     rules: {
         // enforce or disallow variable initializations at definition
         'init-declarations': 'off',
@@ -53,4 +54,6 @@ module.exports = {
         // disallow use of variables before they are defined
         'no-use-before-define': ['error', {functions: true, classes: true, variables: true}],
     },
-};
+}]);
+
+export default config;

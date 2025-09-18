@@ -29,7 +29,6 @@ ruleTester.run('prefer-type-fest', rule, {
             parser: require.resolve('@typescript-eslint/parser'),
         },
         {
-            // eslint-disable-next-line max-len
             code: 'const CONST = { AVATAR_SIZE: { SMALL: \'small\', MEDIUM: \'medium\', LARGE: \'large\' } } as const; type Good = { avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>; }',
             parser: require.resolve('@typescript-eslint/parser'),
         },

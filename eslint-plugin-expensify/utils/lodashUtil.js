@@ -34,7 +34,6 @@ function isLodashWrapper(node) {
     if (isLodashChainStart(node)) {
         return true;
     }
-    // eslint-disable-next-line no-unused-vars
     return astUtil.isMethodCall(node) && isChainable(node) && isLodashWrapper(node.callee.object);
 }
 

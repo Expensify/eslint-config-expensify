@@ -37,7 +37,7 @@ module.exports = {
                         return def.node.init;
                     }
                 }
-            } catch (e) {
+            } catch {
                 return null;
             }
 
