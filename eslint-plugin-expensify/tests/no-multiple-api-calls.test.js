@@ -3,7 +3,7 @@ const rule = require('../no-multiple-api-calls');
 const message = require('../CONST').MESSAGE.NO_MULTIPLE_API_CALLS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

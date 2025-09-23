@@ -3,7 +3,7 @@ const rule = require('../prefer-early-return');
 const message = require('../CONST').MESSAGE.PREFER_EARLY_RETURN;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

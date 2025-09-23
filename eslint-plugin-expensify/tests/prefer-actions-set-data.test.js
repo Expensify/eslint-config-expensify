@@ -3,7 +3,7 @@ const rule = require('../prefer-actions-set-data');
 const message = require('../CONST').MESSAGE.PREFER_ACTIONS_SET_DATA;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

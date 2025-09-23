@@ -26,9 +26,9 @@ module.exports = {
          * @param {string} name - The name of the variable to resolve.
          * @returns {ObjectExpression|null}
          */
-        function getVariableValue(name) {
+        function getVariableValue(name, node) {
             try {
-                const scope = context.getScope();
+                const scope = context.sourceCode.getScope(node);
                 const variable = scope.set.get(name);
 
                 if (variable && variable.defs.length > 0) {
@@ -75,7 +75,7 @@ module.exports = {
                     }
 
                     case 'Identifier': {
-                        const resolvedValue = getVariableValue(optionsArgument.name);
+                        const resolvedValue = getVariableValue(optionsArgument.name, node);
                         if (!resolvedValue) {
                             context.report({
                                 node: node.init,

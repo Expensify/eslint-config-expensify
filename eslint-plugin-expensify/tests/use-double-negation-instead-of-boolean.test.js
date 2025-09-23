@@ -3,7 +3,7 @@ const rule = require('../use-double-negation-instead-of-boolean');
 const message = require('../CONST').MESSAGE.USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

@@ -3,7 +3,7 @@ const rule = require('../no-negated-variables');
 const message = require('../CONST').MESSAGE.NO_NEGATED_VARIABLES;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

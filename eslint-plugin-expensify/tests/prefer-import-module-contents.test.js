@@ -3,7 +3,7 @@ const rule = require('../prefer-import-module-contents');
 const message = require('../CONST').MESSAGE.PREFER_IMPORT_MODULE_CONTENTS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

@@ -3,7 +3,7 @@ const rule = require('../prefer-str-method');
 const message = require('../CONST').MESSAGE.PREFER_STR_METHOD;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

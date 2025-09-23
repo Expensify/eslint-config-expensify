@@ -2,7 +2,7 @@ const RuleTester = require('eslint').RuleTester;
 const rule = require('../no-default-id-values');
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
     },
@@ -160,12 +160,6 @@ ruleTester.run('no-default-id-values', rule, {
                     messageId: 'disallowedStringDefault',
                 },
             ],
-        },
-        {
-            code: 'const reportID = report?.reportID ?? \'-1\';',
-            errors: [{
-                messageId: 'disallowedStringDefault',
-            }],
         },
         {
             code: 'const policyID = policy?.id ?? \'-1\';',

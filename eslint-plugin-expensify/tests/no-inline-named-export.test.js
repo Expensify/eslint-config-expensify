@@ -3,7 +3,7 @@ const rule = require('../no-inline-named-export');
 const message = require('../CONST').MESSAGE.NO_INLINE_NAMED_EXPORT;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

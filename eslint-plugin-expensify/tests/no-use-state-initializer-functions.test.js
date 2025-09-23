@@ -3,7 +3,7 @@ const rule = require('../no-use-state-initializer-functions');
 const message = require('../CONST').MESSAGE.NO_USE_STATE_INITIALIZER_CALL_FUNCTION;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

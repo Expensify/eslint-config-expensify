@@ -15,10 +15,11 @@ module.exports = {
         schema: [], // no options
     },
     create(context) {
+        const sourceCode = context.sourceCode;
         return {
             [MATCH](node) {
                 // Retrieve accumulator variable
-                const accumulator = context.getDeclaredVariables(node)[0];
+                const accumulator = sourceCode.getDeclaredVariables(node)[0];
                 if (!accumulator) {
                     return;
                 }

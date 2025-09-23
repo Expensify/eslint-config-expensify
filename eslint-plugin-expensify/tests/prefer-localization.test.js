@@ -3,7 +3,7 @@ const rule = require('../prefer-localization');
 const message = require('../CONST').MESSAGE.PREFER_LOCALIZATION;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

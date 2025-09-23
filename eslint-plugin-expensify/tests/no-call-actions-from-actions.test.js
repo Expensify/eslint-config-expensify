@@ -3,7 +3,7 @@ const rule = require('../no-call-actions-from-actions');
 const message = require('../CONST').MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

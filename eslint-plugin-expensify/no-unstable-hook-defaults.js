@@ -21,6 +21,7 @@ module.exports = {
         },
     },
     create(context) {
+        const sourceCode = context.sourceCode;
         function checkDefaultValue(defaultValue) {
             // Check for inline array default
             if (defaultValue.type === 'ArrayExpression') {
@@ -42,7 +43,7 @@ module.exports = {
 
             // If it's an Identifier, verify it's memoized or top-level const
             if (defaultValue.type === 'Identifier') {
-                const scope = context.getScope();
+                const scope = sourceCode.getScope(defaultValue);
                 const variable = scope.set.get(defaultValue.name);
 
                 if (

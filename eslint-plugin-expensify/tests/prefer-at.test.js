@@ -3,12 +3,14 @@ const rule = require('../prefer-at');
 const message = require('../CONST').MESSAGE.PREFER_AT;
 
 const ruleTester = new RuleTester({
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
-        sourceType: 'module',
-        ecmaVersion: 2020,
+    languageOptions: {
+        parser: require('@typescript-eslint/parser'),
+        parserOptions: {
+            project: './tsconfig.json',
+            tsconfigRootDir: __dirname,
+            sourceType: 'module',
+            ecmaVersion: 2020,
+        },
     },
 });
 

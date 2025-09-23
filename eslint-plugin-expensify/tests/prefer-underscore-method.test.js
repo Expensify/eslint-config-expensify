@@ -3,7 +3,7 @@ const rule = require('../prefer-underscore-method');
 const message = require('../CONST').MESSAGE.PREFER_UNDERSCORE_METHOD;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

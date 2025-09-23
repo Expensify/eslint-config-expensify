@@ -3,7 +3,7 @@ const rule = require('../use-periods-for-error-messages');
 const message = require('../CONST').MESSAGE.USE_PERIODS_ERROR_MESSAGES;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

@@ -2,14 +2,16 @@ const RuleTester = require('@typescript-eslint/rule-tester').RuleTester;
 const rule = require('../boolean-conditional-rendering');
 
 const ruleTester = new RuleTester({
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
-        sourceType: 'module',
-        ecmaVersion: 2020,
-        ecmaFeatures: {
-            jsx: true,
+    languageOptions: {
+        parser: require('@typescript-eslint/parser'),
+        parserOptions: {
+            project: './tsconfig.json',
+            tsconfigRootDir: __dirname,
+            sourceType: 'module',
+            ecmaVersion: 2020,
+            ecmaFeatures: {
+                jsx: true,
+            },
         },
     },
 });

@@ -3,7 +3,7 @@ const rule = require('../no-acc-spread-in-reduce');
 const CONST = require('../CONST');
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2018,
         sourceType: 'module',
     },

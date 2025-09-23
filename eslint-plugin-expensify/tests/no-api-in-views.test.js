@@ -3,7 +3,7 @@ const rule = require('../no-api-in-views');
 const message = require('../CONST').MESSAGE.NO_API_IN_VIEWS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

@@ -2,10 +2,12 @@ const RuleTester = require('eslint').RuleTester;
 const rule = require('../no-beta-handler');
 
 const ruleTester = new RuleTester({
-    parser: require.resolve('@typescript-eslint/parser'),
-    parserOptions: {
-        ecmaVersion: 12,
-        sourceType: 'module',
+    languageOptions: {
+        parser: require('@typescript-eslint/parser'),
+        parserOptions: {
+            ecmaVersion: 12,
+            sourceType: 'module',
+        },
     },
 });
 

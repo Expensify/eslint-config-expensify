@@ -3,7 +3,7 @@ const rule = require('../no-api-side-effects-method');
 const message = require('../CONST').MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

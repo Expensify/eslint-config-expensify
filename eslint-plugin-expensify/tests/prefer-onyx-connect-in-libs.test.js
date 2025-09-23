@@ -3,7 +3,7 @@ const rule = require('../prefer-onyx-connect-in-libs');
 const message = require('../CONST').MESSAGE.PREFER_ONYX_CONNECT_IN_LIBS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

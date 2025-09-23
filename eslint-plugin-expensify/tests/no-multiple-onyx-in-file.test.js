@@ -3,7 +3,7 @@ const rule = require('../no-multiple-onyx-in-file');
 const message = require('../CONST').MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

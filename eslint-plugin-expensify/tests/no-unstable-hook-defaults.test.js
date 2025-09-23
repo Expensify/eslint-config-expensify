@@ -2,7 +2,7 @@ const RuleTester = require('eslint').RuleTester;
 const rule = require('../no-unstable-hook-defaults');
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
     },
