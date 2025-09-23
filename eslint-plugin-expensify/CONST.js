@@ -35,6 +35,7 @@ module.exports = {
         PREFER_TYPE_FEST_VALUE_OF: 'Prefer using `ValueOf` from `type-fest` to extract the type of the properties of an object.',
         PREFER_AT: 'Prefer using the `.at()` method for array element access.',
         PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH: 'Prefer using `shouldUseNarrowLayout` instead of `isSmallScreenWidth` from `useResponsiveLayout`.',
+        PREFER_LOCALE_COMPARE_FROM_CONTEXT: 'Prefer using `localeCompare` from `useLocalize` for performance.',
         NO_USE_STATE_INITIALIZER_CALL_FUNCTION:
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
     },
