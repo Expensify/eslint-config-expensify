@@ -1,6 +1,7 @@
 const _ = require('underscore');
 
 /**
+ * @typedef {import('eslint').Rule.Node} ASTNode
  * @typedef {import('eslint').Rule.RuleModule} RuleModule
  * @typedef {import('estree').ObjectExpression} ObjectExpression
  */
@@ -24,6 +25,7 @@ module.exports = {
          * Find the variable declaration and return the value.
          *
          * @param {string} name - The name of the variable to resolve.
+         * @param {ASTNode} node - The node containing the variable declaration.
          * @returns {ObjectExpression|null}
          */
         function getVariableValue(name, node) {

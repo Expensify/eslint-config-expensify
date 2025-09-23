@@ -1,6 +1,11 @@
 import {defineConfig} from 'eslint/config';
+import jsdoc from 'eslint-plugin-jsdoc';
 
 const config = defineConfig([{
+    plugins: {
+        jsdoc,
+    },
+
     rules: {
         camelcase: 'off',
         'class-methods-use-this': 'off',
@@ -81,12 +86,17 @@ const config = defineConfig([{
         }],
         strict: ['error', 'never'],
 
-        // TODO: replace valid-jsdoc with eslint-plugin-jsdoc
-        // 'valid-jsdoc': ['error', {
-        //     requireParamDescription: false,
-        //     requireReturnDescription: false,
-        //     requireReturn: false,
-        // }],
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-type': 'error',
+        'jsdoc/check-param-names': 'error',
+        'jsdoc/check-tag-names': 'error',
+        'jsdoc/check-types': ['error', {
+            exemptTagContexts: [
+                {tag: 'param', types: ['Object']},
+                {tag: 'returns', types: ['Object']},
+            ],
+            noDefaults: true,
+        }],
 
         'vars-on-top': 'off',
 
