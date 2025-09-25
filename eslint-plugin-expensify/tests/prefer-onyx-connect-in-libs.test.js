@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-onyx-connect-in-libs');
-const message = require('../CONST').MESSAGE.PREFER_ONYX_CONNECT_IN_LIBS;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-onyx-connect-in-libs.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_ONYX_CONNECT_IN_LIBS;
 
 const ruleTester = new RuleTester({
     languageOptions: {

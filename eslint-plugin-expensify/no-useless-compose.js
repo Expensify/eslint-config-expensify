@@ -1,8 +1,10 @@
-const lodashGet = require('lodash/get');
-const message = require('./CONST').MESSAGE.NO_USELESS_COMPOSE;
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
 
-module.exports = {
-    create: context => ({
+const message = CONST.MESSAGE.NO_USELESS_COMPOSE;
+
+function create(context) {
+    return {
         CallExpression(node) {
             const name = lodashGet(node, 'callee.name');
             if (!name) {
@@ -22,5 +24,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

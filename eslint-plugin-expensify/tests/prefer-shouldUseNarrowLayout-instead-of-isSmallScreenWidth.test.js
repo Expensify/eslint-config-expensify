@@ -1,7 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth');
-const message = require('../CONST').MESSAGE
-    .PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH;
 
 const ruleTester = new RuleTester({
     languageOptions: {

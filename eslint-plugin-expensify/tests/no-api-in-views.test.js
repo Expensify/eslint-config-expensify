@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-api-in-views');
-const message = require('../CONST').MESSAGE.NO_API_IN_VIEWS;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-api-in-views.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_API_IN_VIEWS;
 
 const ruleTester = new RuleTester({
     languageOptions: {

@@ -1,12 +1,18 @@
-const RuleTester = require('@typescript-eslint/rule-tester').RuleTester;
-const rule = require('../boolean-conditional-rendering');
+import {RuleTester} from '@typescript-eslint/rule-tester';
+import {fileURLToPath} from 'url';
+import parser from '@typescript-eslint/parser';
+import path from 'path';
+import * as rule from '../boolean-conditional-rendering.js';
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const ruleTester = new RuleTester({
     languageOptions: {
-        parser: require('@typescript-eslint/parser'),
+        parser,
         parserOptions: {
             project: './tsconfig.json',
-            tsconfigRootDir: __dirname,
+            tsconfigRootDir: dirname,
             sourceType: 'module',
             ecmaVersion: 2020,
             ecmaFeatures: {

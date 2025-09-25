@@ -1,8 +1,9 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
+import {getMethodName} from './utils/astUtil.js';
 
-const message = require('./CONST').MESSAGE.PREFER_STR_METHOD;
-const astUtil = require('./utils/astUtil');
+const message = CONST.MESSAGE.PREFER_STR_METHOD;
 
 /**
  * @param {Object} node
@@ -11,7 +12,7 @@ const astUtil = require('./utils/astUtil');
 function isUsingIncorrectStrMethod(node) {
     const strMethods = ['replaceAll'];
     const callerName = lodashGet(node, 'callee.object.name');
-    if (!_.includes(strMethods, astUtil.getMethodName(node))) {
+    if (!_.includes(strMethods, getMethodName(node))) {
         return false;
     }
 
@@ -22,14 +23,17 @@ function isUsingIncorrectStrMethod(node) {
     return true;
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         CallExpression: (node) => {
             if (!isUsingIncorrectStrMethod(node)) {
                 return;
             }
 
-            context.report(node, message, {method: astUtil.getMethodName(node)});
+            context.report(node, message, {method: getMethodName(node)});
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

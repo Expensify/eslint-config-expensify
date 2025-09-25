@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 /**
  * @param {Object} node
@@ -33,7 +33,7 @@ function isCallFromObject(node, objName) {
     return node && node.type === 'CallExpression' && _.get(node, 'callee.object.name') === objName;
 }
 
-module.exports = {
+export {
     getCaller,
     getMethodName,
     isMethodCall,

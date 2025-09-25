@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-call-actions-from-actions');
-const message = require('../CONST').MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-call-actions-from-actions.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_CALL_ACTIONS_FROM_ACTIONS;
 
 const ruleTester = new RuleTester({
     languageOptions: {

@@ -1,7 +1,9 @@
-const message = require('./CONST').MESSAGE.NO_INLINE_NAMED_EXPORT;
+import CONST from './CONST.js';
 
-module.exports = {
-    create: context => ({
+const message = CONST.MESSAGE.NO_INLINE_NAMED_EXPORT;
+
+function create(context) {
+    return {
         ExportNamedDeclaration(node) {
             if (!node.declaration) {
                 return;
@@ -12,5 +14,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

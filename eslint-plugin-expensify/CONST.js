@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-module.exports = {
+const CONST = {
     MESSAGE: {
         DISPLAY_NAME_PROPERTY_CLASS: 'Class components must not set the displayName property.',
         DISPLAY_NAME_PROPERTY_FUNCTION: 'Function components must set the displayName property.',
@@ -39,3 +39,5 @@ module.exports = {
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
     },
 };
+
+export default CONST;

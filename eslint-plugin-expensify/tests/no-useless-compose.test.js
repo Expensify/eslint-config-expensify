@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-useless-compose');
-const message = require('../CONST').MESSAGE.NO_USELESS_COMPOSE;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-useless-compose.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_USELESS_COMPOSE;
 
 const ruleTester = new RuleTester({
     languageOptions: {

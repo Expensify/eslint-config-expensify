@@ -1,7 +1,9 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
-const {isOnyxMethodCall, isInActionFile, isInTestFile} = require('./utils');
-const message = require('./CONST').MESSAGE.PREFER_ACTIONS_SET_DATA;
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import {isOnyxMethodCall, isInActionFile, isInTestFile} from './utils/index.js';
+import CONST from './CONST.js';
+
+const message = CONST.MESSAGE.PREFER_ACTIONS_SET_DATA;
 
 /**
  * @param {String} methodName
@@ -11,8 +13,8 @@ function isDataSettingMethod(methodName) {
     return _.includes(['set', 'merge', 'mergeCollection'], methodName);
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         MemberExpression(node) {
             const filename = context.getFilename();
 
@@ -34,5 +36,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

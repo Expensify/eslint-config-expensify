@@ -1,5 +1,5 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-default-id-values');
+import {RuleTester} from 'eslint';
+import * as rule from '../no-default-id-values.js';
 
 const ruleTester = new RuleTester({
     languageOptions: {

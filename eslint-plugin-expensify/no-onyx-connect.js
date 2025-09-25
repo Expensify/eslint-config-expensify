@@ -1,10 +1,11 @@
-const lodashGet = require('lodash/get');
-const {isOnyxMethodCall, isInTestFile} = require('./utils');
+import lodashGet from 'lodash/get.js';
+import {isOnyxMethodCall, isInTestFile} from './utils/index.js';
+import CONST from './CONST.js';
 
-const message = require('./CONST').MESSAGE.NO_ONYX_CONNECT;
+const message = CONST.MESSAGE.NO_ONYX_CONNECT;
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         MemberExpression(node) {
             if (!isOnyxMethodCall(node)) {
                 return;
@@ -24,5 +25,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

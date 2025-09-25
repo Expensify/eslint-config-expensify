@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-underscore-method');
-const message = require('../CONST').MESSAGE.PREFER_UNDERSCORE_METHOD;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-underscore-method.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_UNDERSCORE_METHOD;
 
 const ruleTester = new RuleTester({
     languageOptions: {

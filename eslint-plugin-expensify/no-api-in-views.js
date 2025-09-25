@@ -1,8 +1,10 @@
-const {isInActionFile, isInTestFile} = require('./utils');
-const message = require('./CONST').MESSAGE.NO_API_IN_VIEWS;
+import {isInActionFile, isInTestFile} from './utils/index.js';
+import CONST from './CONST.js';
 
-module.exports = {
-    create: context => ({
+const message = CONST.MESSAGE.NO_API_IN_VIEWS;
+
+function create(context) {
+    return {
         Identifier(node) {
             if (isInActionFile(context.getFilename())) {
                 return;
@@ -21,5 +23,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

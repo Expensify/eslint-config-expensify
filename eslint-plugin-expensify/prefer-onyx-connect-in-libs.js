@@ -1,7 +1,8 @@
-const lodashGet = require('lodash/get');
-const {isOnyxMethodCall, isInTestFile} = require('./utils');
+import lodashGet from 'lodash/get.js';
+import {isOnyxMethodCall, isInTestFile} from './utils/index.js';
+import CONST from './CONST.js';
 
-const message = require('./CONST').MESSAGE.PREFER_ONYX_CONNECT_IN_LIBS;
+const message = CONST.MESSAGE.PREFER_ONYX_CONNECT_IN_LIBS;
 
 /**
  * @param {String} filename
@@ -11,8 +12,8 @@ function isInLibs(filename) {
     return filename.includes('/src/libs/');
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         MemberExpression(node) {
             const filename = context.getFilename();
 
@@ -34,5 +35,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

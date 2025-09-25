@@ -1,10 +1,13 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-type-fest');
-const {PREFER_TYPE_FEST_VALUE_OF, PREFER_TYPE_FEST_TUPLE_TO_UNION} = require('../CONST').MESSAGE;
+import {RuleTester} from 'eslint';
+import parser from '@typescript-eslint/parser';
+import * as rule from '../prefer-type-fest.js';
+import CONST from '../CONST.js';
+
+const {PREFER_TYPE_FEST_VALUE_OF, PREFER_TYPE_FEST_TUPLE_TO_UNION} = CONST.MESSAGE;
 
 const ruleTester = new RuleTester({
     languageOptions: {
-        parser: require('@typescript-eslint/parser'),
+        parser,
         parserOptions: {
             ecmaVersion: 12,
             sourceType: 'module',

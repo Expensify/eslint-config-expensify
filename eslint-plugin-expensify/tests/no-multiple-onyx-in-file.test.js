@@ -1,6 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-multiple-onyx-in-file');
-const message = require('../CONST').MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-multiple-onyx-in-file.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
 
 const ruleTester = new RuleTester({
     languageOptions: {

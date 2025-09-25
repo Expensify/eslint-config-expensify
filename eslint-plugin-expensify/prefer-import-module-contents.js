@@ -1,6 +1,8 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
-const message = require('./CONST').MESSAGE.PREFER_IMPORT_MODULE_CONTENTS;
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
+
+const message = CONST.MESSAGE.PREFER_IMPORT_MODULE_CONTENTS;
 
 /**
  * @param {String} source
@@ -52,8 +54,8 @@ function isJSONFile(source) {
     return /\.json/.test(source.toLowerCase());
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         ImportDeclaration(node) {
             const sourceValue = lodashGet(node, 'source.value');
             if (!sourceValue) {
@@ -85,5 +87,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

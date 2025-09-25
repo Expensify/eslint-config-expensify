@@ -1,5 +1,5 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../provide-canBeMissing-in-useOnyx');
+import {RuleTester} from 'eslint';
+import * as rule from '../provide-canBeMissing-in-useOnyx.js';
 
 const ruleTester = new RuleTester({
     languageOptions: {

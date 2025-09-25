@@ -1,4 +1,4 @@
-const lodashGet = require('lodash/get');
+import lodashGet from 'lodash/get.js';
 
 /**
  * @param {String} filename
@@ -32,7 +32,7 @@ function isInTestFile(filename) {
     return filename.includes('/tests/');
 }
 
-module.exports = {
+export {
     isReactViewFile,
     isOnyxMethodCall,
     isInActionFile,
