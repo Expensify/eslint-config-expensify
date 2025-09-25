@@ -9,13 +9,14 @@ const message = CONST.MESSAGE.PREFER_LOCALE_COMPARE_FROM_CONTEXT;
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const tsconfigRootDir = path.resolve(dirname, '../fixtures');
 
 const ruleTester = new RuleTester({
     languageOptions: {
         parser,
         parserOptions: {
             project: './tsconfig.json',
-            tsconfigRootDir: dirname,
+            tsconfigRootDir,
             sourceType: 'module',
             ecmaVersion: 2020,
         },
@@ -45,7 +46,7 @@ ruleTester.run('prefer-locale-compare-from-context', rule, {
                 const str = 'abc';
                 const result = str.localeCompare('xyz');
             `,
-            filename: '../tests/file.ts',
+            filename: 'tests/file.ts',
         },
     ],
     invalid: [

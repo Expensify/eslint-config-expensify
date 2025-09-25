@@ -7,6 +7,7 @@ import CONST from '../CONST.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const tsconfigRootDir = path.resolve(dirname, '../fixtures');
 
 const message = CONST.MESSAGE.PREFER_AT;
 
@@ -15,7 +16,7 @@ const ruleTester = new RuleTester({
         parser,
         parserOptions: {
             project: './tsconfig.json',
-            tsconfigRootDir: dirname,
+            tsconfigRootDir,
             sourceType: 'module',
             ecmaVersion: 2020,
         },

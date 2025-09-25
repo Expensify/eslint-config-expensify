@@ -6,13 +6,14 @@ import * as rule from '../boolean-conditional-rendering.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const tsconfigRootDir = path.resolve(dirname, '../fixtures');
 
 const ruleTester = new RuleTester({
     languageOptions: {
         parser,
         parserOptions: {
             project: './tsconfig.json',
-            tsconfigRootDir: dirname,
+            tsconfigRootDir,
             sourceType: 'module',
             ecmaVersion: 2020,
             ecmaFeatures: {
