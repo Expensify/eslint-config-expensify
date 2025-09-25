@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
-const _ = require('underscore');
-const ts = require('typescript');
+import _ from 'underscore';
+import ts from 'typescript';
 
 function isBoolean(type) {
     if ((type.flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLike | ts.TypeFlags.BooleanLiteral)) !== 0) {
@@ -16,7 +16,4 @@ function isString(type) {
     return type.isUnion() && _.every(type.types, isString);
 }
 
-module.exports = {
-    isBoolean,
-    isString,
-};
+export {isBoolean, isString};

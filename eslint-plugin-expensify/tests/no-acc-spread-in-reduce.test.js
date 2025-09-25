@@ -1,9 +1,9 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-acc-spread-in-reduce');
-const CONST = require('../CONST');
+import {RuleTester} from 'eslint';
+import * as rule from '../no-acc-spread-in-reduce.js';
+import CONST from '../CONST.js';
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2018,
         sourceType: 'module',
     },

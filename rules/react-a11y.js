@@ -1,12 +1,18 @@
-module.exports = {
-    plugins: [
-        'jsx-a11y',
-        'react',
-    ],
+import {defineConfig} from 'eslint/config';
+import jsxA11Y from 'eslint-plugin-jsx-a11y';
+import react from 'eslint-plugin-react';
 
-    parserOptions: {
-        ecmaFeatures: {
-            jsx: true,
+const config = defineConfig([{
+    plugins: {
+        'jsx-a11y': jsxA11Y,
+        react,
+    },
+
+    languageOptions: {
+        parserOptions: {
+            ecmaFeatures: {
+                jsx: true,
+            },
         },
     },
 
@@ -248,4 +254,6 @@ module.exports = {
             allowChildren: false,
         }],
     },
-};
+}]);
+
+export default config;

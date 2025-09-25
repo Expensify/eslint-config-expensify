@@ -1,10 +1,12 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
-const message = require('./CONST').MESSAGE.NO_DEFAULT_PROPS;
-const {isReactViewFile} = require('./utils');
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
+import {isReactViewFile} from './utils/index.js';
 
-module.exports = {
-    create: context => ({
+const message = CONST.MESSAGE.NO_DEFAULT_PROPS;
+
+function create(context) {
+    return {
         AssignmentExpression(node) {
             // Only looking at react files
             if (!isReactViewFile(context.getFilename())) {
@@ -54,5 +56,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

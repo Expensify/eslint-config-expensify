@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-api-side-effects-method');
-const message = require('../CONST').MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-api-side-effects-method.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

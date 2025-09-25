@@ -1,11 +1,14 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-beta-handler');
+import {RuleTester} from 'eslint';
+import parser from '@typescript-eslint/parser';
+import * as rule from '../no-beta-handler.js';
 
 const ruleTester = new RuleTester({
-    parser: require.resolve('@typescript-eslint/parser'),
-    parserOptions: {
-        ecmaVersion: 12,
-        sourceType: 'module',
+    languageOptions: {
+        parser,
+        parserOptions: {
+            ecmaVersion: 12,
+            sourceType: 'module',
+        },
     },
 });
 

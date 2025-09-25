@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-actions-set-data');
-const message = require('../CONST').MESSAGE.PREFER_ACTIONS_SET_DATA;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-actions-set-data.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_ACTIONS_SET_DATA;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

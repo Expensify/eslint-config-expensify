@@ -1,17 +1,21 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-default-props');
-const message = require('../CONST').MESSAGE.NO_DEFAULT_PROPS;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-default-props.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_DEFAULT_PROPS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2018,
         sourceType: 'module',
-        ecmaFeatures: {
-            // To support use of < in HOC
-            jsx: true,
+        parserOptions: {
+            ecmaFeatures: {
+                // To support use of < in HOC
+                jsx: true,
 
-            // To support use of ... operator
-            experimentalObjectRestSpread: true,
+                // To support use of ... operator
+                experimentalObjectRestSpread: true,
+            },
         },
     },
 });

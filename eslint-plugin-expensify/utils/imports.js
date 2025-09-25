@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 /**
  * Adds a named import to the import statement or creates a new import statement if it doesn't exist.
@@ -36,6 +36,5 @@ function addNamedImport(context, fixer, importNode, importName, importPath, impo
     return fixes;
 }
 
-module.exports = {
-    addNamedImport,
-};
+// eslint-disable-next-line import/prefer-default-export
+export {addNamedImport};

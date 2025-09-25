@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-localization');
-const message = require('../CONST').MESSAGE.PREFER_LOCALIZATION;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-localization.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_LOCALIZATION;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

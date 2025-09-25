@@ -1,4 +1,6 @@
-module.exports = {
+import {defineConfig} from 'eslint/config';
+
+const config = defineConfig([{
     rules: {
         // Enforce “for” loop update clause moving the counter in the right direction
         // https://eslint.org/docs/rules/for-direction
@@ -168,12 +170,10 @@ module.exports = {
         // disallow comparisons with the value NaN
         'use-isnan': 'error',
 
-        // ensure JSDoc comments are valid
-        // https://eslint.org/docs/rules/valid-jsdoc
-        'valid-jsdoc': 'off',
-
         // ensure that the results of typeof are compared against a valid string
         // https://eslint.org/docs/rules/valid-typeof
         'valid-typeof': ['error', {requireStringLiterals: true}],
     },
-};
+}]);
+
+export default config;

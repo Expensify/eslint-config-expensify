@@ -1,14 +1,25 @@
-const RuleTester = require('@typescript-eslint/rule-tester').RuleTester;
-const rule = require('../prefer-at');
-const message = require('../CONST').MESSAGE.PREFER_AT;
+import {RuleTester} from '@typescript-eslint/rule-tester';
+import {fileURLToPath} from 'url';
+import parser from '@typescript-eslint/parser';
+import path from 'path';
+import * as rule from '../prefer-at.js';
+import CONST from '../CONST.js';
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const tsconfigRootDir = path.resolve(dirname, '../fixtures');
+
+const message = CONST.MESSAGE.PREFER_AT;
 
 const ruleTester = new RuleTester({
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
-        sourceType: 'module',
-        ecmaVersion: 2020,
+    languageOptions: {
+        parser,
+        parserOptions: {
+            project: './tsconfig.json',
+            tsconfigRootDir,
+            sourceType: 'module',
+            ecmaVersion: 2020,
+        },
     },
 });
 

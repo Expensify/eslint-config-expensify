@@ -1,35 +1,38 @@
-const _ = require('underscore');
-const message = require('./CONST').MESSAGE.NO_MULTIPLE_API_CALLS;
+import _ from 'underscore';
+import CONST from './CONST.js';
 
-module.exports = {
-    create(context) {
-        function checkFunctionBody(node) {
-            const tokens = context.getSourceCode().getTokens(node);
-            let hasCalledAPI = false;
+const message = CONST.MESSAGE.NO_MULTIPLE_API_CALLS;
 
-            _.each(tokens, (token) => {
-                const isAPICall = token.value === 'API';
+function create(context) {
+    function checkFunctionBody(node) {
+        const tokens = context.getSourceCode().getTokens(node);
+        let hasCalledAPI = false;
 
-                if (!isAPICall) {
-                    return;
-                }
+        _.each(tokens, (token) => {
+            const isAPICall = token.value === 'API';
 
-                if (!hasCalledAPI) {
-                    hasCalledAPI = true;
-                    return;
-                }
+            if (!isAPICall) {
+                return;
+            }
 
-                context.report({
-                    node: token,
-                    message,
-                });
+            if (!hasCalledAPI) {
+                hasCalledAPI = true;
+                return;
+            }
+
+            context.report({
+                node: token,
+                message,
             });
-        }
+        });
+    }
 
-        return {
-            FunctionDeclaration: checkFunctionBody,
-            FunctionExpression: checkFunctionBody,
-            ArrowFunctionExpression: checkFunctionBody,
-        };
-    },
-};
+    return {
+        FunctionDeclaration: checkFunctionBody,
+        FunctionExpression: checkFunctionBody,
+        ArrowFunctionExpression: checkFunctionBody,
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

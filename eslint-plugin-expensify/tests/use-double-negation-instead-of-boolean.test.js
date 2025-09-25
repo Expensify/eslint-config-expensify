@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../use-double-negation-instead-of-boolean');
-const message = require('../CONST').MESSAGE.USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN;
+import {RuleTester} from 'eslint';
+import * as rule from '../use-double-negation-instead-of-boolean.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.USE_DOUBLE_NEGATION_INSTEAD_OF_BOOLEAN;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

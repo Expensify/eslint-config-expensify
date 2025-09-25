@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../use-periods-for-error-messages');
-const message = require('../CONST').MESSAGE.USE_PERIODS_ERROR_MESSAGES;
+import {RuleTester} from 'eslint';
+import * as rule from '../use-periods-for-error-messages.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.USE_PERIODS_ERROR_MESSAGES;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

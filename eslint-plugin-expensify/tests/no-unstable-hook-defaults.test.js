@@ -1,8 +1,8 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-unstable-hook-defaults');
+import {RuleTester} from 'eslint';
+import * as rule from '../no-unstable-hook-defaults.js';
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
     },

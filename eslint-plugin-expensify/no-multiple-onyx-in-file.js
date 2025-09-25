@@ -1,28 +1,31 @@
-const lodashGet = require('lodash/get');
-const message = require('./CONST').MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
 
-module.exports = {
-    create: (context) => {
-        let withOnyxCount = 0;
+const message = CONST.MESSAGE.NO_MULTIPLE_ONYX_IN_FILE;
 
-        return {
-            CallExpression(node) {
-                const calleeName = lodashGet(node, 'callee.name');
+function create(context) {
+    let withOnyxCount = 0;
 
-                if (calleeName === 'withOnyx') {
-                    withOnyxCount += 1;
+    return {
+        CallExpression(node) {
+            const calleeName = lodashGet(node, 'callee.name');
 
-                    if (withOnyxCount > 1) {
-                        context.report({
-                            node,
-                            message,
-                        });
-                    }
+            if (calleeName === 'withOnyx') {
+                withOnyxCount += 1;
+
+                if (withOnyxCount > 1) {
+                    context.report({
+                        node,
+                        message,
+                    });
                 }
-            },
-            'Program:exit': () => {
-                withOnyxCount = 0;
-            },
-        };
-    },
-};
+            }
+        },
+        'Program:exit': () => {
+            withOnyxCount = 0;
+        },
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

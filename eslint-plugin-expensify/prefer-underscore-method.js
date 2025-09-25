@@ -4,12 +4,13 @@
  * easy to tell the difference between String.includes() and Array.includes(). Underscore's includes() does not work on
  * strings so it should not be preferred unless the passed value is an array.
  */
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
+import {isLodashCall, isLodashWrapper, isNativeCollectionMethodCall} from './utils/lodashUtil.js';
+import {getCaller, getMethodName} from './utils/astUtil.js';
 
-const message = require('./CONST').MESSAGE.PREFER_UNDERSCORE_METHOD;
-const lodashUtil = require('./utils/lodashUtil');
-const astUtil = require('./utils/astUtil');
+const message = CONST.MESSAGE.PREFER_UNDERSCORE_METHOD;
 
 /**
  * @param {Object} node
@@ -21,7 +22,7 @@ function isStaticNativeMethodCall(node) {
         Array: ['isArray'],
     };
     const callerName = lodashGet(node, 'callee.object.name');
-    return (callerName in staticMethods) && _.includes(staticMethods[callerName], astUtil.getMethodName(node));
+    return (callerName in staticMethods) && _.includes(staticMethods[callerName], getMethodName(node));
 }
 
 /**
@@ -29,8 +30,8 @@ function isStaticNativeMethodCall(node) {
  * @returns {Boolean}
  */
 function isUnderscoreMethod(node) {
-    return !(lodashUtil.isLodashCall(node) || lodashUtil.isLodashWrapper(astUtil.getCaller(node)))
-        && (lodashUtil.isNativeCollectionMethodCall(node) || isStaticNativeMethodCall(node));
+    return !(isLodashCall(node) || isLodashWrapper(getCaller(node)))
+        && (isNativeCollectionMethodCall(node) || isStaticNativeMethodCall(node));
 }
 
 /**
@@ -52,8 +53,8 @@ function isReactChildrenMap(node) {
         && lodashGet(node, 'callee.property.name') === 'map';
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         CallExpression: (node) => {
             if (isJestEach(node)) {
                 return;
@@ -67,7 +68,10 @@ module.exports = {
                 return;
             }
 
-            context.report(node, message, {method: astUtil.getMethodName(node)});
+            context.report(node, message, {method: getMethodName(node)});
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

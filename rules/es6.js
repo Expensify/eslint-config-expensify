@@ -1,4 +1,6 @@
-module.exports = {
+import {defineConfig} from 'eslint/config';
+
+const config = defineConfig([{
     rules: {
         'prefer-template': 'error',
 
@@ -44,4 +46,6 @@ module.exports = {
             },
         ],
     },
-};
+}]);
+
+export default config;

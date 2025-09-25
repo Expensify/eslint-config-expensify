@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-use-state-initializer-functions');
-const message = require('../CONST').MESSAGE.NO_USE_STATE_INITIALIZER_CALL_FUNCTION;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-use-state-initializer-functions.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_USE_STATE_INITIALIZER_CALL_FUNCTION;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

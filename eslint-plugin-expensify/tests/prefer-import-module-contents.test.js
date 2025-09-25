@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-import-module-contents');
-const message = require('../CONST').MESSAGE.PREFER_IMPORT_MODULE_CONTENTS;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-import-module-contents.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_IMPORT_MODULE_CONTENTS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

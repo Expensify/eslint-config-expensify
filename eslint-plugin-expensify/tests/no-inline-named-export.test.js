@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-inline-named-export');
-const message = require('../CONST').MESSAGE.NO_INLINE_NAMED_EXPORT;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-inline-named-export.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_INLINE_NAMED_EXPORT;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

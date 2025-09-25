@@ -1,6 +1,8 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
-const message = require('./CONST').MESSAGE.NO_NEGATED_VARIABLES;
+import _ from 'underscore';
+import lodashGet from 'lodash/get.js';
+import CONST from './CONST.js';
+
+const message = CONST.MESSAGE.NO_NEGATED_VARIABLES;
 
 const BANNED_SUBSTRINGS = [
     'not',
@@ -59,8 +61,8 @@ function isNegatedVariableName(name) {
         && !isFalsePositive(name);
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         FunctionDeclaration(node) {
             const name = lodashGet(node, 'id.name');
             if (!name) {
@@ -91,5 +93,8 @@ module.exports = {
                 message,
             });
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

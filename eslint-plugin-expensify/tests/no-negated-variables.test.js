@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-negated-variables');
-const message = require('../CONST').MESSAGE.NO_NEGATED_VARIABLES;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-negated-variables.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_NEGATED_VARIABLES;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

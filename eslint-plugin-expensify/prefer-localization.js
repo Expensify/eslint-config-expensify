@@ -1,8 +1,9 @@
-const _ = require('underscore');
-const {isInActionFile} = require('./utils');
+import _ from 'underscore';
+import {isInActionFile} from './utils/index.js';
+import CONST from './CONST.js';
+import {getMethodName, isCallFromObject} from './utils/astUtil.js';
 
-const message = require('./CONST').MESSAGE.PREFER_LOCALIZATION;
-const astUtil = require('./utils/astUtil');
+const message = CONST.MESSAGE.PREFER_LOCALIZATION;
 
 /**
  * @param {Object} node
@@ -13,15 +14,15 @@ function isDateUtilsUsedAsProperty(node) {
         const keyNode = property.key;
         const valueNode = property.value;
 
-        if (!astUtil.isCallFromObject(keyNode, 'DateUtils')) {
+        if (!isCallFromObject(keyNode, 'DateUtils')) {
             return false;
         }
 
-        if (astUtil.getMethodName(keyNode) !== 'getMicroseconds') {
+        if (getMethodName(keyNode) !== 'getMicroseconds') {
             return false;
         }
 
-        if (astUtil.isCallFromObject(valueNode, 'Localize')) {
+        if (isCallFromObject(valueNode, 'Localize')) {
             return false;
         }
 
@@ -31,8 +32,8 @@ function isDateUtilsUsedAsProperty(node) {
     return dateUtilsProperties.length > 0;
 }
 
-module.exports = {
-    create: context => ({
+function create(context) {
+    return {
         ObjectExpression: (node) => {
             if (!isInActionFile(context.getFilename())) {
                 return;
@@ -44,5 +45,8 @@ module.exports = {
 
             context.report(node, message);
         },
-    }),
-};
+    };
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {create};

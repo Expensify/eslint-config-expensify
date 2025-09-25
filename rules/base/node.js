@@ -1,6 +1,11 @@
-module.exports = {
-    env: {
-        node: true,
+import {defineConfig} from 'eslint/config';
+import globals from 'globals';
+
+const config = defineConfig([{
+    languageOptions: {
+        globals: {
+            ...globals.node,
+        },
     },
 
     rules: {
@@ -40,4 +45,6 @@ module.exports = {
         // disallow use of synchronous methods (off by default)
         'no-sync': 'off',
     },
-};
+}]);
+
+export default config;

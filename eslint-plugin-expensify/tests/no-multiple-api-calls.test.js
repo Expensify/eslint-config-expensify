@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-multiple-api-calls');
-const message = require('../CONST').MESSAGE.NO_MULTIPLE_API_CALLS;
+import {RuleTester} from 'eslint';
+import * as rule from '../no-multiple-api-calls.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.NO_MULTIPLE_API_CALLS;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

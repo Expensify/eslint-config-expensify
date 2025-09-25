@@ -1,7 +1,6 @@
-const semver = require('semver');
-const eslintPkg = require('eslint/package.json');
+import {defineConfig} from 'eslint/config';
 
-module.exports = {
+const config = defineConfig([{
     rules: {
         // enforce line breaks after opening and before closing array brackets
         // https://eslint.org/docs/rules/array-bracket-newline
@@ -105,7 +104,7 @@ module.exports = {
 
         // require line breaks inside function parentheses if there are line breaks between parameters
         // https://eslint.org/docs/rules/function-paren-newline
-        'function-paren-newline': ['error', semver.satisfies(eslintPkg.version, '>= 6') ? 'multiline-arguments' : 'consistent'],
+        'function-paren-newline': ['error', 'multiline-arguments'],
 
         // disallow specified identifiers
         // https://eslint.org/docs/rules/id-denylist
@@ -547,4 +546,6 @@ module.exports = {
         // require regex literals to be wrapped in parentheses
         'wrap-regex': 'off',
     },
-};
+}]);
+
+export default config;

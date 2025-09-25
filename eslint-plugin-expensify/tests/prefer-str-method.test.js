@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-str-method');
-const message = require('../CONST').MESSAGE.PREFER_STR_METHOD;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-str-method.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_STR_METHOD;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

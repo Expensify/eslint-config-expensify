@@ -1,9 +1,9 @@
 
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../no-onyx-connect');
+import {RuleTester} from 'eslint';
+import * as rule from '../no-onyx-connect.js';
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

@@ -1,14 +1,25 @@
-const RuleTester = require('@typescript-eslint/rule-tester').RuleTester;
-const rule = require('../prefer-locale-compare-from-context');
-const message = require('../CONST').MESSAGE.PREFER_LOCALE_COMPARE_FROM_CONTEXT;
+import {RuleTester} from '@typescript-eslint/rule-tester';
+import {fileURLToPath} from 'url';
+import parser from '@typescript-eslint/parser';
+import path from 'path';
+import * as rule from '../prefer-locale-compare-from-context.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_LOCALE_COMPARE_FROM_CONTEXT;
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const tsconfigRootDir = path.resolve(dirname, '../fixtures');
 
 const ruleTester = new RuleTester({
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
-        sourceType: 'module',
-        ecmaVersion: 2020,
+    languageOptions: {
+        parser,
+        parserOptions: {
+            project: './tsconfig.json',
+            tsconfigRootDir,
+            sourceType: 'module',
+            ecmaVersion: 2020,
+        },
     },
 });
 
@@ -35,7 +46,7 @@ ruleTester.run('prefer-locale-compare-from-context', rule, {
                 const str = 'abc';
                 const result = str.localeCompare('xyz');
             `,
-            filename: '../tests/file.ts',
+            filename: 'tests/file.ts',
         },
     ],
     invalid: [

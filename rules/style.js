@@ -1,4 +1,11 @@
-module.exports = {
+import {defineConfig} from 'eslint/config';
+import jsdoc from 'eslint-plugin-jsdoc';
+
+const config = defineConfig([{
+    plugins: {
+        jsdoc,
+    },
+
     rules: {
         camelcase: 'off',
         'class-methods-use-this': 'off',
@@ -78,14 +85,24 @@ module.exports = {
             named: 'never',
         }],
         strict: ['error', 'never'],
-        'valid-jsdoc': ['error', {
-            requireParamDescription: false,
-            requireReturnDescription: false,
-            requireReturn: false,
+
+        'jsdoc/require-param': 'error',
+        'jsdoc/require-param-type': 'error',
+        'jsdoc/check-param-names': 'error',
+        'jsdoc/check-tag-names': 'error',
+        'jsdoc/check-types': ['error', {
+            exemptTagContexts: [
+                {tag: 'param', types: ['Object']},
+                {tag: 'returns', types: ['Object']},
+            ],
+            noDefaults: true,
         }],
+
         'vars-on-top': 'off',
 
         // This enforces wrapping always the function expression.
         'wrap-iife': ['error', 'inside'],
     },
-};
+}]);
+
+export default config;

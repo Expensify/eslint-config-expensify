@@ -1,9 +1,11 @@
-const RuleTester = require('eslint').RuleTester;
-const rule = require('../prefer-early-return');
-const message = require('../CONST').MESSAGE.PREFER_EARLY_RETURN;
+import {RuleTester} from 'eslint';
+import * as rule from '../prefer-early-return.js';
+import CONST from '../CONST.js';
+
+const message = CONST.MESSAGE.PREFER_EARLY_RETURN;
 
 const ruleTester = new RuleTester({
-    parserOptions: {
+    languageOptions: {
         ecmaVersion: 6,
         sourceType: 'module',
     },

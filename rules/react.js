@@ -1,25 +1,28 @@
-const assign = require('object.assign');
-const baseStyleRules = require('./base/style').rules;
+import {defineConfig} from 'eslint/config';
+import react from 'eslint-plugin-react';
 
-const dangleRules = baseStyleRules['no-underscore-dangle'];
+const config = defineConfig([{
+    plugins: {
+        react,
+    },
 
-module.exports = {
-    plugins: [
-        'react',
-    ],
-
-    parserOptions: {
-        ecmaFeatures: {
-            jsx: true,
+    languageOptions: {
+        parserOptions: {
+            ecmaFeatures: {
+                jsx: true,
+            },
         },
     },
 
     // View link below for react rules documentation
     // https://github.com/yannickcr/eslint-plugin-react#list-of-supported-rules
     rules: {
-        'no-underscore-dangle': [dangleRules[0], assign({}, dangleRules[1], {
-            allow: dangleRules[1].allow.concat(['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__']),
-        })],
+        'no-underscore-dangle': ['error', {
+            allow: ['__REDUX_DEVTOOLS_EXTENSION_COMPOSE__'],
+            allowAfterThis: false,
+            allowAfterSuper: false,
+            enforceInMethodNames: true,
+        }],
 
         // Specify whether double or single quotes should be used in JSX attributes
         // https://eslint.org/docs/rules/jsx-quotes
@@ -586,4 +589,6 @@ module.exports = {
             'Object.freeze', // https://tc39.github.io/ecma262/#sec-object.freeze
         ],
     },
-};
+}]);
+
+export default config;

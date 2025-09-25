@@ -1,13 +1,13 @@
-const _ = require('lodash');
-const aliasMap = require('./aliases');
-const astUtil = require('./astUtil');
+import _ from 'lodash';
+import {CHAINABLE_ALIASES, WRAPPER_METHODS} from './aliases.js';
+import {getMethodName, isCallFromObject, isMethodCall} from './astUtil.js';
 
 /**
  * @param {Object} node
  * @returns {Boolean}
  */
 function isLodashCall(node) {
-    return astUtil.isCallFromObject(node, '_');
+    return isCallFromObject(node, '_');
 }
 
 /**
@@ -15,7 +15,7 @@ function isLodashCall(node) {
  * @returns {Boolean}
  */
 function isChainable(node) {
-    return _.includes(aliasMap.CHAINABLE_ALIASES, astUtil.getMethodName(node));
+    return _.includes(CHAINABLE_ALIASES, getMethodName(node));
 }
 
 /**
@@ -23,7 +23,7 @@ function isChainable(node) {
  * @returns {Boolean}
  */
 function isLodashChainStart(node) {
-    return node && node.type === 'CallExpression' && (node.callee.name === '_' || (_.get(node, 'callee.object.name') === '_' && astUtil.getMethodName(node) === 'chain'));
+    return node && node.type === 'CallExpression' && (node.callee.name === '_' || (_.get(node, 'callee.object.name') === '_' && getMethodName(node) === 'chain'));
 }
 
 /**
@@ -34,8 +34,7 @@ function isLodashWrapper(node) {
     if (isLodashChainStart(node)) {
         return true;
     }
-    // eslint-disable-next-line no-unused-vars
-    return astUtil.isMethodCall(node) && isChainable(node) && isLodashWrapper(node.callee.object);
+    return isMethodCall(node) && isChainable(node) && isLodashWrapper(node.callee.object);
 }
 
 /**
@@ -43,7 +42,7 @@ function isLodashWrapper(node) {
  * @returns {Boolean}
  */
 function isLodashWrapperMethod(node) {
-    return _.includes(aliasMap.WRAPPER_METHODS, astUtil.getMethodName(node)) && node.type === 'CallExpression';
+    return _.includes(WRAPPER_METHODS, getMethodName(node)) && node.type === 'CallExpression';
 }
 
 /**
@@ -51,10 +50,10 @@ function isLodashWrapperMethod(node) {
  * @returns {Boolean}
  */
 function isNativeCollectionMethodCall(node) {
-    return _.includes(['every', 'filter', 'find', 'findIndex', 'each', 'map', 'reduce', 'reduceRight', 'some'], astUtil.getMethodName(node));
+    return _.includes(['every', 'filter', 'find', 'findIndex', 'each', 'map', 'reduce', 'reduceRight', 'some'], getMethodName(node));
 }
 
-module.exports = {
+export {
     isLodashCall,
     isNativeCollectionMethodCall,
     isLodashWrapperMethod,

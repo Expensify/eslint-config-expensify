@@ -1,6 +1,6 @@
 // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/rules/utils/is-left-hand-side.js
 
-const {AST_NODE_TYPES} = require('@typescript-eslint/utils');
+import {AST_NODE_TYPES} from '@typescript-eslint/utils';
 
 function isLeftHandSide(node) {
     const {parent} = node;
@@ -24,4 +24,5 @@ function isLeftHandSide(node) {
     );
 }
 
-module.exports = {isLeftHandSide};
+// eslint-disable-next-line import/prefer-default-export
+export {isLeftHandSide};

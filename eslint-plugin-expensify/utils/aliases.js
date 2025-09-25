@@ -1,4 +1,4 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
 const ALIASES = {
     each: ['forEach'],
@@ -51,7 +51,9 @@ function expandAliases(methods) {
 
 const WRAPPER_METHODS = ['concat', 'join', 'pop', 'push', 'reverse', 'shift', 'slice', 'sort', 'splice', 'unshift', 'replace', 'split'];
 
-module.exports = {
-    CHAINABLE_ALIASES: expandAliases(CHAINABLE),
+const CHAINABLE_ALIASES = expandAliases(CHAINABLE);
+
+export {
+    CHAINABLE_ALIASES,
     WRAPPER_METHODS,
 };
