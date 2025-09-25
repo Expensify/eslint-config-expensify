@@ -1,7 +1,5 @@
-/* eslint-disable no-bitwise */
-import _ from 'underscore';
 import {ESLintUtils} from '@typescript-eslint/utils';
-import ts from 'typescript';
+import {isBoolean} from './utils/typeUtil.js';
 
 const name = 'boolean-conditional-rendering';
 
@@ -23,24 +21,7 @@ function create(context) {
     function isJSXElement(node) {
         return node.type === 'JSXElement' || node.type === 'JSXFragment';
     }
-    function isBoolean(type) {
-        return (
-            (type.getFlags()
-      & (ts.TypeFlags.Boolean
-        | ts.TypeFlags.BooleanLike
-        | ts.TypeFlags.BooleanLiteral))
-      !== 0
-    || (type.isUnion()
-      && _.every(
-          type.types,
-          t => (t.getFlags()
-            & (ts.TypeFlags.Boolean
-              | ts.TypeFlags.BooleanLike
-              | ts.TypeFlags.BooleanLiteral))
-          !== 0,
-      ))
-        );
-    }
+
     const parserServices = ESLintUtils.getParserServices(context);
     const typeChecker = parserServices.program.getTypeChecker();
     return {
