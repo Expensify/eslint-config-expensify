@@ -38,6 +38,7 @@ const CONST = {
         PREFER_LOCALE_COMPARE_FROM_CONTEXT: 'Prefer using `localeCompare` from `useLocalize` for performance.',
         NO_USE_STATE_INITIALIZER_CALL_FUNCTION:
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
+        NO_OBJECT_KEYS_INCLUDES: 'Avoid Object.keys({{object}}).includes({{key}}) for O(n) complexity. Use {{key}} in {{object}} or !!{{object}}[{{key}}] for O(1) complexity.',
     },
 };
 
