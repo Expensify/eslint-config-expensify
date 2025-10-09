@@ -1,4 +1,4 @@
-const RuleTester = require('eslint').RuleTester;
+const { RuleTester } = require('eslint');
 const rule = require('../no-inline-useOnyx-selector');
 
 const ruleTester = new RuleTester({
