@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 /**
  * @typedef {import('eslint').Rule.RuleModule} RuleModule
@@ -7,7 +7,7 @@ const _ = require('underscore');
  */
 
 /** @type {RuleModule} */
-module.exports = {
+export default {
     name: 'no-inline-useOnyx-selector',
     meta: {
         type: 'problem',

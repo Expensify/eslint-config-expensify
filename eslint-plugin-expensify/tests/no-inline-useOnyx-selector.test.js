@@ -1,5 +1,5 @@
-const { RuleTester } = require('eslint');
-const rule = require('../no-inline-useOnyx-selector');
+import {RuleTester} from 'eslint';
+import * as rule from '../no-inline-useOnyx-selector.js';
 
 const ruleTester = new RuleTester({
     languageOptions: {
@@ -14,7 +14,6 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
         {
             code: 'const [data] = useOnyx(ONYXKEYS.DATA, {canBeMissing: false});',
         },
-
 
         // Selector as identifier reference - should not error
         {
