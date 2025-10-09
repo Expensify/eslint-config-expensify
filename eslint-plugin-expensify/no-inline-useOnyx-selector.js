@@ -1,32 +1,24 @@
 import _ from 'underscore';
 
-/**
- * @typedef {import('eslint').Rule.RuleModule} RuleModule
- * @typedef {import('estree').ObjectExpression} ObjectExpression
- * @typedef {import('estree').Property} Property
- */
-
-/** @type {RuleModule} */
-export default {
-    name: 'no-inline-useOnyx-selector',
-    meta: {
-        type: 'problem',
-        docs: {
-            description: 'Enforces that useOnyx hook calls do not use inline selectors.',
-            recommended: 'error',
-        },
-        schema: [],
-        messages: {
-            noInlineSelector: 'useOnyx() selector should not be defined inline.\n\n'
-                + 'Shared selectors: define in a dedicated selectors/ directory for reuse.\n\n'
-                + 'Local selectors: define in the same file outside the component.\n\n'
-                + 'Contextual selectors: define as useCallback inside the component with relevant dependencies.',
-            noNonMemoizedSelector: 'useOnyx() selector defined within component should be memoized with useCallback.\n\n'
-                + 'Wrap the selector function with useCallback to prevent unnecessary re-renders:\n\n'
-                + 'const memoizedSelector = useCallback((val) => ({...}), [dependencies]);',
-        },
+const meta = {
+    type: 'problem',
+    docs: {
+        description: 'Enforces that useOnyx hook calls do not use inline selectors.',
+        recommended: 'error',
     },
-    create(context) {
+    schema: [],
+    messages: {
+        noInlineSelector: 'useOnyx() selector should not be defined inline.\n\n'
+            + 'Shared selectors: define in a dedicated selectors/ directory for reuse.\n\n'
+            + 'Local selectors: define in the same file outside the component.\n\n'
+            + 'Contextual selectors: define as useCallback inside the component with relevant dependencies.',
+        noNonMemoizedSelector: 'useOnyx() selector defined within component should be memoized with useCallback.\n\n'
+            + 'Wrap the selector function with useCallback to prevent unnecessary re-renders:\n\n'
+            + 'const memoizedSelector = useCallback((val) => ({...}), [dependencies]);',
+    },
+};
+
+function create(context) {
         const componentStack = [];
 
         /**
@@ -265,5 +257,6 @@ export default {
                 }
             },
         };
-    },
-};
+}
+
+export {meta, create};
