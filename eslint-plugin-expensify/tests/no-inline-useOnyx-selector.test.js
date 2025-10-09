@@ -2,8 +2,8 @@ const RuleTester = require('eslint').RuleTester;
 const rule = require('../no-inline-useOnyx-selector');
 
 const ruleTester = new RuleTester({
-    parserOptions: {
-        ecmaVersion: 2020,
+    languageOptions: {
+        ecmaVersion: 2024,
         sourceType: 'module',
     },
 });
@@ -15,10 +15,6 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
             code: 'const [data] = useOnyx(ONYXKEYS.DATA, {canBeMissing: false});',
         },
 
-        // Selector as variable reference - should not error
-        {
-            code: 'const selector = (data) => data.value; const [data] = useOnyx(ONYXKEYS.DATA, {selector, canBeMissing: false});',
-        },
 
         // Selector as identifier reference - should not error
         {

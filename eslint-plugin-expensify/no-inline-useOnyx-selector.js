@@ -95,12 +95,13 @@ module.exports = {
          * Find the variable declaration and return the value.
          *
          * @param {string} name - The name of the variable to resolve.
+         * @param {Node} node - The node to get scope from.
          * @returns {ObjectExpression|null}
          */
-        function getVariableValue(name) {
+        function getVariableValue(name, node) {
             try {
-                const scope = context.getScope();
-                const variable = scope.set.get(name);
+                const scope = context.sourceCode.getScope(node);
+                const variable = scope.set.get(name) || scope.upper?.set.get(name);
 
                 if (variable && variable.defs.length > 0) {
                     const def = variable.defs[0];
@@ -160,8 +161,8 @@ module.exports = {
                 return; // Not inside a component
             }
 
-            const scope = context.getScope();
-            const variable = scope.set.get(selectorName);
+            const scope = context.sourceCode.getScope(node);
+            const variable = scope.set.get(selectorName) || scope.upper?.set.get(selectorName);
 
             if (!variable) {
                 return; // Variable not found in current scope
@@ -243,7 +244,7 @@ module.exports = {
                     }
 
                     case 'Identifier': {
-                        const resolvedValue = getVariableValue(optionsArgument.name);
+                        const resolvedValue = getVariableValue(optionsArgument.name, node);
                         if (resolvedValue && hasInlineSelector(resolvedValue)) {
                             context.report({
                                 node: node.init,
