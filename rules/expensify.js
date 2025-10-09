@@ -34,6 +34,7 @@ const config = defineConfig([{
         'rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth': 'warn',
         'rulesdir/no-use-state-initializer-functions': 'error',
         'rulesdir/no-unstable-hook-defaults': 'error',
+        'rulesdir/no-inline-useOnyx-selector': 'error',
     },
 }]);
 
