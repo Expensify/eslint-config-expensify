@@ -93,7 +93,7 @@ function create(context) {
     function getVariableValue(name, node) {
         try {
             const scope = context.sourceCode.getScope(node);
-            const variable = scope.set.get(name) || scope.upper?.set.get(name);
+            const variable = scope.set.get(name) || (_.get(scope.upper, 'set') || new Set()).get(name);
 
             if (variable && variable.defs.length > 0) {
                 const def = variable.defs[0];
@@ -101,7 +101,7 @@ function create(context) {
                     return def.node.init;
                 }
             }
-        } catch (e) {
+        } catch {
             return null;
         }
 
@@ -154,7 +154,7 @@ function create(context) {
         }
 
         const scope = context.sourceCode.getScope(node);
-        const variable = scope.set.get(selectorName) || scope.upper?.set.get(selectorName);
+        const variable = scope.set.get(selectorName) || (_.get(scope.upper, 'set') || new Set()).get(selectorName);
 
         if (!variable) {
             return; // Variable not found in current scope
