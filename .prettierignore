@@ -1,0 +1,10 @@
+# ignore github workflow files
+.github/workflows/*
+
+# ignore markdown files
+README.md
+NOTICE.md
+
+# ignore package json files
+package.json
+package-lock.json

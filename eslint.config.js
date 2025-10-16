@@ -1,3 +1,4 @@
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import {defineConfig} from 'eslint/config';
 import indexConfig from './index.js';
 
@@ -6,11 +7,16 @@ import indexConfig from './index.js';
  */
 const config = defineConfig([
     indexConfig,
+    eslintPluginPrettierRecommended,
     {
         rules: {
-            'import/extensions': ['error', 'ignorePackages', {
-                js: 'always',
-            }],
+            'import/extensions': [
+                'error',
+                'ignorePackages',
+                {
+                    js: 'always',
+                },
+            ],
             'rulesdir/prefer-import-module-contents': 'off',
         },
     },
