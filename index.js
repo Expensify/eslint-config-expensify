@@ -19,6 +19,7 @@ import react from './rules/react.js';
 import reactA11y from './rules/react-a11y.js';
 import es6 from './rules/es6.js';
 import style from './rules/style.js';
+import unicorn from './rules/unicorn.js';
 import expensify from './rules/expensify.js';
 
 rulesdir.RULES_DIR = path.resolve(import.meta.dirname, 'eslint-plugin-expensify');
@@ -36,6 +37,7 @@ const config = defineConfig([
     reactA11y,
     es6,
     style,
+    unicorn,
     reactHooks.configs['recommended-latest'],
     expensify,
     {
