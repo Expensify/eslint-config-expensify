@@ -74,10 +74,12 @@ function create(context) {
         'CONST.DEFAULT_NUMBER_ID}`',
     ];
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     disallowedNumberDefaults.forEach((pattern) => {
         searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedNumberDefault');
     });
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     disallowedStringDefaults.forEach((pattern) => {
         searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedStringDefault');
     });

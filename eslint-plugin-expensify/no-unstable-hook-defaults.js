@@ -81,6 +81,7 @@ function create(context) {
 
             // Check if the variable declaration is an array pattern (destructuring)
             if (node.id.type === 'ArrayPattern') {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 node.id.elements.forEach((element) => {
                     if (!element || element.type !== 'AssignmentPattern') {
                         return;
@@ -91,6 +92,7 @@ function create(context) {
 
             // Check if the variable declaration is an object pattern (destructuring)
             if (node.id.type === 'ObjectPattern') {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 node.id.properties.forEach((property) => {
                     if (!property || property.type !== 'Property' || property.value.type !== 'AssignmentPattern') {
                         return;

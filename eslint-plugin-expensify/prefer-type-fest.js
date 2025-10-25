@@ -19,6 +19,7 @@ function create(context) {
     return {
         Program(node) {
             // Find type-fest import declarations
+            // eslint-disable-next-line unicorn/no-array-for-each
             node.body.forEach((statement) => {
                 if (statement.type !== 'ImportDeclaration' || statement.source.value !== 'type-fest') {
                     return;
