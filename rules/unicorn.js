@@ -13,6 +13,10 @@ const config = defineConfig([{
 
     rules: {
         'unicorn/prefer-set-has': 'error',
+
+        // Enforce to use set.size instead of Array.from(set).length for better performance
+        // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-set-size.md
+        'unicorn/prefer-set-size': 'error',
     },
 }]);
 
