@@ -13,6 +13,10 @@ const config = defineConfig([{
 
     rules: {
         'unicorn/prefer-set-has': 'error',
+
+        // Enforce to use .replaceAll instead of .replace when dealing over regex searches
+        // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-string-replace-all.md
+        'unicorn/prefer-string-replace-all': 'error',
     },
 }]);
 
