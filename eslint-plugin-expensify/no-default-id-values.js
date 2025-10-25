@@ -1,5 +1,5 @@
 function createPatternRegex(pattern) {
-    return new RegExp(pattern.replaceAll(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), 'g');
+    return new RegExp(pattern.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), 'g');
 }
 
 function searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, messageId) {
