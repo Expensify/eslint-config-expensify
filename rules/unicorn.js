@@ -13,6 +13,7 @@ const config = defineConfig([{
 
     rules: {
         'unicorn/prefer-set-has': 'error',
+        'unicorn/no-array-for-each': 'error',
     },
 }]);
 

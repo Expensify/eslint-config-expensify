@@ -27,6 +27,7 @@ function create(context) {
 
             // Check for 'const {isSmallScreenWidth, ...} = useResponsiveLayout();' pattern
             if (node.id.type === AST_NODE_TYPES.ObjectPattern) {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 node.id.properties.forEach((property) => {
                     if (!property.key || property.key.name !== 'isSmallScreenWidth') {
                         return;
@@ -48,6 +49,7 @@ function create(context) {
                 scope.references,
                 reference => reference.identifier.name === variableName,
             );
+            // eslint-disable-next-line unicorn/no-array-for-each
             variableUsages.forEach((usage) => {
                 const parent = usage.identifier.parent;
 
@@ -69,6 +71,7 @@ function create(context) {
                     parent.type === AST_NODE_TYPES.VariableDeclarator
         && parent.id.type === AST_NODE_TYPES.ObjectPattern
                 ) {
+                    // eslint-disable-next-line unicorn/no-array-for-each
                     parent.id.properties.forEach((property) => {
                         if (!property.key || property.key.name !== 'isSmallScreenWidth') {
                             return;
