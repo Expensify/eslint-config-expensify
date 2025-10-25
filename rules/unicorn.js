@@ -13,6 +13,10 @@ const config = defineConfig([{
 
     rules: {
         'unicorn/prefer-set-has': 'error',
+
+        // Enforce that .find or .findLast are used instead of .filter
+        // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-array-find.md
+        'unicorn/prefer-array-find': 'error',
     },
 }]);
 
