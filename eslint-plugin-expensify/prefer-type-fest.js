@@ -19,12 +19,12 @@ function create(context) {
     return {
         Program(node) {
             // Find type-fest import declarations
-            node.body.forEach((statement) => {
+            for (const statement of node.body) {
                 if (statement.type !== 'ImportDeclaration' || statement.source.value !== 'type-fest') {
-                    return;
+                    continue;
                 }
                 typeFestImport = statement;
-            });
+            }
         },
         TSIndexedAccessType(node) {
             const objectType = node.objectType;
