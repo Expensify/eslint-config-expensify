@@ -14,6 +14,10 @@ const config = defineConfig([{
     rules: {
         'unicorn/prefer-set-has': 'error',
 
+        // Enforce that .find or .findLast are used instead of .filter
+        // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-array-find.md
+        'unicorn/prefer-array-find': 'error',
+
         // Enforce to use .replaceAll instead of .replace when dealing over regex searches
         // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-string-replace-all.md
         'unicorn/prefer-string-replace-all': 'error',
