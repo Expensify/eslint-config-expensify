@@ -5,11 +5,13 @@ import CONST from "../CONST.js";
 const message = CONST.MESSAGE.NO_BROAD_HOOK_DEPENDENCIES;
 
 const ruleTester = new RuleTester({
-  parserOptions: {
+  languageOptions: {
     ecmaVersion: 2018,
     sourceType: "module",
-    ecmaFeatures: {
-      jsx: true,
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
     },
   },
 });
@@ -71,6 +73,15 @@ ruleTester.run("no-broad-hook-dependencies", rule, {
                 useEffect(() => {
                     console.log(obj['computed']);
                 }, [obj]);
+            `,
+    },
+    // Method calls are valid - depend on object, not the method
+    {
+      code: `
+                useCallback(() => {
+                    const filtered = selectedMembers.filter((id) => id > 0);
+                    setSelectedMembers([]);
+                }, [selectedMembers, setSelectedMembers]);
             `,
     },
   ],

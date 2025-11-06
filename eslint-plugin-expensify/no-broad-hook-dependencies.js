@@ -30,6 +30,16 @@ function create(context) {
     // If this is a member expression like obj.prop or obj.prop.nested
     // but NOT computed member expressions like obj['computed'] or obj[variable]
     if (node.type === "MemberExpression" && !node.computed) {
+      // Skip method calls - accessing obj.method() doesn't mean you should depend on obj.method,
+      // you should depend on obj itself. Only track property accesses, not method calls.
+      if (
+        node.parent &&
+        node.parent.type === "CallExpression" &&
+        node.parent.callee === node
+      ) {
+        return accesses;
+      }
+
       // Get the root object name (e.g., 'transactionItem' from 'transactionItem.isAmountColumnWide')
       const rootObject = getRootObjectName(node);
 
