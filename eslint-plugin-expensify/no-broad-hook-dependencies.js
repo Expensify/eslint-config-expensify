@@ -11,9 +11,11 @@ const HOOKS_TO_CHECK = [
 
 function create(context) {
   /**
-   * Recursively collects all member expressions accessed in the given node
+   * Recursively collects all member expressions accessed in the given node.
+   * Only tracks property accesses, not method calls.
    * For example, for code like `transactionItem.isAmountColumnWide`, this returns:
    * { 'transactionItem': Set(['isAmountColumnWide']) }
+   * But for `items.filter(...)` or `user.updateProfile()`, it returns {} (method calls are ignored).
    *
    * @param {ASTNode} node - The AST node to traverse
    * @param {Object} accesses - Accumulator object mapping object names to sets of accessed properties
