@@ -21,6 +21,10 @@ const config = defineConfig([{
         // Enforce to use set.size instead of Array.from(set).length for better performance
         // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-set-size.md
         'unicorn/prefer-set-size': 'error',
+
+        // Enforce to use .replaceAll instead of .replace when dealing over regex searches
+        // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/prefer-string-replace-all.md
+        'unicorn/prefer-string-replace-all': 'error',
     },
 }]);
 
