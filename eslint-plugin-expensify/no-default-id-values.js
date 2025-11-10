@@ -74,13 +74,13 @@ function create(context) {
         'CONST.DEFAULT_NUMBER_ID}`',
     ];
 
-    disallowedNumberDefaults.forEach((pattern) => {
+    for (const pattern of disallowedNumberDefaults) {
         searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedNumberDefault');
-    });
+    }
 
-    disallowedStringDefaults.forEach((pattern) => {
+    for (const pattern of disallowedStringDefaults) {
         searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedStringDefault');
-    });
+    }
 
     return {};
 }

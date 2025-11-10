@@ -81,22 +81,22 @@ function create(context) {
 
             // Check if the variable declaration is an array pattern (destructuring)
             if (node.id.type === 'ArrayPattern') {
-                node.id.elements.forEach((element) => {
+                for (const element of node.id.elements) {
                     if (!element || element.type !== 'AssignmentPattern') {
-                        return;
+                        continue;
                     }
                     checkDefaultValue(element.right);
-                });
+                }
             }
 
             // Check if the variable declaration is an object pattern (destructuring)
             if (node.id.type === 'ObjectPattern') {
-                node.id.properties.forEach((property) => {
+                for (const property of node.id.properties) {
                     if (!property || property.type !== 'Property' || property.value.type !== 'AssignmentPattern') {
-                        return;
+                        continue;
                     }
                     checkDefaultValue(property.value.right);
-                });
+                }
             }
         },
     };

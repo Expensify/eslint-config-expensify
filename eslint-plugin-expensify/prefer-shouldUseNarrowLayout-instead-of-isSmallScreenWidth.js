@@ -27,9 +27,9 @@ function create(context) {
 
             // Check for 'const {isSmallScreenWidth, ...} = useResponsiveLayout();' pattern
             if (node.id.type === AST_NODE_TYPES.ObjectPattern) {
-                node.id.properties.forEach((property) => {
+                for (const property of node.id.properties) {
                     if (!property.key || property.key.name !== 'isSmallScreenWidth') {
-                        return;
+                        continue;
                     }
                     context.report({
                         node: property,
@@ -37,7 +37,7 @@ function create(context) {
             CONST.MESSAGE
                 .PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH,
                     });
-                });
+                }
             }
 
             const scope = sourceCode.getScope ? sourceCode.getScope(node) : context.getScope();
@@ -48,7 +48,7 @@ function create(context) {
                 scope.references,
                 reference => reference.identifier.name === variableName,
             );
-            variableUsages.forEach((usage) => {
+            for (const usage of variableUsages) {
                 const parent = usage.identifier.parent;
 
                 // Check for 'const isSmallScreenWidth = var.isSmallScreenWidth;' pattern
@@ -69,9 +69,9 @@ function create(context) {
                     parent.type === AST_NODE_TYPES.VariableDeclarator
         && parent.id.type === AST_NODE_TYPES.ObjectPattern
                 ) {
-                    parent.id.properties.forEach((property) => {
+                    for (const property of parent.id.properties) {
                         if (!property.key || property.key.name !== 'isSmallScreenWidth') {
-                            return;
+                            continue;
                         }
                         context.report({
                             node: property,
@@ -79,9 +79,9 @@ function create(context) {
               CONST.MESSAGE
                   .PREFER_SHOULD_USE_NARROW_LAYOUT_INSTEAD_OF_IS_SMALL_SCREEN_WIDTH,
                         });
-                    });
+                    }
                 }
-            });
+            }
         },
         MemberExpression(node) {
             // Check for 'const isSmallScreenWidth = useResponsiveLayout().isSmallScreenWidth;' pattern
