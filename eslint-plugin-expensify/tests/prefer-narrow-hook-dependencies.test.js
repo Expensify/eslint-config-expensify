@@ -112,8 +112,48 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [obj, dynamicKey]);
             `,
         },
+        {
+            code: `
+                useEffect(() => {
+                    const copy = {...user};
+                }, [user]);
+            `,
+        },
+        {
+            code: `
+                useEffect(() => {
+                    const arr = [...items];
+                }, [items]);
+            `,
+        },
+        {
+            code: `
+                useEffect(() => {
+                    doSomething({...config});
+                }, [config]);
+            `,
+        },
     ],
     invalid: [
+        {
+            code: `
+                useEffect(() => {
+                    console.log(user?.profile?.name);
+                }, [user]);
+            `,
+            output: `
+                useEffect(() => {
+                    console.log(user?.profile?.name);
+                }, [user?.profile?.name]);
+            `,
+            errors: [{
+                messageId: 'narrowDependency',
+                data: {
+                    dependency: 'user',
+                    properties: 'user?.profile?.name',
+                },
+            }],
+        },
         {
             code: `
                 useEffect(() => {
