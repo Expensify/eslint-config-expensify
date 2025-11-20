@@ -7,7 +7,7 @@ const meta = {
     docs: {
         description:
       'Enforce narrowing down React hook dependency arrays to specific properties instead of entire objects',
-        recommended: 'warn',
+        recommended: 'error',
     },
     fixable: 'code',
     schema: [],
