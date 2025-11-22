@@ -165,6 +165,48 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [items]);
             `,
         },
+        {
+            code: `
+                useCallback(() => {
+                    const threadReport = createThreadReport(report, action);
+                    if (threadReport) {
+                        doSomething(threadReport.reportID);
+                    } else {
+                        doSomethingElse(report?.reportID, report?.policyID);
+                    }
+                }, [report, action]);
+            `,
+        },
+        {
+            code: `
+                useCallback(() => {
+                    if (activeTooltips.size === 0) {
+                        return null;
+                    }
+                    const sortedTooltips = Array.from(activeTooltips)
+                        .map((name) => ({
+                            name,
+                            priority: TOOLTIPS[name]?.priority ?? 0,
+                        }))
+                        .sort((a, b) => b.priority - a.priority);
+                    return sortedTooltips.at(0);
+                }, [activeTooltips]);
+            `,
+        },
+        {
+            code: `
+                useMemo(() => {
+                    const code = getTripReservationCode(reservation);
+                    if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
+                        return code + reservation.company?.longName + reservation.route?.number;
+                    }
+                    if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
+                        return code + reservation.start.address;
+                    }
+                    return reservation.start.location;
+                }, [reservation]);
+            `,
+        },
     ],
     invalid: [
         {

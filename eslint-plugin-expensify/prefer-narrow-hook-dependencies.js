@@ -282,6 +282,26 @@ function collectMemberExpressions(
             directUsages,
             visited,
         );
+    } else if (node.type === 'VariableDeclaration') {
+        // Traverse variable declarations
+        if (node.declarations) {
+            for (const declaration of node.declarations) {
+                collectMemberExpressions(
+                    declaration,
+                    memberExpressions,
+                    directUsages,
+                    visited,
+                );
+            }
+        }
+    } else if (node.type === 'VariableDeclarator') {
+        // Traverse the initializer of variable declarations
+        collectMemberExpressions(
+            node.init,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
     } else if (node.type === 'ReturnStatement') {
         collectMemberExpressions(
             node.argument,
