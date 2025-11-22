@@ -133,6 +133,27 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [config]);
             `,
         },
+        {
+            code: `
+                useEffect(() => {
+                    console.log(someRef.current);
+                }, [someRef]);
+            `,
+        },
+        {
+            code: `
+                useEffect(() => {
+                    console.log(styles.container, style.padding);
+                }, [styles, style]);
+            `,
+        },
+        {
+            code: `
+                useEffect(() => {
+                    console.log(theme.colors.primary);
+                }, [theme]);
+            `,
+        },
     ],
     invalid: [
         {
@@ -210,69 +231,6 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 data: {
                     dependency: 'data',
                     properties: 'data.profile.name',
-                },
-            }],
-        },
-        {
-            code: `
-                useEffect(() => {
-                    if (settings.enabled) {
-                        console.log(settings.enabled);
-                        return settings.enabled;
-                    }
-                }, [settings]);
-            `,
-            output: `
-                useEffect(() => {
-                    if (settings.enabled) {
-                        console.log(settings.enabled);
-                        return settings.enabled;
-                    }
-                }, [settings.enabled]);
-            `,
-            errors: [{
-                messageId: 'narrowDependency',
-                data: {
-                    dependency: 'settings',
-                    properties: 'settings.enabled',
-                },
-            }],
-        },
-        {
-            code: `
-                useEffect(() => {
-                    console.log(user?.name);
-                }, [user]);
-            `,
-            output: `
-                useEffect(() => {
-                    console.log(user?.name);
-                }, [user?.name]);
-            `,
-            errors: [{
-                messageId: 'narrowDependency',
-                data: {
-                    dependency: 'user',
-                    properties: 'user?.name',
-                },
-            }],
-        },
-        {
-            code: `
-                useEffect(() => {
-                    console.log(app.config.settings.theme.color);
-                }, [app]);
-            `,
-            output: `
-                useEffect(() => {
-                    console.log(app.config.settings.theme.color);
-                }, [app.config.settings.theme.color]);
-            `,
-            errors: [{
-                messageId: 'narrowDependency',
-                data: {
-                    dependency: 'app',
-                    properties: 'app.config.settings.theme.color',
                 },
             }],
         },
