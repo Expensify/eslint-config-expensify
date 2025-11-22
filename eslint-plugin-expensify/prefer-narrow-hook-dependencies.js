@@ -398,6 +398,65 @@ function collectMemberExpressions(
     || node.type === 'FunctionExpression'
     ) {
         // Don't traverse into nested functions - they have their own scope
+    } else if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+        // Traverse JSX opening element and children
+        if (node.openingElement) {
+            collectMemberExpressions(
+                node.openingElement,
+                memberExpressions,
+                directUsages,
+                visited,
+            );
+        }
+        if (node.children) {
+            for (const child of node.children) {
+                collectMemberExpressions(
+                    child,
+                    memberExpressions,
+                    directUsages,
+                    visited,
+                );
+            }
+        }
+    } else if (node.type === 'JSXOpeningElement') {
+        // Traverse JSX attributes
+        if (node.attributes) {
+            for (const attr of node.attributes) {
+                collectMemberExpressions(
+                    attr,
+                    memberExpressions,
+                    directUsages,
+                    visited,
+                );
+            }
+        }
+    } else if (node.type === 'JSXAttribute') {
+        // Traverse JSX attribute value
+        collectMemberExpressions(
+            node.value,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
+    } else if (node.type === 'JSXExpressionContainer') {
+        // Traverse the expression inside JSX
+        collectMemberExpressions(
+            node.expression,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
+    } else if (node.type === 'JSXSpreadAttribute') {
+        // Spread in JSX means the whole object is needed: <Component {...props} />
+        if (node.argument && node.argument.type === 'Identifier') {
+            directUsages.add(node.argument.name);
+        }
+        collectMemberExpressions(
+            node.argument,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
     }
 }
 

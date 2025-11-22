@@ -154,6 +154,17 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [theme]);
             `,
         },
+        {
+            code: `
+                useMemo(() => {
+                    return items.length === 1 ? (
+                        <Button onPress={items.at(0)?.onPress} />
+                    ) : (
+                        <Menu menuItems={items} />
+                    );
+                }, [items]);
+            `,
+        },
     ],
     invalid: [
         {
