@@ -19,11 +19,12 @@ const meta = {
 
 /**
  * Common patterns for stable objects that should not be narrowed
- * These are typically styles or theme objects that are stable references
+ * These are typically styles, theme, or icon objects that are stable references
  */
 const STABLE_OBJECT_PATTERNS = [
     /^styles?$/i, // Matches 'style' or 'styles'
     /^theme$/i, // Matches 'theme'
+    /^icons?$/i, // Matches 'icon' or 'icons'
 ];
 
 /**
@@ -180,8 +181,8 @@ function collectMemberExpressions(
 
     // If this is a member expression, process it
     if (node.type === 'MemberExpression') {
-        // Check if this member expression is the callee of a function call
-        // If so, the object is being used as a whole (for its method)
+    // Check if this member expression is the callee of a function call
+    // If so, the object is being used as a whole (for its method)
         if (
             node.parent
       && node.parent.type === 'CallExpression'
@@ -205,7 +206,7 @@ function collectMemberExpressions(
             }
         }
 
-        // Don't return - continue to traverse children
+    // Don't return - continue to traverse children
     }
 
     // If identifier is used directly (not part of a member expression), mark as direct usage
@@ -240,7 +241,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'ChainExpression') {
-        // Optional chaining is wrapped in ChainExpression
+    // Optional chaining is wrapped in ChainExpression
         collectMemberExpressions(
             node.expression,
             memberExpressions,
@@ -256,12 +257,7 @@ function collectMemberExpressions(
         );
         if (node.arguments) {
             for (const arg of node.arguments) {
-                collectMemberExpressions(
-                    arg,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
+                collectMemberExpressions(arg, memberExpressions, directUsages, visited);
             }
         }
     } else if (node.type === 'BlockStatement' || node.type === 'Program') {
@@ -283,7 +279,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'VariableDeclaration') {
-        // Traverse variable declarations
+    // Traverse variable declarations
         if (node.declarations) {
             for (const declaration of node.declarations) {
                 collectMemberExpressions(
@@ -295,7 +291,7 @@ function collectMemberExpressions(
             }
         }
     } else if (node.type === 'VariableDeclarator') {
-        // Traverse the initializer of variable declarations
+    // Traverse the initializer of variable declarations
         collectMemberExpressions(
             node.init,
             memberExpressions,
@@ -324,6 +320,27 @@ function collectMemberExpressions(
         );
         collectMemberExpressions(
             node.alternate,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
+    } else if (node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
+    // For...of and for...in loops - the right side (what's being iterated) is used as whole
+        if (node.right && node.right.type === 'Identifier') {
+            directUsages.add(node.right.name);
+        }
+
+        // Traverse the right side (could be a complex expression)
+        collectMemberExpressions(
+            node.right,
+            memberExpressions,
+            directUsages,
+            visited,
+        );
+
+        // Traverse the loop body
+        collectMemberExpressions(
+            node.body,
             memberExpressions,
             directUsages,
             visited,
@@ -371,7 +388,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'SpreadElement') {
-        // Spread operator means the whole object is needed: {...obj}
+    // Spread operator means the whole object is needed: {...obj}
         if (node.argument && node.argument.type === 'Identifier') {
             directUsages.add(node.argument.name);
         }
@@ -382,7 +399,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'ObjectExpression') {
-        // Traverse object literals to find spread or property values
+    // Traverse object literals to find spread or property values
         if (node.properties) {
             for (const prop of node.properties) {
                 collectMemberExpressions(
@@ -394,7 +411,7 @@ function collectMemberExpressions(
             }
         }
     } else if (node.type === 'Property') {
-        // Handle both key and value in object properties
+    // Handle both key and value in object properties
         collectMemberExpressions(
             node.value,
             memberExpressions,
@@ -402,7 +419,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'ArrayExpression') {
-        // Traverse array literals
+    // Traverse array literals
         if (node.elements) {
             for (const element of node.elements) {
                 collectMemberExpressions(
@@ -417,9 +434,9 @@ function collectMemberExpressions(
         node.type === 'ArrowFunctionExpression'
     || node.type === 'FunctionExpression'
     ) {
-        // Don't traverse into nested functions - they have their own scope
+    // Don't traverse into nested functions - they have their own scope
     } else if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-        // Traverse JSX opening element and children
+    // Traverse JSX opening element and children
         if (node.openingElement) {
             collectMemberExpressions(
                 node.openingElement,
@@ -439,7 +456,7 @@ function collectMemberExpressions(
             }
         }
     } else if (node.type === 'JSXOpeningElement') {
-        // Traverse JSX attributes
+    // Traverse JSX attributes
         if (node.attributes) {
             for (const attr of node.attributes) {
                 collectMemberExpressions(
@@ -451,7 +468,7 @@ function collectMemberExpressions(
             }
         }
     } else if (node.type === 'JSXAttribute') {
-        // Traverse JSX attribute value
+    // Traverse JSX attribute value
         collectMemberExpressions(
             node.value,
             memberExpressions,
@@ -459,7 +476,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'JSXExpressionContainer') {
-        // Traverse the expression inside JSX
+    // Traverse the expression inside JSX
         collectMemberExpressions(
             node.expression,
             memberExpressions,
@@ -467,7 +484,7 @@ function collectMemberExpressions(
             visited,
         );
     } else if (node.type === 'JSXSpreadAttribute') {
-        // Spread in JSX means the whole object is needed: <Component {...props} />
+    // Spread in JSX means the whole object is needed: <Component {...props} />
         if (node.argument && node.argument.type === 'Identifier') {
             directUsages.add(node.argument.name);
         }
