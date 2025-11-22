@@ -16,6 +16,7 @@ const ruleTester = new RuleTester({
 ruleTester.run('prefer-narrow-hook-dependencies', rule, {
     valid: [
         {
+            // Already narrowed - dependency matches the property being accessed
             code: `
                 useEffect(() => {
                     console.log(transactionItem.isAmountColumnWide);
@@ -23,6 +24,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Already narrowed - dependencies match the specific properties being accessed
             code: `
                 useEffect(() => {
                     console.log(user.name, user.email);
@@ -30,6 +32,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Object used as whole
             code: `
                 useEffect(() => {
                     console.log(Object.keys(user));
@@ -38,6 +41,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Empty dependency array
             code: `
                 useEffect(() => {
                     console.log('mount only');
@@ -45,6 +49,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Object used as whole + property used
             code: `
                 useEffect(() => {
                     console.log(user.name);
@@ -53,6 +58,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Already narrowed - deeply nested property
             code: `
                 useEffect(() => {
                     console.log(obj.nested.value);
@@ -60,15 +66,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
-            code: `
-                useEffect(() => {
-                    if (config.enabled) {
-                        console.log(config.enabled);
-                    }
-                }, [config.enabled]);
-            `,
-        },
-        {
+            // Already narrowed - multiple properties
             code: `
                 useEffect(() => {
                     console.log(person.firstName);
@@ -78,13 +76,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
-            code: `
-                useEffect(() => {
-                    items.forEach(item => console.log(item.name));
-                }, [items]);
-            `,
-        },
-        {
+            // Not a React hook
             code: `
                 function normalFunction() {
                     console.log(obj.property);
@@ -92,6 +84,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Already narrowed - optional chaining property correctly specified
             code: `
                 useEffect(() => {
                     console.log(user?.profile?.name);
@@ -99,6 +92,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Method call - .execute() requires the whole service object
             code: `
                 useEffect(() => {
                     service.execute();
@@ -106,6 +100,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Computed property access - obj[dynamicKey] requires whole object
             code: `
                 useEffect(() => {
                     console.log(obj[dynamicKey]);
@@ -113,27 +108,16 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Spread - {...user} requires the whole object
             code: `
                 useEffect(() => {
                     const copy = {...user};
-                }, [user]);
+                    const copyItems = [...items];
+                }, [user, items]);
             `,
         },
         {
-            code: `
-                useEffect(() => {
-                    const arr = [...items];
-                }, [items]);
-            `,
-        },
-        {
-            code: `
-                useEffect(() => {
-                    doSomething({...config});
-                }, [config]);
-            `,
-        },
-        {
+            // Ref with .current access
             code: `
                 useEffect(() => {
                     console.log(someRef.current);
@@ -141,6 +125,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Stable object patterns - 'styles' and 'style' are treated as stable
             code: `
                 useEffect(() => {
                     console.log(styles.container, style.padding);
@@ -148,6 +133,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Stable object pattern - 'theme' is treated as stable
             code: `
                 useEffect(() => {
                     console.log(theme.colors.primary);
@@ -155,6 +141,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // JSX with array methods and props - items.at() method call + passed to component
             code: `
                 useMemo(() => {
                     return items.length === 1 ? (
@@ -166,6 +153,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Object passed to function in variable declaration - whole object needed
             code: `
                 useCallback(() => {
                     const threadReport = createThreadReport(report, action);
@@ -178,6 +166,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
+            // Collection converted to array - Array.from() requires whole collection
             code: `
                 useCallback(() => {
                     if (activeTooltips.size === 0) {
@@ -193,23 +182,10 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [activeTooltips]);
             `,
         },
-        {
-            code: `
-                useMemo(() => {
-                    const code = getTripReservationCode(reservation);
-                    if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
-                        return code + reservation.company?.longName + reservation.route?.number;
-                    }
-                    if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
-                        return code + reservation.start.address;
-                    }
-                    return reservation.start.location;
-                }, [reservation]);
-            `,
-        },
     ],
     invalid: [
         {
+            // Should narrow - only accessing nested property with optional chaining
             code: `
                 useEffect(() => {
                     console.log(user?.profile?.name);
@@ -229,6 +205,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             }],
         },
         {
+            // Should narrow - only accessing a single property
             code: `
                 useEffect(() => {
                     console.log(transactionItem.isAmountColumnWide);
@@ -248,6 +225,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             }],
         },
         {
+            // Should narrow - accessing multiple specific properties
             code: `
                 useEffect(() => {
                     console.log(user.name);
@@ -269,6 +247,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             }],
         },
         {
+            // Should narrow - accessing deeply nested property
             code: `
                 useEffect(() => {
                     console.log(data.profile.name);
@@ -288,6 +267,7 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             }],
         },
         {
+            // Should narrow - one dependency already narrowed, one needs narrowing
             code: `
                 useEffect(() => {
                     console.log(a.x, b.y);
