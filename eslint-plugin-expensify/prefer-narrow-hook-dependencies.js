@@ -1,5 +1,24 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 /* eslint-disable no-continue */
+/**
+ * ESLint rule: prefer-narrow-hook-dependencies
+ *
+ * Enforces narrowing down React hook dependency arrays to specific properties
+ * instead of entire objects for better performance and clarity.
+ *
+ * Configuration:
+ * You can customize which objects are considered "stable" (and thus excluded from narrowing)
+ * by providing a `stableObjectPatterns` array in your ESLint config:
+ *
+ * @example
+ * {
+ *   "rules": {
+ *     "rulesdir/prefer-narrow-hook-dependencies": ["error", {
+ *       "stableObjectPatterns": ["^styles?$", "^theme$", "^config$"]
+ *     }]
+ *   }
+ * }
+ */
 const name = 'prefer-narrow-hook-dependencies';
 
 const meta = {
@@ -10,22 +29,26 @@ const meta = {
         recommended: 'error',
     },
     fixable: 'code',
-    schema: [],
+    schema: [
+        {
+            type: 'object',
+            properties: {
+                stableObjectPatterns: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                    },
+                    description: 'Array of regex pattern strings for stable objects that should not be narrowed (e.g., "^styles?$", "^theme$")',
+                },
+            },
+            additionalProperties: false,
+        },
+    ],
     messages: {
         narrowDependency:
       'Dependency "{{dependency}}" is too broad. Use specific properties instead: {{properties}}',
     },
 };
-
-/**
- * Common patterns for stable objects that should not be narrowed
- * These are typically styles, theme, or icon objects that are stable references
- */
-const STABLE_OBJECT_PATTERNS = [
-    /^styles?$/i, // Matches 'style' or 'styles'
-    /^theme$/i, // Matches 'theme'
-    /^icons?$/i, // Matches 'icon' or 'icons'
-];
 
 /**
  * Built-in React hooks that have dependency arrays. Skipping useImperativeHandle because its dependency array is rarely used.
@@ -40,10 +63,11 @@ const HOOKS_WITH_DEPS = new Set([
 /**
  * Check if a dependency name matches stable object patterns
  * @param {string} depName
+ * @param {Array<RegExp>} patterns
  * @returns {boolean}
  */
-function isStableObjectPattern(depName) {
-    return STABLE_OBJECT_PATTERNS.some(pattern => pattern.test(depName));
+function isStableObjectPattern(depName, patterns) {
+    return patterns.some(pattern => pattern.test(depName));
 }
 
 /**
@@ -320,6 +344,13 @@ function getLeafProperties(properties) {
 }
 
 function create(context) {
+    // Get user configuration
+    const options = context.options[0] || {};
+    const patternStrings = options.stableObjectPatterns || [];
+
+    // Convert pattern strings to RegExp objects
+    const stableObjectPatterns = patternStrings.map(pattern => new RegExp(pattern));
+
     return {
         CallExpression(node) {
             if (!isReactHook(node)) {
@@ -371,7 +402,7 @@ function create(context) {
                 }
 
                 // Skip if this matches a stable object pattern (styles, theme, etc.)
-                if (isStableObjectPattern(depName)) {
+                if (isStableObjectPattern(depName, stableObjectPatterns)) {
                     continue;
                 }
 

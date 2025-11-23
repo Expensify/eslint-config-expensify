@@ -125,30 +125,6 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
             `,
         },
         {
-            // Stable object patterns - 'styles' and 'style' are treated as stable
-            code: `
-                useEffect(() => {
-                    console.log(styles.container, style.padding);
-                }, [styles, style]);
-            `,
-        },
-        {
-            // Stable object pattern - 'theme' is treated as stable
-            code: `
-                useEffect(() => {
-                    console.log(theme.colors.primary);
-                }, [theme]);
-            `,
-        },
-        {
-            // Stable object pattern - 'icons' is treated as stable
-            code: `
-                useEffect(() => {
-                    console.log(icons.chevron, icon.home);
-                }, [icons, icon]);
-            `,
-        },
-        {
             // JSX with array methods and props - items.at() method call + passed to component
             code: `
                 useMemo(() => {
@@ -187,9 +163,9 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                 }, [report, accountID, isReportArchived]);
             `,
         },
-     {
-       // Collection converted to array - Array.from() requires whole collection
-       code: `
+        {
+            // Collection converted to array - Array.from() requires whole collection
+            code: `
                 useCallback(() => {
                     if (activeTooltips.size === 0) {
                         return null;
@@ -203,10 +179,10 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                     return sortedTooltips.at(0);
                 }, [activeTooltips]);
             `,
-     },
-     {
-       // For...of loop - sections is iterated, requires whole array
-       code: `
+        },
+        {
+            // For...of loop - sections is iterated, requires whole array
+            code: `
                 useCallback(() => {
                     if (sections.length === 0) {
                         return 1;
@@ -225,8 +201,8 @@ ruleTester.run('prefer-narrow-hook-dependencies', rule, {
                     return 1;
                 }, [sections, isItemSelected]);
             `,
-     },
-   ],
+        },
+    ],
     invalid: [
         {
             // Should narrow - only accessing nested property with optional chaining
