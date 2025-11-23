@@ -161,7 +161,42 @@ function getMemberExpressionPath(node) {
 }
 
 /**
- * Recursively collect all member expressions and direct usages from a node using ESLint traversal
+ * Generic AST traversal - visit all child nodes
+ * @param {Node} node
+ * @param {Function} visitor - Called for each node
+ * @param {Set<Node>} visited
+ */
+function traverseAST(node, visitor, visited = new Set()) {
+    if (!node || !node.type || visited.has(node)) {
+        return;
+    }
+
+    visited.add(node);
+    visitor(node);
+
+    // Generic traversal: visit all properties that contain AST nodes
+    for (const key of Object.keys(node)) {
+        // Skip metadata and parent references to avoid cycles
+        if (key === 'parent' || key === 'type' || key === 'range' || key === 'loc') {
+            continue;
+        }
+
+        const value = node[key];
+
+        if (Array.isArray(value)) {
+            for (const item of value) {
+                if (item && typeof item === 'object' && item.type) {
+                    traverseAST(item, visitor, visited);
+                }
+            }
+        } else if (value && typeof value === 'object' && value.type) {
+            traverseAST(value, visitor, visited);
+        }
+    }
+}
+
+/**
+ * Collect all member expressions and direct usages from a node
  * @param {Node} node
  * @param {Set<string>} memberExpressions - Set for O(1) deduplication
  * @param {Set<string>} directUsages
@@ -173,328 +208,81 @@ function collectMemberExpressions(
     directUsages,
     visited = new Set(),
 ) {
-    if (!node || !node.type || visited.has(node)) {
-        return;
-    }
-
-    visited.add(node);
-
-    // If this is a member expression, process it
-    if (node.type === 'MemberExpression') {
-    // Check if this member expression is the callee of a function call
-    // If so, the object is being used as a whole (for its method)
-        if (
-            node.parent
-      && node.parent.type === 'CallExpression'
-      && node.parent.callee === node
-        ) {
-            const objectName = getObjectName(node);
-            if (objectName) {
-                directUsages.add(objectName);
+    traverseAST(node, (currentNode) => {
+        // Handle member expressions
+        if (currentNode.type === 'MemberExpression') {
+            // Method call: obj.method() - object is used as a whole
+            if (
+                currentNode.parent
+                && currentNode.parent.type === 'CallExpression'
+                && currentNode.parent.callee === currentNode
+            ) {
+                const objectName = getObjectName(currentNode);
+                if (objectName) {
+                    directUsages.add(objectName);
+                }
+                return;
             }
-        } else if (node.computed) {
-            // Computed property access like obj[key] - mark object as directly used
-            const objectName = getObjectName(node.object);
-            if (objectName) {
-                directUsages.add(objectName);
+
+            // Computed access: obj[key] - object is used as a whole
+            if (currentNode.computed) {
+                const objectName = getObjectName(currentNode.object);
+                if (objectName) {
+                    directUsages.add(objectName);
+                }
+                return;
             }
-        } else {
-            // Regular property access - collect the full path
-            const fullPath = getMemberExpressionPath(node);
+
+            // Regular property access: collect the full path
+            const fullPath = getMemberExpressionPath(currentNode);
             if (fullPath) {
-                memberExpressions.add(fullPath); // O(1) deduplication with Set
+                memberExpressions.add(fullPath);
             }
         }
 
-    // Don't return - continue to traverse children
-    }
+        // Handle direct identifier usage
+        if (currentNode.type === 'Identifier' && currentNode.parent) {
+            const parent = currentNode.parent;
 
-    // If identifier is used directly (not part of a member expression), mark as direct usage
-    if (node.type === 'Identifier' && node.parent) {
-        const parent = node.parent;
-
-        // Skip if this is a property name in non-computed member access (like "name" in user.name)
-        if (
-            parent.type === 'MemberExpression'
-      && parent.property === node
-      && !parent.computed
-        ) {
-            return;
-        }
-
-        // Skip if this is the object in a member expression (like "user" in user.name)
-        // The MemberExpression case above handles property access tracking
-        if (parent.type === 'MemberExpression' && parent.object === node) {
-            return;
-        }
-
-        // Otherwise, it's a direct usage (e.g., function argument, return value, etc.)
-        directUsages.add(node.name);
-    }
-
-    // Carefully traverse specific child nodes to avoid circular references
-    if (node.type === 'MemberExpression') {
-        collectMemberExpressions(
-            node.object,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ChainExpression') {
-    // Optional chaining is wrapped in ChainExpression
-        collectMemberExpressions(
-            node.expression,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'CallExpression') {
-        collectMemberExpressions(
-            node.callee,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        if (node.arguments) {
-            for (const arg of node.arguments) {
-                collectMemberExpressions(arg, memberExpressions, directUsages, visited);
+            // Skip property names in member expressions (e.g., "name" in user.name)
+            if (
+                parent.type === 'MemberExpression'
+                && parent.property === currentNode
+                && !parent.computed
+            ) {
+                return;
             }
-        }
-    } else if (node.type === 'BlockStatement' || node.type === 'Program') {
-        if (node.body) {
-            for (const statement of node.body) {
-                collectMemberExpressions(
-                    statement,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
+
+            // Skip objects in member expressions (e.g., "user" in user.name)
+            if (parent.type === 'MemberExpression' && parent.object === currentNode) {
+                return;
             }
-        }
-    } else if (node.type === 'ExpressionStatement') {
-        collectMemberExpressions(
-            node.expression,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'VariableDeclaration') {
-    // Traverse variable declarations
-        if (node.declarations) {
-            for (const declaration of node.declarations) {
-                collectMemberExpressions(
-                    declaration,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
-            }
-        }
-    } else if (node.type === 'VariableDeclarator') {
-    // Traverse the initializer of variable declarations
-        collectMemberExpressions(
-            node.init,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ReturnStatement') {
-        collectMemberExpressions(
-            node.argument,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'IfStatement') {
-        collectMemberExpressions(
-            node.test,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        collectMemberExpressions(
-            node.consequent,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        collectMemberExpressions(
-            node.alternate,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ForOfStatement' || node.type === 'ForInStatement') {
-    // For...of and for...in loops - the right side (what's being iterated) is used as whole
-        if (node.right && node.right.type === 'Identifier') {
-            directUsages.add(node.right.name);
+
+            // Direct usage (function argument, return value, etc.)
+            directUsages.add(currentNode.name);
         }
 
-        // Traverse the right side (could be a complex expression)
-        collectMemberExpressions(
-            node.right,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
+        // Spread operator: {...obj} - whole object is needed
+        if (currentNode.type === 'SpreadElement') {
+            if (currentNode.argument && currentNode.argument.type === 'Identifier') {
+                directUsages.add(currentNode.argument.name);
+            }
+        }
 
-        // Traverse the loop body
-        collectMemberExpressions(
-            node.body,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (
-        node.type === 'BinaryExpression'
-    || node.type === 'LogicalExpression'
-    ) {
-        collectMemberExpressions(
-            node.left,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        collectMemberExpressions(
-            node.right,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'UnaryExpression') {
-        collectMemberExpressions(
-            node.argument,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ConditionalExpression') {
-        collectMemberExpressions(
-            node.test,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        collectMemberExpressions(
-            node.consequent,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-        collectMemberExpressions(
-            node.alternate,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'SpreadElement') {
-    // Spread operator means the whole object is needed: {...obj}
-        if (node.argument && node.argument.type === 'Identifier') {
-            directUsages.add(node.argument.name);
-        }
-        collectMemberExpressions(
-            node.argument,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ObjectExpression') {
-    // Traverse object literals to find spread or property values
-        if (node.properties) {
-            for (const prop of node.properties) {
-                collectMemberExpressions(
-                    prop,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
+        // JSX spread: <Component {...props} /> - whole object is needed
+        if (currentNode.type === 'JSXSpreadAttribute') {
+            if (currentNode.argument && currentNode.argument.type === 'Identifier') {
+                directUsages.add(currentNode.argument.name);
             }
         }
-    } else if (node.type === 'Property') {
-    // Handle both key and value in object properties
-        collectMemberExpressions(
-            node.value,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'ArrayExpression') {
-    // Traverse array literals
-        if (node.elements) {
-            for (const element of node.elements) {
-                collectMemberExpressions(
-                    element,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
+
+        // Iteration: for...of / for...in - whole collection is needed
+        if (currentNode.type === 'ForOfStatement' || currentNode.type === 'ForInStatement') {
+            if (currentNode.right && currentNode.right.type === 'Identifier') {
+                directUsages.add(currentNode.right.name);
             }
         }
-    } else if (
-        node.type === 'ArrowFunctionExpression'
-    || node.type === 'FunctionExpression'
-    ) {
-    // Don't traverse into nested functions - they have their own scope
-    } else if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-    // Traverse JSX opening element and children
-        if (node.openingElement) {
-            collectMemberExpressions(
-                node.openingElement,
-                memberExpressions,
-                directUsages,
-                visited,
-            );
-        }
-        if (node.children) {
-            for (const child of node.children) {
-                collectMemberExpressions(
-                    child,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
-            }
-        }
-    } else if (node.type === 'JSXOpeningElement') {
-    // Traverse JSX attributes
-        if (node.attributes) {
-            for (const attr of node.attributes) {
-                collectMemberExpressions(
-                    attr,
-                    memberExpressions,
-                    directUsages,
-                    visited,
-                );
-            }
-        }
-    } else if (node.type === 'JSXAttribute') {
-    // Traverse JSX attribute value
-        collectMemberExpressions(
-            node.value,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'JSXExpressionContainer') {
-    // Traverse the expression inside JSX
-        collectMemberExpressions(
-            node.expression,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    } else if (node.type === 'JSXSpreadAttribute') {
-    // Spread in JSX means the whole object is needed: <Component {...props} />
-        if (node.argument && node.argument.type === 'Identifier') {
-            directUsages.add(node.argument.name);
-        }
-        collectMemberExpressions(
-            node.argument,
-            memberExpressions,
-            directUsages,
-            visited,
-        );
-    }
+    }, visited);
 }
 
 /**
