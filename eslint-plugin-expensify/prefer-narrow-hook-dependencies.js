@@ -364,10 +364,9 @@ function create(context) {
 
             // Get the callback function (first argument for most hooks)
             const callback = node.arguments[0];
-            if (
-                !callback
-        || (callback.type !== 'FunctionExpression'
-          && callback.type !== 'ArrowFunctionExpression')
+            if (!callback
+                || (callback.type !== 'FunctionExpression'
+                && callback.type !== 'ArrowFunctionExpression')
             ) {
                 return;
             }
