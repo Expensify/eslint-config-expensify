@@ -331,7 +331,7 @@ function getLeafProperties(properties) {
             const longer = sortedByLength[j];
             if (
                 longer.startsWith(`${current}.`)
-        || longer.startsWith(`${current}?.`)
+                || longer.startsWith(`${current}?.`)
             ) {
                 prefixes.add(current);
                 break; // No need to check further
