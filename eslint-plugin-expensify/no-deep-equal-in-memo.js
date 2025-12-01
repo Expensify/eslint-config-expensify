@@ -6,6 +6,7 @@
  *
  * This rule implements the PERF-5 guideline: Use shallow comparisons instead of deep comparisons.
  */
+import _ from 'lodash';
 
 const name = 'no-deep-equal-in-memo';
 
@@ -107,7 +108,7 @@ function traverseForDeepComparisons(node, callback, visited = new Set()) {
     }
 
     // Traverse child nodes
-    for (const key of Object.keys(node)) {
+    for (const key of _.keys(node)) {
         // Skip metadata and parent references to avoid cycles
         if (key === 'parent' || key === 'type' || key === 'range' || key === 'loc') {
             continue;
@@ -115,7 +116,7 @@ function traverseForDeepComparisons(node, callback, visited = new Set()) {
 
         const value = node[key];
 
-        if (Array.isArray(value)) {
+        if (_.isArray(value)) {
             for (const item of value) {
                 if (item && typeof item === 'object' && item.type) {
                     traverseForDeepComparisons(item, callback, visited);
