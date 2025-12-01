@@ -17,6 +17,7 @@ const config = defineConfig([{
         'rulesdir/no-multiple-onyx-in-file': 'error',
         'rulesdir/no-call-actions-from-actions': 'error',
         'rulesdir/no-api-side-effects-method': 'error',
+        'rulesdir/no-deep-equal-in-memo': 'error',
         'rulesdir/prefer-localization': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
         'rulesdir/no-acc-spread-in-reduce': 'error',
