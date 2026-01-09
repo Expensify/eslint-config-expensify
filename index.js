@@ -37,7 +37,7 @@ const config = defineConfig([
     reactA11y,
     es6,
     style,
-    reactHooks.configs['recommended-latest'],
+    reactHooks.configs.flat.recommended,
     expensify,
     unicorn,
     {
