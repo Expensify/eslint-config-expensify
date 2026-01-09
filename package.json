@@ -35,8 +35,7 @@
     "eslint-plugin-expensify",
     "rules",
     "sample-props.js",
-    "index.js",
-    "hooks.js"
+    "index.js"
   ],
   "keywords": [
     "eslint",
