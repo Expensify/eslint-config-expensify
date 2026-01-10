@@ -5,7 +5,6 @@ import rulesdir from 'eslint-plugin-rulesdir';
 import globals from 'globals';
 import babelParser from '@babel/eslint-parser';
 import path from 'node:path';
-import reactHooks from 'eslint-plugin-react-hooks';
 
 import bestPractices from './rules/base/best-practices.js';
 import errors from './rules/base/errors.js';
@@ -16,6 +15,7 @@ import es6Base from './rules/base/es6.js';
 import imports from './rules/base/imports.js';
 import strictBase from './rules/base/strict.js';
 import react from './rules/react.js';
+import reactHooks from './rules/react-hooks.js';
 import reactA11y from './rules/react-a11y.js';
 import es6 from './rules/es6.js';
 import style from './rules/style.js';
@@ -37,7 +37,7 @@ const config = defineConfig([
     reactA11y,
     es6,
     style,
-    reactHooks.configs.flat.recommended,
+    reactHooks,
     expensify,
     unicorn,
     {
