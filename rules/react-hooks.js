@@ -1,28 +1,32 @@
 import {defineConfig} from 'eslint/config';
 import reactHooks from 'eslint-plugin-react-hooks';
 
-const config = defineConfig([{
-    plugins: {
-        'react-hooks': reactHooks,
-    },
+const config = defineConfig([
+    reactHooks.configs.flat.recommended,
+    {
+        rules: {
+        // Core hooks rules
+            'react-hooks/rules-of-hooks': 'error',
+            'react-hooks/exhaustive-deps': 'warn',
 
-    languageOptions: {
-        parserOptions: {
-            ecmaFeatures: {
-                jsx: true,
-            },
+            // React Compiler rules
+            'react-hooks/config': 'warn',
+            'react-hooks/error-boundaries': 'warn',
+            'react-hooks/component-hook-factories': 'warn',
+            'react-hooks/gating': 'warn',
+            'react-hooks/globals': 'warn',
+            'react-hooks/immutability': 'warn',
+            'react-hooks/preserve-manual-memoization': 'warn',
+            'react-hooks/purity': 'warn',
+            'react-hooks/refs': 'warn',
+            'react-hooks/set-state-in-effect': 'warn',
+            'react-hooks/set-state-in-render': 'warn',
+            'react-hooks/static-components': 'warn',
+            'react-hooks/unsupported-syntax': 'warn',
+            'react-hooks/use-memo': 'warn',
+            'react-hooks/incompatible-library': 'warn',
         },
     },
-
-    rules: {
-        // Enforce Rules of Hooks
-        // https://github.com/facebook/react/blob/c11015ff4f610ac2924d1fc6d569a17657a404fd/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js
-        'react-hooks/rules-of-hooks': 'error',
-
-        // Verify the list of the dependencies for Hooks like useEffect and similar
-        // https://github.com/facebook/react/blob/1204c789776cb01fbaf3e9f032e7e2ba85a44137/packages/eslint-plugin-react-hooks/src/ExhaustiveDeps.js
-        'react-hooks/exhaustive-deps': 'error',
-    },
-}]);
+]);
 
 export default config;

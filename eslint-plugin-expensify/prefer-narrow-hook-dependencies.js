@@ -1,5 +1,4 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
-/* eslint-disable no-continue */
 /**
  * ESLint rule: prefer-narrow-hook-dependencies
  *
