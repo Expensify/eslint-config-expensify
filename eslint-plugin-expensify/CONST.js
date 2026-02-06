@@ -40,6 +40,9 @@ const CONST = {
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
         NO_OBJECT_KEYS_INCLUDES: 'Avoid Object.keys({{object}}).includes({{key}}) for O(n) complexity. Use {{key}} in {{object}} or !!{{object}}[{{key}}] for O(1) complexity.',
         PREFER_NARROW_HOOK_DEPENDENCIES: 'Dependency "{{dependency}}" is too broad. Use specific properties instead: {{properties}}',
+        STATE_CONTEXT_HAS_FUNCTION: 'State context `{{contextName}}` should only contain data values, not functions. Move these functions to an Actions context: {{properties}}',
+        ACTIONS_CONTEXT_HAS_NON_FUNCTION: 'Actions context `{{contextName}}` should only contain functions, not data values. Move these values to a State context: {{properties}}',
+        CONTEXT_MUST_BE_SPLIT: 'Context `{{contextName}}` must be split into separate State and Actions contexts. Rename to *StateContext.Provider for data values and *ActionsContext.Provider for functions.'
     },
 };
 
