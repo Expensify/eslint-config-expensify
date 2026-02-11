@@ -37,6 +37,7 @@ const config = defineConfig([{
         'rulesdir/no-unstable-hook-defaults': 'error',
         'rulesdir/no-inline-useOnyx-selector': 'error',
         'rulesdir/prefer-narrow-hook-dependencies': 'error',
+        'rulesdir/context-provider-split-values': 'error',
     },
 }]);
 
