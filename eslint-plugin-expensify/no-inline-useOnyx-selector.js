@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import {resolveVariable, getVariableAsObject, findProperty} from './utils/astUtil.js';
 
 const meta = {
     type: 'problem',
@@ -84,31 +85,6 @@ function create(context) {
     }
 
     /**
-     * Find the variable declaration and return the value.
-     *
-     * @param {string} name - The name of the variable to resolve.
-     * @param {Node} node - The node to get scope from.
-     * @returns {ObjectExpression|null}
-     */
-    function getVariableValue(name, node) {
-        try {
-            const scope = context.sourceCode.getScope(node);
-            const variable = scope.set.get(name) || (_.get(scope.upper, 'set') || new Set()).get(name);
-
-            if (variable && variable.defs.length > 0) {
-                const def = variable.defs[0];
-                if (def.node.init && def.node.init.type === 'ObjectExpression') {
-                    return def.node.init;
-                }
-            }
-        } catch {
-            return null;
-        }
-
-        return null;
-    }
-
-    /**
      * Check if a property is a selector property with an inline function.
      *
      * @param {Property} property - The property to check.
@@ -133,16 +109,6 @@ function create(context) {
     }
 
     /**
-     * Find selector property in an object expression.
-     *
-     * @param {ObjectExpression} objectExpression - The object to search.
-     * @returns {Property|null}
-     */
-    function findSelectorProperty(objectExpression) {
-        return _.find(objectExpression.properties, property => property.type === 'Property' && property.key.name === 'selector') || null;
-    }
-
-    /**
      * Check if a selector identifier should be memoized within component.
      *
      * @param {string} selectorName - The name of the selector identifier.
@@ -153,8 +119,7 @@ function create(context) {
             return; // Not inside a component
         }
 
-        const scope = context.sourceCode.getScope(node);
-        const variable = scope.set.get(selectorName) || (_.get(scope.upper, 'set') || new Set()).get(selectorName);
+        const variable = resolveVariable(context, selectorName, node);
 
         if (!variable) {
             return; // Variable not found in current scope
@@ -227,7 +192,7 @@ function create(context) {
                             messageId: 'noInlineSelector',
                         });
                     } else {
-                        const selectorProperty = findSelectorProperty(optionsArgument);
+                        const selectorProperty = findProperty(optionsArgument, 'selector');
                         if (selectorProperty && selectorProperty.value.type === 'Identifier') {
                             checkSelectorMemoization(selectorProperty.value.name, node.init);
                         }
@@ -236,14 +201,14 @@ function create(context) {
                 }
 
                 case 'Identifier': {
-                    const resolvedValue = getVariableValue(optionsArgument.name, node);
+                    const resolvedValue = getVariableAsObject(context, optionsArgument.name, node);
                     if (resolvedValue && hasInlineSelector(resolvedValue)) {
                         context.report({
                             node: node.init,
                             messageId: 'noInlineSelector',
                         });
                     } else if (resolvedValue) {
-                        const selectorProperty = findSelectorProperty(resolvedValue);
+                        const selectorProperty = findProperty(resolvedValue, 'selector');
                         if (selectorProperty && selectorProperty.value.type === 'Identifier') {
                             checkSelectorMemoization(selectorProperty.value.name, node.init);
                         }
