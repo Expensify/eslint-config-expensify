@@ -40,6 +40,7 @@ const CONST = {
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
         NO_OBJECT_KEYS_INCLUDES: 'Avoid Object.keys({{object}}).includes({{key}}) for O(n) complexity. Use {{key}} in {{object}} or !!{{object}}[{{key}}] for O(1) complexity.',
         PREFER_NARROW_HOOK_DEPENDENCIES: 'Dependency "{{dependency}}" is too broad. Use specific properties instead: {{properties}}',
+        NO_ITERATOR_INDEPENDENT_CALLS: 'Function call "{{call}}" does not depend on iterator "{{iterator}}". Consider hoisting it outside the {{method}}() callback to avoid redundant computation.',
     },
 };
 
