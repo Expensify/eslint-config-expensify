@@ -1,9 +1,4 @@
-import _ from 'underscore';
-
-/**
- * @typedef {import('eslint').Rule.Node} ASTNode
- * @typedef {import('estree').ObjectExpression} ObjectExpression
- */
+import {getVariableAsObject, findProperty} from './utils/astUtil.js';
 
 const name = 'provide-canBeMissing-in-useOnyx';
 
@@ -20,31 +15,6 @@ const meta = {
 };
 
 function create(context) {
-    /**
-     * Find the variable declaration and return the value.
-     *
-     * @param {string} variableName - The name of the variable to resolve.
-     * @param {ASTNode} node - The node containing the variable declaration.
-     * @returns {ObjectExpression|null}
-     */
-    function getVariableValue(variableName, node) {
-        try {
-            const scope = context.sourceCode.getScope(node);
-            const variable = scope.set.get(variableName);
-
-            if (variable && variable.defs.length > 0) {
-                const def = variable.defs[0];
-                if (def.node.init && def.node.init.type === 'ObjectExpression') {
-                    return def.node.init;
-                }
-            }
-        } catch {
-            return null;
-        }
-
-        return null;
-    }
-
     return {
         VariableDeclarator(node) {
             if (
@@ -66,7 +36,7 @@ function create(context) {
             const optionsArgument = node.init.arguments[1];
             switch (optionsArgument.type) {
                 case 'ObjectExpression': {
-                    if (!_.some(optionsArgument.properties, property => property.type === 'Property' && property.key.name === 'canBeMissing')) {
+                    if (!findProperty(optionsArgument, 'canBeMissing')) {
                         context.report({
                             node: node.init,
                             messageId: 'provideCanBeMissing',
@@ -76,7 +46,7 @@ function create(context) {
                 }
 
                 case 'Identifier': {
-                    const resolvedValue = getVariableValue(optionsArgument.name, node);
+                    const resolvedValue = getVariableAsObject(context, optionsArgument.name, node);
                     if (!resolvedValue) {
                         context.report({
                             node: node.init,
@@ -85,7 +55,7 @@ function create(context) {
                         return;
                     }
 
-                    if (!_.some(resolvedValue.properties, property => property.type === 'Property' && property.key.name === 'canBeMissing')) {
+                    if (!findProperty(resolvedValue, 'canBeMissing')) {
                         context.report({
                             node: node.init,
                             messageId: 'provideCanBeMissing',
