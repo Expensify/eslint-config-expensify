@@ -5,7 +5,7 @@ const message = CONST.MESSAGE.NO_MULTIPLE_API_CALLS;
 
 function create(context) {
     function checkFunctionBody(node) {
-        const tokens = context.getSourceCode().getTokens(node);
+        const tokens = context.sourceCode.getTokens(node);
         let hasCalledAPI = false;
 
         _.each(tokens, (token) => {

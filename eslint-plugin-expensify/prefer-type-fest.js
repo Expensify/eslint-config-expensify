@@ -42,13 +42,13 @@ function create(context) {
 
             // Case for when the object type is a plain identifier (COLORS)
             if (objectType?.exprName?.type === AST_NODE_TYPES.Identifier) {
-                const objectTypeText = context.getSourceCode().getText(objectType.exprName);
+                const objectTypeText = context.sourceCode.getText(objectType.exprName);
 
                 // Ensure that indexType is keyed by type 'keyof' ((typeof COLORS)[keyof COLORS])
                 if (indexType?.type === AST_NODE_TYPES.TSTypeOperator && indexType?.operator === 'keyof') {
                     // Ensure that the object type is the same as the index type and both exist
 
-                    const indexTypeText = context.getSourceCode().getText(indexType.typeAnnotation.typeName);
+                    const indexTypeText = context.sourceCode.getText(indexType.typeAnnotation.typeName);
                     if (objectTypeText && objectTypeText === indexTypeText) {
                         context.report({
                             node,
@@ -78,11 +78,11 @@ function create(context) {
 
             // Case for when the object type is a nested object (CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)
             if (objectType?.exprName?.type === AST_NODE_TYPES.TSQualifiedName) {
-                const objectTypeText = context.getSourceCode().getText(objectType.exprName);
+                const objectTypeText = context.sourceCode.getText(objectType.exprName);
 
                 // Ensure that indexType is keyed by type 'keyof' ((typeof CONST.VIDEO_PLAYER)[keyof CONST.VIDEO_PLAYER])
                 if (indexType?.type === AST_NODE_TYPES.TSTypeOperator && indexType?.operator === 'keyof') {
-                    const indexTypeText = context.getSourceCode().getText(indexType.typeAnnotation.exprName);
+                    const indexTypeText = context.sourceCode.getText(indexType.typeAnnotation.exprName);
 
                     if (objectTypeText && objectTypeText === indexTypeText) {
                         context.report({

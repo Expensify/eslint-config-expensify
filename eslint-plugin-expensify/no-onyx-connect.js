@@ -11,7 +11,7 @@ function create(context) {
                 return;
             }
 
-            if (isInTestFile(context.getFilename())) {
+            if (isInTestFile(context.filename)) {
                 return;
             }
 

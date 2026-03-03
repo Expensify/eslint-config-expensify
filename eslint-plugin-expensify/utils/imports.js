@@ -27,7 +27,7 @@ function addNamedImport(context, fixer, importNode, importName, importPath, impo
         // Add import if it doesn't exist
         fixes.push(
             fixer.insertTextBefore(
-                context.getSourceCode().ast.body[0],
+                context.sourceCode.ast.body[0],
                 `import ${importAsType ? 'type ' : ''}{${importName}} from '${importPath}';\n`,
             ),
         );

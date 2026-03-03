@@ -23,7 +23,7 @@ function create(context) {
     }
 
     function getSourceCode(node) {
-        return context.getSourceCode().getText(node);
+        return context.sourceCode.getText(node);
     }
 
     function parseExpression(node) {

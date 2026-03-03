@@ -1,4 +1,4 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
+/* eslint-disable expensify/prefer-underscore-method */
 /**
  * ESLint rule: prefer-narrow-hook-dependencies
  *
@@ -12,7 +12,7 @@
  * @example
  * {
  *   "rules": {
- *     "rulesdir/prefer-narrow-hook-dependencies": ["error", {
+ *     "expensify/prefer-narrow-hook-dependencies": ["error", {
  *       "stableObjectPatterns": ["^styles?$", "^theme$", "^config$"]
  *     }]
  *   }

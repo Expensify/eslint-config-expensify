@@ -13,7 +13,7 @@ function create(context) {
                 return;
             }
             const argument = node.arguments[0];
-            const sourceCode = context.getSourceCode();
+            const sourceCode = context.sourceCode;
             const argumentText = sourceCode.getText(argument);
             let fixedText = `!!${argumentText}`;
 

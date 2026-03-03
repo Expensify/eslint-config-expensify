@@ -1,10 +1,9 @@
 import {defineConfig} from 'eslint/config';
 import eslintPluginLwc from '@lwc/eslint-plugin-lwc';
 import es from 'eslint-plugin-es';
-import rulesdir from 'eslint-plugin-rulesdir';
+import expensifyPlugin from './eslint-plugin-expensify/index.js';
 import globals from 'globals';
 import babelParser from '@babel/eslint-parser';
-import path from 'node:path';
 
 import bestPractices from './rules/base/best-practices.js';
 import errors from './rules/base/errors.js';
@@ -21,8 +20,6 @@ import es6 from './rules/es6.js';
 import style from './rules/style.js';
 import expensify from './rules/expensify.js';
 import unicorn from './rules/unicorn.js';
-
-rulesdir.RULES_DIR = path.resolve(import.meta.dirname, 'eslint-plugin-expensify');
 
 const config = defineConfig([
     bestPractices,
@@ -44,7 +41,7 @@ const config = defineConfig([
         plugins: {
             '@lwc/lwc': eslintPluginLwc,
             es,
-            rulesdir,
+            expensify: expensifyPlugin,
         },
 
         languageOptions: {

@@ -17,7 +17,7 @@ const meta = {
 };
 
 function create(context) {
-    const sourceCode = context.getSourceCode();
+    const sourceCode = context.sourceCode;
 
     function isObjectKeysCall(node) {
         return (

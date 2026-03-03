@@ -1,19 +1,11 @@
-import {RuleTester} from '@typescript-eslint/rule-tester';
-import {fileURLToPath} from 'url';
+import {RuleTester} from 'eslint';
 import parser from '@typescript-eslint/parser';
-import path from 'path';
 import * as rule from '../no-object-keys-includes.js';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-const tsconfigRootDir = path.resolve(dirname, '../fixtures');
 
 const ruleTester = new RuleTester({
     languageOptions: {
         parser,
         parserOptions: {
-            project: './tsconfig.json',
-            tsconfigRootDir,
             sourceType: 'module',
             ecmaVersion: 2024,
         },

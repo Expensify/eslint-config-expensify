@@ -40,7 +40,7 @@ const meta = {
 };
 
 function create(context) {
-    const sourceCode = context.getSourceCode();
+    const sourceCode = context.sourceCode;
     const soureCodeStr = sourceCode.text; // This gets all the text in the file
 
     const disallowedNumberDefaults = [

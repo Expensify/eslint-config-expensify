@@ -7,11 +7,29 @@ import indexConfig from './index.js';
 const config = defineConfig([
     indexConfig,
     {
+        files: ['**/*.test.js'],
+        languageOptions: {
+            globals: {
+                describe: 'readonly',
+                it: 'readonly',
+                expect: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly',
+                beforeAll: 'readonly',
+                afterAll: 'readonly',
+            },
+        },
+    },
+    {
         rules: {
             'import/extensions': ['error', 'ignorePackages', {
                 js: 'always',
             }],
-            'rulesdir/prefer-import-module-contents': 'off',
+            'expensify/prefer-import-module-contents': 'off',
+
+            // Workaround: ESLint 10 compatibility with some rules/plugins
+            indent: 'off',
+            'import/order': 'off',
         },
     },
 ]);

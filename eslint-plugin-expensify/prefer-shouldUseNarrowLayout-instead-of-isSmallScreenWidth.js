@@ -12,8 +12,7 @@ const meta = {
 };
 
 function create(context) {
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const sourceCode = context.sourceCode;
 
     return {
         VariableDeclarator(node) {

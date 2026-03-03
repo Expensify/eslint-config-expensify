@@ -9,7 +9,7 @@ function create(context) {
     return {
         AssignmentExpression(node) {
             // Only looking at react files
-            if (!isReactViewFile(context.getFilename())) {
+            if (!isReactViewFile(context.filename)) {
                 return;
             }
 
