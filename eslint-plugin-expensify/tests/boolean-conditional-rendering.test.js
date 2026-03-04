@@ -12,7 +12,7 @@ const ruleTester = new RuleTester({
     languageOptions: {
         parser,
         parserOptions: {
-            project: path.join(tsconfigRootDir, 'tsconfig.json'),
+            project: path.join(tsconfigRootDir, 'tsconfig.boolean-conditional.json'),
             tsconfigRootDir,
             sourceType: 'module',
             ecmaVersion: 2020,
@@ -23,10 +23,7 @@ const ruleTester = new RuleTester({
     },
 });
 
-// Skipped: TypeScript project file inclusion with ESLint RuleTester fails for JSX fixtures (tsconfig include).
-// See: https://github.com/typescript-eslint/typescript-eslint/issues
-describe.skip('boolean-conditional-rendering', () => {
-    ruleTester.run('boolean-conditional-rendering', rule, {
+ruleTester.run('boolean-conditional-rendering', rule, {
         valid: [
         {
             filename: testFile,
@@ -294,5 +291,4 @@ describe.skip('boolean-conditional-rendering', () => {
             ],
         },
     ],
-    });
 });
