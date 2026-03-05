@@ -41,6 +41,10 @@ const config = defineConfig([
     expensify,
     unicorn,
     {
+        linterOptions: {
+            reportUnusedDisableDirectives: 'error',
+        },
+
         plugins: {
             '@lwc/lwc': eslintPluginLwc,
             es,
