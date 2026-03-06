@@ -321,6 +321,97 @@ ruleTester.run("context-provider-split-values", rule, {
         }
       `,
     },
+
+    // ─── Functions from custom hook destructuring (unresolvable) ─────────
+    {
+      code: `
+        function ActionSheetProvider({children}) {
+            const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine(config);
+            const actionsValue = useMemo(() => ({
+                transitionActionSheetState: transition,
+                transitionActionSheetStateWorklet: transitionWorklet,
+                resetStateMachine: reset,
+            }), [reset, transition, transitionWorklet]);
+            return (
+                <ActionSheetActionsContext.Provider value={actionsValue}>
+                    {children}
+                </ActionSheetActionsContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Data with ConditionalExpression values ─────────────────────────
+    {
+      code: `
+        function ScreenWrapper({children, includePaddingTop, includeSafeAreaPaddingBottom}) {
+            const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+            const isSafeAreaTopPaddingApplied = includePaddingTop;
+            const value = useMemo(
+                () => ({
+                    didScreenTransitionEnd,
+                    isSafeAreaTopPaddingApplied,
+                    isSafeAreaBottomPaddingApplied: isEdgeToEdge ? false : includeSafeAreaPaddingBottom,
+                }),
+                [didScreenTransitionEnd, isSafeAreaTopPaddingApplied, includeSafeAreaPaddingBottom]
+            );
+            return (
+                <ScreenWrapperStatusContext.Provider value={value}>
+                    {children}
+                </ScreenWrapperStatusContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Data with function-like property names (addSafeAreaPadding is boolean!) ─
+    {
+      code: `
+        function ScreenWrapper({children}) {
+            const value = useMemo(() => {
+                return {
+                    addSafeAreaPadding: condition ? (x ?? true) : !y,
+                    showOnSmallScreens: false,
+                    showOnWideScreens: false,
+                    originalValues: newOriginalValues,
+                };
+            }, []);
+            return (
+                <ScreenWrapperOfflineIndicatorContext.Provider value={value}>
+                    {children}
+                </ScreenWrapperOfflineIndicatorContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── MemberExpression values from an object (video.play etc.) ────────
+    {
+      code: `
+        function PlaybackProvider({children}) {
+            const updateURL = useCallback(() => {}, []);
+            const share = useCallback(() => {}, []);
+            const [currentURL, setCurrentURL] = useState(null);
+            const value = {
+                updateURL,
+                share,
+                setCurrentURL,
+                playVideo: video.play,
+                pauseVideo: video.pause,
+                replayVideo: video.replay,
+                stopVideo: video.stop,
+                checkIfPlaying: video.isPlaying,
+                resetData: video.resetPlayerData,
+                updateStatus,
+            };
+            return (
+                <ContextActions.Provider value={value}>
+                    {children}
+                </ContextActions.Provider>
+            );
+        }
+      `,
+    },
   ],
 
   invalid: [

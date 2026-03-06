@@ -18,22 +18,6 @@ const meta = {
 };
 
 /**
- * Matches camelCase verb prefixes that indicate a function name.
- * Requires the prefix to be followed by an uppercase letter (camelCase boundary)
- * or be the entire name (single-word function names like "submit" or "dispatch").
- */
-// eslint-disable-next-line max-len
-const FUNCTION_NAME_PATTERN = /^(on|handle|set|get|do|create|update|delete|fetch|load|save|remove|add|toggle|clear|reset|submit|validate|format|parse|convert|transform|dispatch|register|unregister|open|close|initialize|select)([A-Z]|$)/;
-
-/**
- * @param {string} identifier
- * @returns {boolean}
- */
-function looksLikeFunctionName(identifier) {
-    return typeof identifier === 'string' && FUNCTION_NAME_PATTERN.test(identifier);
-}
-
-/**
  * Get the full dotted name of a JSX element (e.g. "MyContext.Provider").
  * @param {object} node - JSXOpeningElement node
  * @returns {string|null}
@@ -296,8 +280,8 @@ function unwrapTSNode(node) {
  * Classify an AST value node as "function", "data", or null (unknown).
  *
  * Handles: function expressions, useCallback, useMemo, useState destructuring,
- * function declarations, literals, objects, arrays, unary/binary/logical expressions,
- * and falls back to naming conventions for unresolvable identifiers.
+ * function declarations, literals, objects, arrays, and unary/binary/logical expressions.
+ * Returns null for anything that cannot be confidently classified.
  *
  * @param {object} node - AST node to classify
  * @param {object} context - ESLint rule context
@@ -330,6 +314,7 @@ function classifyValue(node, context, scopeNode, visited) {
         unwrapped.type === 'UnaryExpression'
         || unwrapped.type === 'BinaryExpression'
         || unwrapped.type === 'LogicalExpression'
+        || unwrapped.type === 'ConditionalExpression'
         || unwrapped.type === 'UpdateExpression'
         || unwrapped.type === 'NewExpression'
     ) {
@@ -382,16 +367,6 @@ function classifyValue(node, context, scopeNode, visited) {
             return classifyValue(init, context, scopeNode, seen);
         }
 
-        return looksLikeFunctionName(unwrapped.name) ? 'function' : null;
-    }
-
-    if (unwrapped.type === 'MemberExpression') {
-        const propName = (unwrapped.property && unwrapped.property.type === 'Identifier')
-            ? unwrapped.property.name
-            : null;
-        if (propName && looksLikeFunctionName(propName)) {
-            return 'function';
-        }
         return null;
     }
 
@@ -502,14 +477,10 @@ function analyzeObjectProperties(objectNode, context, scopeNode, visited) {
         } else if (classification === 'data') {
             result.hasNonFunctions = true;
             result.nonFunctionProps.push(propName);
-        } else if (looksLikeFunctionName(propName)) {
-            // Last resort: use the property name itself as a heuristic
-            result.hasFunctions = true;
-            result.functionProps.push(propName);
-        } else {
-            result.hasNonFunctions = true;
-            result.nonFunctionProps.push(propName);
         }
+
+        // When classification is null (unresolvable), skip the property entirely.
+        // This avoids false positives from guessing based on property names.
     }
 
     return result;
