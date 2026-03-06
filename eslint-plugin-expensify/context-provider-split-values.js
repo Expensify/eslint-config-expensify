@@ -37,7 +37,9 @@ const meta = {
   messages: {
     stateContextHasFunction: CONST.MESSAGE.STATE_CONTEXT_HAS_FUNCTION,
     actionsContextHasNonFunction: CONST.MESSAGE.ACTIONS_CONTEXT_HAS_NON_FUNCTION,
-    contextMustBeSplit: CONST.MESSAGE.CONTEXT_MUST_BE_SPLIT
+    contextMustBeSplit: CONST.MESSAGE.CONTEXT_MUST_BE_SPLIT,
+    contextRenameToState: CONST.MESSAGE.CONTEXT_RENAME_TO_STATE,
+    contextRenameToActions: CONST.MESSAGE.CONTEXT_RENAME_TO_ACTIONS
   }
 };
 
@@ -463,11 +465,38 @@ function create(context) {
       const elementName = getJSXElementName(node);
 
       // Check if this is a generic context provider (not State or Actions)
-      // These should be split into separate State and Actions contexts
+      // Analyze the value: only data → suggest *StateContext; only functions → suggest *ActionsContext; mixed → must split
       if (isGenericContextProvider(node)) {
+        const valueProp = getValueProp(node.attributes);
+        let messageId = "contextMustBeSplit";
+
+        if (valueProp) {
+          let objectToAnalyze = valueProp;
+          if (valueProp.type === "Identifier") {
+            const declaration = findVariableDeclaration(context, node, valueProp.name);
+            if (declaration) {
+              objectToAnalyze = declaration;
+            }
+          }
+
+          if (objectToAnalyze.type === "ObjectExpression") {
+            const analysis = analyzeObjectProperties(objectToAnalyze, context);
+            const onlyData = analysis.hasNonFunctions && !analysis.hasFunctions;
+            const onlyFunctions = analysis.hasFunctions && !analysis.hasNonFunctions;
+            if (onlyData) {
+              messageId = "contextRenameToState";
+            } else if (onlyFunctions) {
+              messageId = "contextRenameToActions";
+            }
+          } else {
+            // Single value (literal, identifier to non-object, etc.) is treated as data
+            messageId = "contextRenameToState";
+          }
+        }
+
         context.report({
           node,
-          messageId: "contextMustBeSplit",
+          messageId,
           data: {
             contextName: elementName
           }

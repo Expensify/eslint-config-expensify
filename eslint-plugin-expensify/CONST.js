@@ -42,7 +42,9 @@ const CONST = {
         PREFER_NARROW_HOOK_DEPENDENCIES: 'Dependency "{{dependency}}" is too broad. Use specific properties instead: {{properties}}',
         STATE_CONTEXT_HAS_FUNCTION: 'State context `{{contextName}}` should only contain data values, not functions. Move these functions to an Actions context: {{properties}}',
         ACTIONS_CONTEXT_HAS_NON_FUNCTION: 'Actions context `{{contextName}}` should only contain functions, not data values. Move these values to a State context: {{properties}}',
-        CONTEXT_MUST_BE_SPLIT: 'Context `{{contextName}}` must be split into separate State and Actions contexts. Rename to *StateContext.Provider for data values and *ActionsContext.Provider for functions.'
+        CONTEXT_MUST_BE_SPLIT: 'Context `{{contextName}}` must be split into separate State and Actions contexts. Rename to *StateContext.Provider for data values and *ActionsContext.Provider for functions.',
+        CONTEXT_RENAME_TO_STATE: 'Context `{{contextName}}` only contains data. Rename to *StateContext.Provider.',
+        CONTEXT_RENAME_TO_ACTIONS: 'Context `{{contextName}}` only contains functions. Rename to *ActionsContext.Provider.'
     },
 };
 

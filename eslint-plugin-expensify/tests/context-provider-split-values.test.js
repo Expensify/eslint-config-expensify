@@ -350,7 +350,51 @@ ruleTester.run("context-provider-split-values", rule, {
       ]
     },
     {
-      // Invalid: Generic context (not State or Actions) must be split
+      // Invalid: Generic context with only data → suggest rename to *StateContext
+      code: `
+                function CurrentUserPersonalDetailsProvider({children}) {
+                    const userPersonalDetails = { name: 'John', email: 'john@example.com' };
+                    return (
+                        <CurrentUserPersonalDetailsContext.Provider value={userPersonalDetails}>
+                            {children}
+                        </CurrentUserPersonalDetailsContext.Provider>
+                    );
+                }
+            `,
+      errors: [
+        {
+          messageId: "contextRenameToState",
+          data: {
+            contextName: "CurrentUserPersonalDetailsContext.Provider"
+          }
+        }
+      ]
+    },
+    {
+      // Invalid: Generic context with only functions → suggest rename to *ActionsContext
+      code: `
+                function MyContextProvider({children}) {
+                    const handleClick = () => {};
+                    const onSubmit = () => {};
+                    const value = { handleClick, onSubmit };
+                    return (
+                        <MyContext.Provider value={value}>
+                            {children}
+                        </MyContext.Provider>
+                    );
+                }
+            `,
+      errors: [
+        {
+          messageId: "contextRenameToActions",
+          data: {
+            contextName: "MyContext.Provider"
+          }
+        }
+      ]
+    },
+    {
+      // Invalid: Generic context (mixed data and functions) must be split
       code: `
                 function MyContextProvider({children}) {
                     const value = { data: 'test', handler: () => {} };
