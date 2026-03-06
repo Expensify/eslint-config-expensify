@@ -1,463 +1,552 @@
-/**
- * ESLint rule: context-provider-split-values
- *
- * Enforces that React Context Providers follow a split pattern where:
- * 1. All context providers must be named either *StateContext or *ActionsContext
- * 2. State context values contain only data (non-function values)
- * 3. Actions context values contain only methods (functions)
- *
- * Good pattern:
- * <StateContext.Provider value={stateContextValue}>
- *   <ActionsContext.Provider value={actionsContextValue}>
- *     {children}
- *   </ActionsContext.Provider>
- * </StateContext.Provider>
- *
- * Where stateContextValue = { someData, someArray, someObject }
- * And actionsContextValue = { doSomething, handleEvent, updateData }
- *
- * Bad pattern (will be flagged):
- * <MyContext.Provider value={mixedValue}>  // Should be split into State and Actions
- */
-import _ from "lodash";
-import CONST from "./CONST.js";
+import CONST from './CONST.js';
 
-const name = "context-provider-split-values";
+const name = 'context-provider-split-values';
 
 const meta = {
-  type: "suggestion",
-  docs: {
-    description:
-      "Enforce that React Context Providers do not mix data (state) and functions (actions) in the same context value. " +
-      "Use separate context providers when you have both.",
-    recommended: "error"
-  },
-  schema: [],
-  messages: {
-    contextMixesDataAndFunctions: CONST.MESSAGE.CONTEXT_MIXES_DATA_AND_FUNCTIONS
-  }
+    type: 'suggestion',
+    docs: {
+        description:
+            'Enforce that React Context Providers do not mix data (state) and functions (actions) in the same context value. '
+            + 'Use separate context providers when you have both.',
+        recommended: 'error',
+    },
+    schema: [],
+    messages: {
+        contextMixesDataAndFunctions:
+            CONST.MESSAGE.CONTEXT_MIXES_DATA_AND_FUNCTIONS,
+    },
 };
 
 /**
- * Check if a node represents a function value
- * @param {Node} node - AST node to check
+ * Matches camelCase verb prefixes that indicate a function name.
+ * Requires the prefix to be followed by an uppercase letter (camelCase boundary)
+ * or be the entire name (single-word function names like "submit" or "dispatch").
+ */
+// eslint-disable-next-line max-len
+const FUNCTION_NAME_PATTERN = /^(on|handle|set|get|do|create|update|delete|fetch|load|save|remove|add|toggle|clear|reset|submit|validate|format|parse|convert|transform|dispatch|register|unregister|open|close|initialize|select)([A-Z]|$)/;
+
+/**
+ * @param {string} identifier
  * @returns {boolean}
  */
-function isFunctionValue(node) {
-  if (!node) {
-    return false;
-  }
-
-  // Direct function expressions
-  if (node.type === "FunctionExpression" || node.type === "ArrowFunctionExpression") {
-    return true;
-  }
-
-  // Identifiers that reference functions need to be checked differently
-  // For this rule, we assume identifiers follow naming conventions
-  return false;
+function looksLikeFunctionName(identifier) {
+    return typeof identifier === 'string' && FUNCTION_NAME_PATTERN.test(identifier);
 }
 
 /**
- * Check if a node represents a non-function data value
- * @param {Node} node - AST node to check
- * @returns {boolean}
- */
-function isDataValue(node) {
-  if (!node) {
-    return false;
-  }
-
-  // Primitive literals
-  if (node.type === "Literal") {
-    return true;
-  }
-
-  // Array expressions
-  if (node.type === "ArrayExpression") {
-    return true;
-  }
-
-  // Object expressions (need to check properties)
-  if (node.type === "ObjectExpression") {
-    return true;
-  }
-
-  // Template literals
-  if (node.type === "TemplateLiteral") {
-    return true;
-  }
-
-  return false;
-}
-
-// Function-like identifier names (setters, handlers, etc.) - used for naming fallback
-// eslint-disable-next-line max-len -- long regex for function-like identifier names
-const FUNCTION_NAME_PATTERNS =
-  /^(on|handle|set|get|is|has|can|should|do|create|update|delete|fetch|load|save|remove|add|toggle|clear|reset|submit|validate|format|parse|convert|transform|dispatch|register|unregister|open|close)/i;
-
-/**
- * Check if a name looks like a function (setter, handler, etc.) based on naming convention.
- * @param {string} name - Identifier or property name
- * @returns {boolean}
- */
-function looksLikeFunctionName(name) {
-  return typeof name === "string" && FUNCTION_NAME_PATTERNS.test(name);
-}
-
-/**
- * Get the full name of a JSX element
- * @param {Node} node - JSX opening element node
+ * Get the full dotted name of a JSX element (e.g. "MyContext.Provider").
+ * @param {object} node - JSXOpeningElement node
  * @returns {string|null}
  */
 function getJSXElementName(node) {
-  if (!node || !node.name) {
-    return null;
-  }
-
-  // Handle JSXMemberExpression: e.g., StateContext.Provider
-  if (node.name.type === "JSXMemberExpression") {
-    const parts = [];
-    let current = node.name;
-    while (current) {
-      if (current.type === "JSXMemberExpression") {
-        if (current.property && current.property.name) {
-          parts.unshift(current.property.name);
-        }
-        current = current.object;
-      } else if (current.type === "JSXIdentifier") {
-        parts.unshift(current.name);
-        break;
-      } else {
-        break;
-      }
+    if (!node || !node.name) {
+        return null;
     }
-    return parts.join(".");
-  }
 
-  // Handle simple JSXIdentifier
-  if (node.name.type === "JSXIdentifier") {
-    return node.name.name;
-  }
+    if (node.name.type === 'JSXMemberExpression') {
+        const parts = [];
+        let current = node.name;
+        while (current) {
+            if (current.type === 'JSXMemberExpression') {
+                if (current.property && current.property.name) {
+                    parts.unshift(current.property.name);
+                }
+                current = current.object;
+            } else if (current.type === 'JSXIdentifier') {
+                parts.unshift(current.name);
+                break;
+            } else {
+                break;
+            }
+        }
+        return parts.join('.');
+    }
 
-  return null;
+    if (node.name.type === 'JSXIdentifier') {
+        return node.name.name;
+    }
+    return null;
 }
 
 /**
- * Check if a JSX element is any Context Provider (ends with Context.Provider)
- * @param {Node} node - JSX opening element node
+ * Determine whether a JSX element is a React context provider.
+ * Matches both `<XContext.Provider value={...}>` and `<XContext value={...}>` (React 19).
+ * @param {object} node - JSXOpeningElement node
  * @returns {boolean}
  */
-function isAnyContextProvider(node) {
-  const elementName = getJSXElementName(node);
-  return elementName && elementName.includes("Context") && elementName.endsWith(".Provider");
+function isContextProvider(node) {
+    const elementName = getJSXElementName(node);
+    if (!elementName) {
+        return false;
+    }
+
+    if (elementName.endsWith('.Provider') && elementName.includes('Context')) {
+        return true;
+    }
+
+    // React 19 shorthand: <SomeContext value={...}> without .Provider
+    if (/Context$/.test(elementName)) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
- * Find the value prop from JSX attributes
+ * Extract the expression passed to the `value` JSX prop.
  * @param {Array} attributes - JSX attributes array
- * @returns {Node|null}
+ * @returns {object|null}
  */
 function getValueProp(attributes) {
-  if (!attributes) {
-    return null;
-  }
-
-  const valueProp = _.find(attributes, attr => attr.type === "JSXAttribute" && attr.name && attr.name.name === "value");
-
-  if (valueProp && valueProp.value) {
-    // Handle JSXExpressionContainer: value={something}
-    if (valueProp.value.type === "JSXExpressionContainer") {
-      return valueProp.value.expression;
+    if (!attributes) {
+        return null;
     }
-    return valueProp.value;
-  }
 
-  return null;
-}
-
-/**
- * Get the init node from a variable definition, including when the variable
- * comes from array or object destructuring (e.g. const [a, b] = useState()).
- * @param {Object} def - Variable definition from scope
- * @returns {Node|null}
- */
-function getInitFromVariableDef(def) {
-  if (!def || !def.node) {
-    return null;
-  }
-  if (def.node.init) {
-    return def.node.init;
-  }
-  // Destructuring: def.node is the pattern element (e.g. Identifier in array).
-  // Walk up to the VariableDeclarator and use its init.
-  let node = def.node;
-  while (node && node.type !== "VariableDeclarator") {
-    node = node.parent;
-  }
-  return node && node.init ? node.init : null;
-}
-
-/**
- * Check if a CallExpression is useState (useState or React.useState).
- * @param {Node} node - CallExpression node
- * @returns {boolean}
- */
-function isUseStateCall(node) {
-  if (!node || node.type !== "CallExpression") {
-    return false;
-  }
-  const callee = node.callee;
-  if (callee.type === "Identifier" && callee.name === "useState") {
-    return true;
-  }
-  if (
-    callee.type === "MemberExpression" &&
-    callee.property &&
-    callee.property.type === "Identifier" &&
-    callee.property.name === "useState"
-  ) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Check if the given variable (from scope) is the setter from useState,
- * i.e. the second element of [state, setState] = useState().
- * @param {Object} variable - ESLint scope variable
- * @returns {boolean}
- */
-function isUseStateSetterVariable(variable) {
-  if (!variable || !variable.defs || variable.defs.length === 0) {
-    return false;
-  }
-  const def = variable.defs[0];
-  const init = getInitFromVariableDef(def);
-  if (!init || !isUseStateCall(init)) {
-    return false;
-  }
-  // Variable must be from array destructuring at index 1
-  let patternNode = def.node;
-  while (patternNode && patternNode.type !== "ArrayPattern") {
-    patternNode = patternNode.parent;
-  }
-  if (!patternNode || patternNode.type !== "ArrayPattern") {
-    return false;
-  }
-  const elements = patternNode.elements;
-  const index = elements.indexOf(def.node);
-  return index === 1;
-}
-
-/**
- * Find the variable declaration for an identifier in the current scope
- * @param {Object} context - ESLint rule context
- * @param {Node} node - Current AST node for scope resolution
- * @param {string} identifierName - Name of the identifier to find
- * @returns {Node|null}
- */
-function findVariableDeclaration(context, node, identifierName) {
-  // ESLint 9 uses context.sourceCode.getScope(node) instead of context.getScope()
-  const sourceCode = context.sourceCode || context.getSourceCode();
-  const scope = sourceCode.getScope(node);
-  let currentScope = scope;
-
-  while (currentScope) {
-    for (const variable of currentScope.variables) {
-      if (variable.name === identifierName) {
-        const init = getInitFromVariableDef(variable.defs[0]);
-        if (init) {
-          return init;
+    for (let i = 0; i < attributes.length; i++) {
+        const a = attributes[i];
+        if (a.type === 'JSXAttribute' && a.name && a.name.name === 'value') {
+            if (!a.value) {
+                return null;
+            }
+            if (a.value.type === 'JSXExpressionContainer') {
+                return a.value.expression;
+            }
+            return a.value;
         }
-      }
     }
-    currentScope = currentScope.upper;
-  }
-
-  return null;
+    return null;
 }
 
 /**
- * Get the scope variable for an identifier (for useState setter check).
- * @param {Object} context - ESLint rule context
- * @param {Node} node - Current AST node for scope resolution
- * @param {string} identifierName - Name of the identifier to find
- * @returns {Object|null} - Scope variable or null
+ * @param {object} context - ESLint rule context
+ * @param {object} node - AST node used for scope resolution
+ * @returns {object} scope
  */
-function findScopeVariable(context, node, identifierName) {
-  const sourceCode = context.sourceCode || context.getSourceCode();
-  const scope = sourceCode.getScope(node);
-  let currentScope = scope;
-
-  while (currentScope) {
-    for (const variable of currentScope.variables) {
-      if (variable.name === identifierName) {
-        return variable;
-      }
-    }
-    currentScope = currentScope.upper;
-  }
-
-  return null;
+function getScopeForNode(context, node) {
+    const sourceCode = context.sourceCode || context.getSourceCode();
+    return sourceCode.getScope(node);
 }
 
 /**
- * Check properties of an object expression to see if they contain functions or data
- * @param {Node} objectNode - ObjectExpression node
- * @param {Object} context - ESLint rule context
- * @param {Set} visited - Set of visited nodes to prevent infinite recursion
+ * Walk the scope chain to find a variable by name.
+ * @param {object} context - ESLint rule context
+ * @param {object} scopeNode - AST node for scope resolution
+ * @param {string} identifierName - variable name
+ * @returns {object|null} ESLint scope Variable
+ */
+function findScopeVariable(context, scopeNode, identifierName) {
+    let scope = getScopeForNode(context, scopeNode);
+    while (scope) {
+        for (let i = 0; i < scope.variables.length; i++) {
+            if (scope.variables[i].name === identifierName) {
+                return scope.variables[i];
+            }
+        }
+        scope = scope.upper;
+    }
+    return null;
+}
+
+/**
+ * Return the initializer expression for a variable declaration (e.g. the RHS of `const x = <init>`).
+ * @param {object} context - ESLint rule context
+ * @param {object} scopeNode - AST node for scope resolution
+ * @param {string} identifierName - variable name
+ * @returns {object|null} AST node of the initializer
+ */
+function findVariableInit(context, scopeNode, identifierName) {
+    const variable = findScopeVariable(context, scopeNode, identifierName);
+    if (!variable || !variable.defs || !variable.defs.length) {
+        return null;
+    }
+    const def = variable.defs[0];
+    if (def.type !== 'Variable' || !def.node || def.node.type !== 'VariableDeclarator') {
+        return null;
+    }
+    return def.node.init || null;
+}
+
+/**
+ * Check if a CallExpression calls a specific hook (plain or as React.hookName).
+ * @param {object} node - AST node
+ * @param {string} hookName - e.g. "useState", "useCallback"
+ * @returns {boolean}
+ */
+function isHookCall(node, hookName) {
+    if (!node || node.type !== 'CallExpression') {
+        return false;
+    }
+    const callee = node.callee;
+    if (callee.type === 'Identifier' && callee.name === hookName) {
+        return true;
+    }
+    return (
+        callee.type === 'MemberExpression'
+        && callee.property
+        && callee.property.type === 'Identifier'
+        && callee.property.name === hookName
+    );
+}
+
+/**
+ * Check whether `variable` is the setter (index 1) from `const [s, setS] = useState(...)`.
+ * @param {object} variable - ESLint scope Variable
+ * @returns {boolean}
+ */
+function isUseStateSetter(variable) {
+    if (!variable || !variable.defs || !variable.defs.length) {
+        return false;
+    }
+    const def = variable.defs[0];
+    if (def.type !== 'Variable' || !def.node || def.node.type !== 'VariableDeclarator') {
+        return false;
+    }
+    if (!isHookCall(def.node.init, 'useState')) {
+        return false;
+    }
+    const pattern = def.node.id;
+    if (!pattern || pattern.type !== 'ArrayPattern') {
+        return false;
+    }
+    return pattern.elements.indexOf(def.name) === 1;
+}
+
+/**
+ * Check whether `variable` is the state value (index 0) from `const [s, setS] = useState(...)`.
+ * @param {object} variable - ESLint scope Variable
+ * @returns {boolean}
+ */
+function isUseStateValue(variable) {
+    if (!variable || !variable.defs || !variable.defs.length) {
+        return false;
+    }
+    const def = variable.defs[0];
+    if (def.type !== 'Variable' || !def.node || def.node.type !== 'VariableDeclarator') {
+        return false;
+    }
+    if (!isHookCall(def.node.init, 'useState')) {
+        return false;
+    }
+    const pattern = def.node.id;
+    if (!pattern || pattern.type !== 'ArrayPattern') {
+        return false;
+    }
+    return pattern.elements.indexOf(def.name) === 0;
+}
+
+/**
+ * @param {object} node - AST node
+ * @returns {boolean}
+ */
+function isFunctionNode(node) {
+    return (
+        node
+        && (node.type === 'ArrowFunctionExpression'
+            || node.type === 'FunctionExpression')
+    );
+}
+
+/**
+ * Extract the effective return value from a useMemo / useCallback factory function.
+ * Handles both expression bodies and block bodies with a top-level return.
+ * @param {object} factoryNode - the factory function AST node
+ * @returns {object|null}
+ */
+function getFactoryReturnNode(factoryNode) {
+    if (!factoryNode || !isFunctionNode(factoryNode)) {
+        return null;
+    }
+
+    // Expression body: () => <expression>
+    if (factoryNode.body.type !== 'BlockStatement') {
+        return factoryNode.body;
+    }
+
+    // Block body: first top-level return
+    const stmts = factoryNode.body.body;
+    for (let i = 0; i < stmts.length; i++) {
+        if (stmts[i].type === 'ReturnStatement' && stmts[i].argument) {
+            return stmts[i].argument;
+        }
+    }
+    return null;
+}
+
+/**
+ * Strip TypeScript type-assertion wrappers so we can inspect the underlying expression.
+ * @param {object} node - AST node
+ * @returns {object}
+ */
+function unwrapTSNode(node) {
+    if (!node) {
+        return node;
+    }
+    if (
+        node.type === 'TSAsExpression'
+        || node.type === 'TSSatisfiesExpression'
+        || node.type === 'TSNonNullExpression'
+        || node.type === 'TSTypeAssertion'
+    ) {
+        return unwrapTSNode(node.expression);
+    }
+    return node;
+}
+
+/**
+ * Classify an AST value node as "function", "data", or null (unknown).
+ *
+ * Handles: function expressions, useCallback, useMemo, useState destructuring,
+ * function declarations, literals, objects, arrays, unary/binary/logical expressions,
+ * and falls back to naming conventions for unresolvable identifiers.
+ *
+ * @param {object} node - AST node to classify
+ * @param {object} context - ESLint rule context
+ * @param {object} scopeNode - AST node for scope resolution
+ * @param {Set} visited - set of already-visited identifier names (prevents cycles)
+ * @returns {string|null} "function", "data", or null
+ */
+function classifyValue(node, context, scopeNode, visited) {
+    const seen = visited || new Set();
+    const unwrapped = unwrapTSNode(node);
+    if (!unwrapped) {
+        return null;
+    }
+
+    if (isFunctionNode(unwrapped)) {
+        return 'function';
+    }
+
+    if (
+        unwrapped.type === 'Literal'
+        || unwrapped.type === 'TemplateLiteral'
+        || unwrapped.type === 'ArrayExpression'
+        || unwrapped.type === 'ObjectExpression'
+    ) {
+        return 'data';
+    }
+
+    // Expressions that always produce a non-function value
+    if (
+        unwrapped.type === 'UnaryExpression'
+        || unwrapped.type === 'BinaryExpression'
+        || unwrapped.type === 'LogicalExpression'
+        || unwrapped.type === 'UpdateExpression'
+        || unwrapped.type === 'NewExpression'
+    ) {
+        return 'data';
+    }
+
+    if (unwrapped.type === 'CallExpression') {
+        if (isHookCall(unwrapped, 'useCallback')) {
+            return 'function';
+        }
+
+        if (isHookCall(unwrapped, 'useMemo')) {
+            const factory = unwrapped.arguments[0];
+            const returnNode = getFactoryReturnNode(factory);
+            if (returnNode) {
+                return classifyValue(returnNode, context, scopeNode, seen);
+            }
+            return null;
+        }
+
+        // useRef always returns a data object
+        if (isHookCall(unwrapped, 'useRef')) {
+            return 'data';
+        }
+
+        return null;
+    }
+
+    if (unwrapped.type === 'Identifier') {
+        if (seen.has(unwrapped.name)) {
+            return null;
+        }
+        seen.add(unwrapped.name);
+
+        const variable = findScopeVariable(context, scopeNode, unwrapped.name);
+        if (variable) {
+            if (isUseStateSetter(variable)) {
+                return 'function';
+            }
+            if (isUseStateValue(variable)) {
+                return 'data';
+            }
+            if (variable.defs && variable.defs.length && variable.defs[0].type === 'FunctionName') {
+                return 'function';
+            }
+        }
+
+        const init = findVariableInit(context, scopeNode, unwrapped.name);
+        if (init) {
+            return classifyValue(init, context, scopeNode, seen);
+        }
+
+        return looksLikeFunctionName(unwrapped.name) ? 'function' : null;
+    }
+
+    if (unwrapped.type === 'MemberExpression') {
+        const propName = (unwrapped.property && unwrapped.property.type === 'Identifier')
+            ? unwrapped.property.name
+            : null;
+        if (propName && looksLikeFunctionName(propName)) {
+            return 'function';
+        }
+        return null;
+    }
+
+    return null;
+}
+
+/**
+ * Resolve a node to the underlying ObjectExpression, unwrapping identifiers,
+ * useMemo calls, and TypeScript wrappers along the way.
+ *
+ * @param {object} node - AST node
+ * @param {object} context - ESLint rule context
+ * @param {object} scopeNode - AST node for scope resolution
+ * @returns {object|null} ObjectExpression node or null
+ */
+function resolveToObject(node, context, scopeNode) {
+    const unwrapped = unwrapTSNode(node);
+    if (!unwrapped) {
+        return null;
+    }
+
+    if (unwrapped.type === 'ObjectExpression') {
+        return unwrapped;
+    }
+
+    if (unwrapped.type === 'Identifier') {
+        const init = findVariableInit(context, scopeNode, unwrapped.name);
+        if (init) {
+            return resolveToObject(init, context, scopeNode);
+        }
+        return null;
+    }
+
+    if (
+        unwrapped.type === 'CallExpression'
+        && isHookCall(unwrapped, 'useMemo')
+    ) {
+        const factory = unwrapped.arguments[0];
+        const returnNode = getFactoryReturnNode(factory);
+        if (returnNode) {
+            return resolveToObject(returnNode, context, scopeNode);
+        }
+        return null;
+    }
+
+    return null;
+}
+
+/**
+ * Walk every property (including spreads) of an ObjectExpression and determine
+ * whether the object contains functions, non-function data, or both.
+ *
+ * @param {object} objectNode - ObjectExpression AST node
+ * @param {object} context - ESLint rule context
+ * @param {object} scopeNode - AST node for scope resolution
+ * @param {Set} visited - set of already-visited object nodes (prevents cycles)
  * @returns {{hasFunctions: boolean, hasNonFunctions: boolean, functionProps: string[], nonFunctionProps: string[]}}
  */
-function analyzeObjectProperties(objectNode, context, visited = new Set()) {
-  const result = {
-    hasFunctions: false,
-    hasNonFunctions: false,
-    functionProps: [],
-    nonFunctionProps: []
-  };
+function analyzeObjectProperties(objectNode, context, scopeNode, visited) {
+    const seen = visited || new Set();
+    const result = {
+        hasFunctions: false,
+        hasNonFunctions: false,
+        functionProps: [],
+        nonFunctionProps: [],
+    };
 
-  if (!objectNode || objectNode.type !== "ObjectExpression") {
-    return result;
-  }
-
-  // Prevent infinite recursion
-  if (visited.has(objectNode)) {
-    return result;
-  }
-  visited.add(objectNode);
-
-  for (const prop of objectNode.properties) {
-    // Handle spread elements: { ...otherObject }
-    if (prop.type === "SpreadElement") {
-      const spreadArg = prop.argument;
-      let spreadObject = spreadArg;
-
-      // If it's an identifier, try to resolve it
-      if (spreadArg && spreadArg.type === "Identifier") {
-        const declaration = findVariableDeclaration(context, objectNode, spreadArg.name);
-        if (declaration) {
-          spreadObject = declaration;
-        }
-      }
-
-      // Recursively analyze the spread object
-      if (spreadObject && spreadObject.type === "ObjectExpression") {
-        const spreadAnalysis = analyzeObjectProperties(spreadObject, context, visited);
-        if (spreadAnalysis.hasFunctions) {
-          result.hasFunctions = true;
-          result.functionProps.push(...spreadAnalysis.functionProps);
-        }
-        if (spreadAnalysis.hasNonFunctions) {
-          result.hasNonFunctions = true;
-          result.nonFunctionProps.push(...spreadAnalysis.nonFunctionProps);
-        }
-      }
-      continue;
+    if (!objectNode || objectNode.type !== 'ObjectExpression') {
+        return result;
     }
-
-    const propName = prop.key ? prop.key.name || prop.key.value || "unknown" : "unknown";
-    let valueNode = prop.value;
-
-    // Handle shorthand properties: { foo } means { foo: foo }
-    // Only substitute the declaration when we can classify it directly (function or data).
-    // Do not substitute when declaration is useState() CallExpression - we need the Identifier
-    // to resolve the scope variable and detect useState setter (second array element).
-    if (prop.shorthand && prop.key && prop.key.type === "Identifier") {
-      const declaration = findVariableDeclaration(context, objectNode, prop.key.name);
-      if (declaration && (isFunctionValue(declaration) || isDataValue(declaration))) {
-        valueNode = declaration;
-      }
+    if (seen.has(objectNode)) {
+        return result;
     }
+    seen.add(objectNode);
 
-    if (isFunctionValue(valueNode)) {
-      result.hasFunctions = true;
-      result.functionProps.push(propName);
-    } else if (valueNode && valueNode.type === "Identifier") {
-      // For identifiers, try to resolve them
-      const scopeVariable = findScopeVariable(context, objectNode, valueNode.name);
-      const declaration = findVariableDeclaration(context, objectNode, valueNode.name);
+    for (let i = 0; i < objectNode.properties.length; i++) {
+        const prop = objectNode.properties[i];
 
-      if (scopeVariable && isUseStateSetterVariable(scopeVariable)) {
-        // React useState setter (e.g. setSplashScreenState from [state, setSplashScreenState] = useState())
-        result.hasFunctions = true;
-        result.functionProps.push(propName);
-      } else if (declaration && isFunctionValue(declaration)) {
-        result.hasFunctions = true;
-        result.functionProps.push(propName);
-      } else if (declaration && isDataValue(declaration)) {
-        result.hasNonFunctions = true;
-        result.nonFunctionProps.push(propName);
-      } else {
-        // Can't determine, assume based on naming convention
-        if (looksLikeFunctionName(valueNode.name)) {
-          result.hasFunctions = true;
-          result.functionProps.push(propName);
+        // Spreads: recursively analyse if we can resolve the spread target
+        if (prop.type === 'SpreadElement') {
+            let spreadObj = prop.argument;
+            if (spreadObj && spreadObj.type === 'Identifier') {
+                const resolved = resolveToObject(spreadObj, context, scopeNode);
+                if (resolved) {
+                    spreadObj = resolved;
+                }
+            }
+            if (spreadObj && spreadObj.type === 'ObjectExpression') {
+                const sub = analyzeObjectProperties(spreadObj, context, scopeNode, seen);
+                if (sub.hasFunctions) {
+                    result.hasFunctions = true;
+                    result.functionProps.push(...sub.functionProps);
+                }
+                if (sub.hasNonFunctions) {
+                    result.hasNonFunctions = true;
+                    result.nonFunctionProps.push(...sub.nonFunctionProps);
+                }
+            }
+            continue;
+        }
+
+        const propName = (prop.key && (prop.key.name || prop.key.value)) || 'unknown';
+        const classification = classifyValue(prop.value, context, scopeNode);
+
+        if (classification === 'function') {
+            result.hasFunctions = true;
+            result.functionProps.push(propName);
+        } else if (classification === 'data') {
+            result.hasNonFunctions = true;
+            result.nonFunctionProps.push(propName);
+        } else if (looksLikeFunctionName(propName)) {
+            // Last resort: use the property name itself as a heuristic
+            result.hasFunctions = true;
+            result.functionProps.push(propName);
         } else {
-          result.hasNonFunctions = true;
-          result.nonFunctionProps.push(propName);
+            result.hasNonFunctions = true;
+            result.nonFunctionProps.push(propName);
         }
-      }
-    } else if (valueNode && valueNode.type === "MemberExpression") {
-      // e.g. setSplashScreenState: ref.current.setSplashScreenState or stateSetters.setSplashScreenState
-      const propIdentifier =
-        valueNode.property && valueNode.property.type === "Identifier" ? valueNode.property.name : null;
-      if (propIdentifier && looksLikeFunctionName(propIdentifier)) {
-        result.hasFunctions = true;
-        result.functionProps.push(propName);
-      } else {
-        result.hasNonFunctions = true;
-        result.nonFunctionProps.push(propName);
-      }
-    } else if (valueNode) {
-      result.hasNonFunctions = true;
-      result.nonFunctionProps.push(propName);
     }
-  }
 
-  return result;
+    return result;
 }
 
+/**
+ * @param {object} context - ESLint rule context
+ * @returns {object} visitor
+ */
 function create(context) {
-  return {
-    JSXOpeningElement(node) {
-      // Only enforce: do not mix data and functions in the same context value.
-      // No naming convention is enforced.
-      if (!isAnyContextProvider(node)) {
-        return;
-      }
+    return {
+        JSXOpeningElement(node) {
+            if (!isContextProvider(node)) {
+                return;
+            }
 
-      const valueProp = getValueProp(node.attributes);
-      if (!valueProp) {
-        return;
-      }
+            const valueProp = getValueProp(node.attributes);
+            if (!valueProp) {
+                return;
+            }
 
-      let objectToAnalyze = valueProp;
-      if (valueProp.type === "Identifier") {
-        const declaration = findVariableDeclaration(context, node, valueProp.name);
-        if (declaration) {
-          objectToAnalyze = declaration;
-        }
-      }
+            const objectToAnalyze = resolveToObject(valueProp, context, node);
+            if (!objectToAnalyze) {
+                return;
+            }
 
-      if (objectToAnalyze.type !== "ObjectExpression") {
-        return; // Single value (no object) cannot "mix" - allow
-      }
+            const analysis = analyzeObjectProperties(objectToAnalyze, context, node);
 
-      const analysis = analyzeObjectProperties(objectToAnalyze, context);
-      const mixed = analysis.hasFunctions && analysis.hasNonFunctions;
-
-      if (mixed) {
-        context.report({
-          node,
-          messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: getJSXElementName(node)
-          }
-        });
-      }
-    }
-  };
+            if (analysis.hasFunctions && analysis.hasNonFunctions) {
+                context.report({
+                    node,
+                    messageId: 'contextMixesDataAndFunctions',
+                    data: {contextName: getJSXElementName(node)},
+                });
+            }
+        },
+    };
 }
 
-export { name, meta, create };
+export {name, meta, create};

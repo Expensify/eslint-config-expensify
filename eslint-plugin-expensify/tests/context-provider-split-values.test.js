@@ -7,361 +7,535 @@ const ruleTester = new RuleTester({
     sourceType: "module",
     parserOptions: {
       ecmaFeatures: {
-        jsx: true
-      }
-    }
-  }
+        jsx: true,
+      },
+    },
+  },
 });
 
 ruleTester.run("context-provider-split-values", rule, {
   valid: [
+    // ─── Data-only contexts ─────────────────────────────────────────────
     {
-      // Valid: State context with only data values
       code: `
-                function MyContextProvider({children}) {
-                    const isLoading = true;
-                    const count = 5;
-                    const stateContextValue = { isLoading, count };
-                    return (
-                        <MyStateContext.Provider value={stateContextValue}>
-                            {children}
-                        </MyStateContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const isLoading = true;
+            const count = 5;
+            const value = { isLoading, count };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
     {
-      // Valid: Actions context with only functions
       code: `
-                function MyContextProvider({children}) {
-                    const handleClick = () => {};
-                    const onSubmit = () => {};
-                    const actionsContextValue = { handleClick, onSubmit };
-                    return (
-                        <MyActionsContext.Provider value={actionsContextValue}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{ count: 5, name: 'test' }}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
     {
-      // Valid: Both contexts properly split
       code: `
-                function SearchRouterContextProvider({children}) {
-                    const isSearchRouterDisplayed = true;
-                    const openSearchRouter = () => {};
-                    const closeSearchRouter = () => {};
+        function DataProvider({children}) {
+            const items = [1, 2, 3];
+            const config = { theme: 'dark' };
+            const value = { items, config };
+            return (
+                <DataContext.Provider value={value}>
+                    {children}
+                </DataContext.Provider>
+            );
+        }
+      `,
+    },
 
-                    const stateContextValue = { isSearchRouterDisplayed };
-                    const actionsContextValue = { openSearchRouter, closeSearchRouter };
+    // ─── Data-only via useState state variables (index 0) ───────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [count, setCount] = useState(0);
+            const [name, setName] = useState('');
+            const value = { count, name };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
 
-                    return (
-                        <SearchRouterStateContext.Provider value={stateContextValue}>
-                            <SearchRouterActionsContext.Provider value={actionsContextValue}>
-                                {children}
-                            </SearchRouterActionsContext.Provider>
-                        </SearchRouterStateContext.Provider>
-                    );
-                }
-            `
+    // ─── Functions-only contexts ────────────────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const handleClick = () => {};
+            const onSubmit = () => {};
+            const value = { handleClick, onSubmit };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
     {
-      // Valid: State context with inline object containing only data
       code: `
-                function MyContextProvider({children}) {
-                    return (
-                        <MyStateContext.Provider value={{ count: 5, name: 'test' }}>
-                            {children}
-                        </MyStateContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{ onClick: () => {}, onHover: () => {} }}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Functions-only via useState setters (index 1) ──────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [count, setCount] = useState(0);
+            const [name, setName] = useState('');
+            const value = { setCount, setName };
+            return (
+                <MyActionsContext.Provider value={value}>
+                    {children}
+                </MyActionsContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Functions-only via useCallback ─────────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const handleClick = useCallback(() => {}, []);
+            const onSubmit = useCallback(() => {}, []);
+            const value = { handleClick, onSubmit };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Functions-only via useMemo returning a function ────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const translate = useMemo(() => (key) => translations[key], []);
+            const format = useMemo(() => (n) => n.toFixed(2), []);
+            const value = { translate, format };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Functions-only via function declarations ───────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            function handleClick() {}
+            function onSubmit() {}
+            const value = { handleClick, onSubmit };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Properly split state and actions ───────────────────────────────
+    {
+      code: `
+        function SearchProvider({children}) {
+            const [query, setQuery] = useState('');
+            const [results, setResults] = useState([]);
+            const handleSearch = useCallback(() => {}, []);
+
+            const stateValue = { query, results };
+            const actionsValue = { setQuery, handleSearch };
+
+            return (
+                <SearchStateContext.Provider value={stateValue}>
+                    <SearchActionsContext.Provider value={actionsValue}>
+                        {children}
+                    </SearchActionsContext.Provider>
+                </SearchStateContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Non-context JSX elements (not checked) ────────────────────────
+    {
+      code: `
+        function MyComponent({children}) {
+            return (
+                <SomeComponent value={{ mixed: true, handler: () => {} }} />
+            );
+        }
+      `,
     },
     {
-      // Valid: Actions context with inline object containing only functions
       code: `
-                function MyContextProvider({children}) {
-                    return (
-                        <MyActionsContext.Provider value={{ onClick: () => {}, onHover: () => {} }}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `
+        function MyComponent({children}) {
+            return <div value={{ data: 1, fn: () => {} }}>{children}</div>;
+        }
+      `,
     },
+
+    // ─── Single non-object value (cannot mix) ───────────────────────────
     {
-      // Valid: State context with object and array data
       code: `
-                function DataStateContextProvider({children}) {
-                    const items = [1, 2, 3];
-                    const config = { theme: 'dark' };
-                    const stateValue = { items, config };
-                    return (
-                        <DataStateContext.Provider value={stateValue}>
-                            {children}
-                        </DataStateContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const theme = 'dark';
+            return (
+                <ThemeContext.Provider value={theme}>
+                    {children}
+                </ThemeContext.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── Context value wrapped in useMemo returning data-only object ────
     {
-      // Valid: Non-context JSX elements are not checked
       code: `
-                function MyComponent({children}) {
-                    return (
-                        <div>
-                            <SomeComponent value={{ mixed: true, handler: () => {} }} />
-                            {children}
-                        </div>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const [count, setCount] = useState(0);
+            const [name, setName] = useState('');
+            const value = useMemo(() => ({ count, name }), [count, name]);
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── Context value from useMemo returning functions-only object ─────
     {
-      // Valid: Actions context with useState setter (setSplashScreenState from [state, setState] = useState())
       code: `
-                function SplashScreenContextProvider({children}) {
-                    const [splashScreenState, setSplashScreenState] = useState(initialState);
-                    const stateValue = { splashScreenState };
-                    const actionsValue = { setSplashScreenState };
-                    return (
-                        <SplashScreenStateContext.Provider value={stateValue}>
-                            <SplashScreenActionsContext.Provider value={actionsValue}>
-                                {children}
-                            </SplashScreenActionsContext.Provider>
-                        </SplashScreenStateContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const handleClick = useCallback(() => {}, []);
+            const onSubmit = useCallback(() => {}, []);
+            const value = useMemo(() => ({ handleClick, onSubmit }), [handleClick, onSubmit]);
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── React 19 shorthand <Context value={...}> with data-only ────────
     {
-      // Valid: Actions context with React.useState setter
       code: `
-                function MyContextProvider({children}) {
-                    const [count, setCount] = React.useState(0);
-                    const actionsValue = { setCount };
-                    return (
-                        <MyActionsContext.Provider value={actionsValue}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const [count, setCount] = useState(0);
+            const value = { count };
+            return (
+                <MyStateContext value={value}>
+                    {children}
+                </MyStateContext>
+            );
+        }
+      `,
     },
+
+    // ─── MemberExpression values with function-like names (actions-only) ─
     {
-      // Valid: Actions context with MemberExpression (setter from object) - property name looks like function
       code: `
-                function MyContextProvider({children}) {
-                    const setters = { setSplashScreenState: () => {} };
-                    const actionsValue = { setSplashScreenState: setters.setSplashScreenState };
-                    return (
-                        <MyActionsContext.Provider value={actionsValue}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            const value = {
+                setSplash: ref.current.setSplashScreenState,
+                handleNav: utils.handleNavigation,
+            };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── Context without "Context" in name (not checked) ────────────────
     {
-      // Valid: Generic context with only data (no naming convention enforced)
       code: `
-                function AttachmentProvider({children}) {
-                    const attachment = { id: 1, name: 'file.pdf' };
-                    return (
-                        <AttachmentContext.Provider value={attachment}>
-                            {children}
-                        </AttachmentContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            return (
+                <Theme.Provider value={{ data: 1, fn: () => {} }}>
+                    {children}
+                </Theme.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── Empty value object ─────────────────────────────────────────────
     {
-      // Valid: Generic context with only data (object with multiple data props)
       code: `
-                function CurrentUserPersonalDetailsProvider({children}) {
-                    const userPersonalDetails = { name: 'John', email: 'john@example.com' };
-                    return (
-                        <CurrentUserPersonalDetailsContext.Provider value={userPersonalDetails}>
-                            {children}
-                        </CurrentUserPersonalDetailsContext.Provider>
-                    );
-                }
-            `
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{}}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
     },
+
+    // ─── React.useState setter ──────────────────────────────────────────
     {
-      // Valid: Generic context with only functions
       code: `
-                function MyContextProvider({children}) {
-                    const handleClick = () => {};
-                    const onSubmit = () => {};
-                    const value = { handleClick, onSubmit };
-                    return (
-                        <MyContext.Provider value={value}>
-                            {children}
-                        </MyContext.Provider>
-                    );
-                }
-            `
-    }
+        function MyProvider({children}) {
+            const [count, setCount] = React.useState(0);
+            const value = { setCount };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
   ],
+
   invalid: [
+    // ─── Inline mixed: literal data + arrow function ────────────────────
     {
-      // Invalid: Mixed content in State context (function among data)
       code: `
-                function MyContextProvider({children}) {
-                    const isLoading = true;
-                    const handleClick = () => {};
-                    const stateContextValue = { isLoading, handleClick };
-                    return (
-                        <MyStateContext.Provider value={stateContextValue}>
-                            {children}
-                        </MyStateContext.Provider>
-                    );
-                }
-            `,
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{ data: 'test', handler: () => {} }}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "MyStateContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "MyContext.Provider" },
+        },
+      ],
     },
+
+    // ─── Mixed shorthand: data variable + function variable ─────────────
     {
-      // Invalid: Mixed content in Actions context (data among functions)
       code: `
-                function MyContextProvider({children}) {
-                    const handleClick = () => {};
-                    const count = 5;
-                    const actionsContextValue = { handleClick, count };
-                    return (
-                        <MyActionsContext.Provider value={actionsContextValue}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `,
+        function MyProvider({children}) {
+            const isLoading = true;
+            const handleClick = () => {};
+            const value = { isLoading, handleClick };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "MyActionsContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "MyContext.Provider" },
+        },
+      ],
     },
+
+    // ─── Mixed useState: state (index 0) + setter (index 1) ────────────
     {
-      // Invalid: Generic context (mixed data and functions)
       code: `
-                function MyContextProvider({children}) {
-                    const value = { data: 'test', handler: () => {} };
-                    return (
-                        <MyContext.Provider value={value}>
-                            {children}
-                        </MyContext.Provider>
-                    );
-                }
-            `,
+        function TravelCVVProvider({children}) {
+            const [cvv, setCvv] = useState(null);
+            const [isLoading, setIsLoading] = useState(false);
+            const value = { cvv, isLoading, setCvv, setIsLoading };
+            return (
+                <TravelCVVContext.Provider value={value}>
+                    {children}
+                </TravelCVVContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "MyContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "TravelCVVContext.Provider" },
+        },
+      ],
     },
+
+    // ─── Mixed with useCallback ─────────────────────────────────────────
     {
-      // Invalid: SearchContext (mixed data and functions)
       code: `
-                function SearchContextProvider({children}) {
-                    const searchContext = { query: '', setQuery: () => {} };
-                    return (
-                        <SearchContext.Provider value={searchContext}>
-                            {children}
-                        </SearchContext.Provider>
-                    );
-                }
-            `,
+        function MyProvider({children}) {
+            const count = 5;
+            const handleClick = useCallback(() => {}, []);
+            const value = { count, handleClick };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "SearchContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "MyContext.Provider" },
+        },
+      ],
     },
+
+    // ─── Mixed with useMemo returning function ──────────────────────────
     {
-      // Invalid: ThemeContext (mixed data and functions)
       code: `
-                function ThemeProvider({children}) {
-                    return (
-                        <ThemeContext.Provider value={{ theme: 'dark', toggle: () => {} }}>
-                            {children}
-                        </ThemeContext.Provider>
-                    );
-                }
-            `,
+        function LocaleProvider({children}) {
+            const [locale, setLocale] = useState('en');
+            const translate = useMemo(() => (key) => translations[key], []);
+            const value = { translate, preferredLocale: locale };
+            return (
+                <LocaleContext.Provider value={value}>
+                    {children}
+                </LocaleContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "ThemeContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "LocaleContext.Provider" },
+        },
+      ],
     },
+
+    // ─── Mixed via spread ───────────────────────────────────────────────
     {
-      // Invalid: State context with spread that includes functions (mixed)
       code: `
-                function MyContextProvider({children}) {
-                    const actionsContextValue = {
-                        openSearchRouter: () => {},
-                        closeSearchRouter: () => {},
-                    };
-                    const stateContextValue = { isLoading: true };
-                    const context = { ...actionsContextValue, ...stateContextValue };
-                    return (
-                        <MyStateContext.Provider value={context}>
-                            {children}
-                        </MyStateContext.Provider>
-                    );
-                }
-            `,
+        function MyProvider({children}) {
+            const actions = { openRouter: () => {}, closeRouter: () => {} };
+            const state = { isLoading: true };
+            const value = { ...actions, ...state };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "MyStateContext.Provider"
-          }
-        }
-      ]
+          data: { contextName: "MyContext.Provider" },
+        },
+      ],
     },
+
+    // ─── React 19 shorthand <XContext value={...}> with mixed ───────────
     {
-      // Invalid: Actions context with spread that includes non-functions (mixed)
       code: `
-                function MyContextProvider({children}) {
-                    const stateContextValue = { isLoading: true, count: 5 };
-                    const actionsContextValue = { handleClick: () => {} };
-                    const context = { ...stateContextValue, ...actionsContextValue };
-                    return (
-                        <MyActionsContext.Provider value={context}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `,
+        function MyProvider({children}) {
+            const [query, setQuery] = useState('');
+            const value = { query, setQuery };
+            return (
+                <SearchContext value={value}>
+                    {children}
+                </SearchContext>
+            );
+        }
+      `,
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: {
-            contextName: "MyActionsContext.Provider"
-          }
+          data: { contextName: "SearchContext" },
+        },
+      ],
+    },
+
+    // ─── useMemo wrapping a mixed value object ──────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [locale, setLocale] = useState('en');
+            const translate = useMemo(() => (key) => key, []);
+            const value = useMemo(
+                () => ({ translate, preferredLocale: locale }),
+                [translate, locale]
+            );
+            return (
+                <LocaleContext.Provider value={value}>
+                    {children}
+                </LocaleContext.Provider>
+            );
         }
-      ]
-    }
-  ]
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: { contextName: "LocaleContext.Provider" },
+        },
+      ],
+    },
+
+    // ─── Mixed with function declaration ────────────────────────────────
+    {
+      code: `
+        function ThemeProvider({children}) {
+            function toggleTheme() {}
+            return (
+                <ThemeContext.Provider value={{ theme: 'dark', toggleTheme }}>
+                    {children}
+                </ThemeContext.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: { contextName: "ThemeContext.Provider" },
+        },
+      ],
+    },
+
+    // ─── Mixed: inline function expression + inline literal ─────────────
+    {
+      code: `
+        function SearchProvider({children}) {
+            return (
+                <SearchContext.Provider value={{ query: '', setQuery: () => {} }}>
+                    {children}
+                </SearchContext.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: { contextName: "SearchContext.Provider" },
+        },
+      ],
+    },
+  ],
 });
