@@ -53,30 +53,6 @@ function getJSXElementName(node) {
 }
 
 /**
- * Determine whether a JSX element is a React context provider.
- * Matches both `<XContext.Provider value={...}>` and `<XContext value={...}>` (React 19).
- * @param {object} node - JSXOpeningElement node
- * @returns {boolean}
- */
-function isContextProvider(node) {
-    const elementName = getJSXElementName(node);
-    if (!elementName) {
-        return false;
-    }
-
-    if (elementName.endsWith('.Provider') && elementName.includes('Context')) {
-        return true;
-    }
-
-    // React 19 shorthand: <SomeContext value={...}> without .Provider
-    if (/Context$/.test(elementName)) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * Extract the expression passed to the `value` JSX prop.
  * @param {Array} attributes - JSX attributes array
  * @returns {object|null}
@@ -173,34 +149,65 @@ function isHookCall(node, hookName) {
 }
 
 /**
- * Check whether `variable` is the setter (index 1) from `const [s, setS] = useState(...)`.
- * @param {object} variable - ESLint scope Variable
+ * Check if a CallExpression calls createContext (plain or as React.createContext).
+ * @param {object} node - AST node
  * @returns {boolean}
  */
-function isUseStateSetter(variable) {
-    if (!variable || !variable.defs || !variable.defs.length) {
+function isCreateContextCall(node) {
+    if (!node || node.type !== 'CallExpression') {
         return false;
     }
-    const def = variable.defs[0];
-    if (def.type !== 'Variable' || !def.node || def.node.type !== 'VariableDeclarator') {
-        return false;
+    const callee = node.callee;
+    if (callee.type === 'Identifier' && callee.name === 'createContext') {
+        return true;
     }
-    if (!isHookCall(def.node.init, 'useState')) {
-        return false;
-    }
-    const pattern = def.node.id;
-    if (!pattern || pattern.type !== 'ArrayPattern') {
-        return false;
-    }
-    return pattern.elements.indexOf(def.name) === 1;
+    return (
+        callee.type === 'MemberExpression'
+        && callee.property
+        && callee.property.type === 'Identifier'
+        && callee.property.name === 'createContext'
+    );
 }
 
 /**
- * Check whether `variable` is the state value (index 0) from `const [s, setS] = useState(...)`.
- * @param {object} variable - ESLint scope Variable
+ * Determine whether a JSX element is a React context provider.
+ * Uses structural detection: any `<X.Provider>` member expression is treated as a
+ * context provider. For React 19 shorthand (`<Ctx value={...}>`), traces the
+ * identifier back to a `createContext()` call in the same file.
+ * @param {object} node - JSXOpeningElement node
+ * @param {object} ruleContext - ESLint rule context (needed for scope resolution)
  * @returns {boolean}
  */
-function isUseStateValue(variable) {
+function isContextProvider(node, ruleContext) {
+    const elementName = getJSXElementName(node);
+    if (!elementName) {
+        return false;
+    }
+
+    if (elementName.endsWith('.Provider')) {
+        return true;
+    }
+
+    // React 19 shorthand: <Ctx value={...}> without .Provider
+    if (node.name && node.name.type === 'JSXIdentifier') {
+        const init = findVariableInit(ruleContext, node, node.name.name);
+        if (init && isCreateContextCall(init)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Check whether `variable` is destructured at `index` from an array-pattern hook call
+ * (e.g. `const [value, setter] = hookName(...)`).
+ * @param {object} variable - ESLint scope Variable
+ * @param {string} hookName - e.g. "useState", "useReducer"
+ * @param {number} index - expected position in the array destructuring
+ * @returns {boolean}
+ */
+function isHookDestructuredAtIndex(variable, hookName, index) {
     if (!variable || !variable.defs || !variable.defs.length) {
         return false;
     }
@@ -208,14 +215,30 @@ function isUseStateValue(variable) {
     if (def.type !== 'Variable' || !def.node || def.node.type !== 'VariableDeclarator') {
         return false;
     }
-    if (!isHookCall(def.node.init, 'useState')) {
+    if (!isHookCall(def.node.init, hookName)) {
         return false;
     }
     const pattern = def.node.id;
     if (!pattern || pattern.type !== 'ArrayPattern') {
         return false;
     }
-    return pattern.elements.indexOf(def.name) === 0;
+    return pattern.elements.indexOf(def.name) === index;
+}
+
+function isUseStateSetter(variable) {
+    return isHookDestructuredAtIndex(variable, 'useState', 1);
+}
+
+function isUseStateValue(variable) {
+    return isHookDestructuredAtIndex(variable, 'useState', 0);
+}
+
+function isUseReducerDispatch(variable) {
+    return isHookDestructuredAtIndex(variable, 'useReducer', 1);
+}
+
+function isUseReducerState(variable) {
+    return isHookDestructuredAtIndex(variable, 'useReducer', 0);
 }
 
 /**
@@ -279,8 +302,8 @@ function unwrapTSNode(node) {
 /**
  * Classify an AST value node as "function", "data", or null (unknown).
  *
- * Handles: function expressions, useCallback, useMemo, useState destructuring,
- * function declarations, literals, objects, arrays, and unary/binary/logical expressions.
+ * Handles: function expressions, useCallback, useMemo, useState/useReducer destructuring,
+ * function declarations, literals, objects, arrays, conditional, logical, and other expressions.
  * Returns null for anything that cannot be confidently classified.
  *
  * @param {object} node - AST node to classify
@@ -309,16 +332,31 @@ function classifyValue(node, context, scopeNode, visited) {
         return 'data';
     }
 
-    // Expressions that always produce a non-function value
     if (
         unwrapped.type === 'UnaryExpression'
         || unwrapped.type === 'BinaryExpression'
-        || unwrapped.type === 'LogicalExpression'
-        || unwrapped.type === 'ConditionalExpression'
         || unwrapped.type === 'UpdateExpression'
         || unwrapped.type === 'NewExpression'
     ) {
         return 'data';
+    }
+
+    if (unwrapped.type === 'ConditionalExpression') {
+        const cons = classifyValue(unwrapped.consequent, context, scopeNode, seen);
+        const alt = classifyValue(unwrapped.alternate, context, scopeNode, seen);
+        if (cons && cons === alt) {
+            return cons;
+        }
+        return null;
+    }
+
+    if (unwrapped.type === 'LogicalExpression') {
+        const left = classifyValue(unwrapped.left, context, scopeNode, seen);
+        const right = classifyValue(unwrapped.right, context, scopeNode, seen);
+        if (left && left === right) {
+            return left;
+        }
+        return null;
     }
 
     if (unwrapped.type === 'CallExpression') {
@@ -351,10 +389,10 @@ function classifyValue(node, context, scopeNode, visited) {
 
         const variable = findScopeVariable(context, scopeNode, unwrapped.name);
         if (variable) {
-            if (isUseStateSetter(variable)) {
+            if (isUseStateSetter(variable) || isUseReducerDispatch(variable)) {
                 return 'function';
             }
-            if (isUseStateValue(variable)) {
+            if (isUseStateValue(variable) || isUseReducerState(variable)) {
                 return 'data';
             }
             if (variable.defs && variable.defs.length && variable.defs[0].type === 'FunctionName') {
@@ -493,7 +531,7 @@ function analyzeObjectProperties(objectNode, context, scopeNode, visited) {
 function create(context) {
     return {
         JSXOpeningElement(node) {
-            if (!isContextProvider(node)) {
+            if (!isContextProvider(node, context)) {
                 return;
             }
 
@@ -513,7 +551,11 @@ function create(context) {
                 context.report({
                     node,
                     messageId: 'contextMixesDataAndFunctions',
-                    data: {contextName: getJSXElementName(node)},
+                    data: {
+                        contextName: getJSXElementName(node),
+                        functionProps: analysis.functionProps.join(', '),
+                        nonFunctionProps: analysis.nonFunctionProps.join(', '),
+                    },
                 });
             }
         },

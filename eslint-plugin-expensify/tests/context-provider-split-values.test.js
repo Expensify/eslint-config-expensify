@@ -203,6 +203,20 @@ ruleTester.run("context-provider-split-values", rule, {
       `,
     },
 
+    // ─── Non-context JSXIdentifier without createContext (not checked) ──
+    {
+      code: `
+        function MyProvider({children}) {
+            const value = { count: 5, handler: () => {} };
+            return (
+                <SomeProvider value={value}>
+                    {children}
+                </SomeProvider>
+            );
+        }
+      `,
+    },
+
     // ─── Single non-object value (cannot mix) ───────────────────────────
     {
       code: `
@@ -249,9 +263,10 @@ ruleTester.run("context-provider-split-values", rule, {
       `,
     },
 
-    // ─── React 19 shorthand <Context value={...}> with data-only ────────
+    // ─── React 19 shorthand <Context value={...}> with createContext, data-only ─
     {
       code: `
+        const MyStateContext = createContext(null);
         function MyProvider({children}) {
             const [count, setCount] = useState(0);
             const value = { count };
@@ -276,19 +291,6 @@ ruleTester.run("context-provider-split-values", rule, {
                 <MyContext.Provider value={value}>
                     {children}
                 </MyContext.Provider>
-            );
-        }
-      `,
-    },
-
-    // ─── Context without "Context" in name (not checked) ────────────────
-    {
-      code: `
-        function MyProvider({children}) {
-            return (
-                <Theme.Provider value={{ data: 1, fn: () => {} }}>
-                    {children}
-                </Theme.Provider>
             );
         }
       `,
@@ -412,6 +414,65 @@ ruleTester.run("context-provider-split-values", rule, {
         }
       `,
     },
+
+    // ─── useReducer state-only context ──────────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [state, dispatch] = useReducer(reducer, initialState);
+            const value = { state };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── useReducer dispatch-only context ───────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [state, dispatch] = useReducer(reducer, initialState);
+            const value = { dispatch };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── Method shorthand with only functions ───────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{ handleClick() {}, onSubmit() {} }}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
+
+    // ─── ConditionalExpression between two data values ──────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const a = 1;
+            const b = 2;
+            const value = { result: condition ? a : b, name: 'test' };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+    },
   ],
 
   invalid: [
@@ -429,7 +490,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "MyContext.Provider" },
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "handler",
+            nonFunctionProps: "data",
+          },
         },
       ],
     },
@@ -451,7 +516,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "MyContext.Provider" },
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "handleClick",
+            nonFunctionProps: "isLoading",
+          },
         },
       ],
     },
@@ -473,7 +542,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "TravelCVVContext.Provider" },
+          data: {
+            contextName: "TravelCVVContext.Provider",
+            functionProps: "setCvv, setIsLoading",
+            nonFunctionProps: "cvv, isLoading",
+          },
         },
       ],
     },
@@ -495,7 +568,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "MyContext.Provider" },
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "handleClick",
+            nonFunctionProps: "count",
+          },
         },
       ],
     },
@@ -517,7 +594,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "LocaleContext.Provider" },
+          data: {
+            contextName: "LocaleContext.Provider",
+            functionProps: "translate",
+            nonFunctionProps: "preferredLocale",
+          },
         },
       ],
     },
@@ -539,14 +620,19 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "MyContext.Provider" },
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "openRouter, closeRouter",
+            nonFunctionProps: "isLoading",
+          },
         },
       ],
     },
 
-    // ─── React 19 shorthand <XContext value={...}> with mixed ───────────
+    // ─── React 19 shorthand with createContext, mixed ───────────────────
     {
       code: `
+        const SearchContext = createContext(null);
         function MyProvider({children}) {
             const [query, setQuery] = useState('');
             const value = { query, setQuery };
@@ -560,7 +646,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "SearchContext" },
+          data: {
+            contextName: "SearchContext",
+            functionProps: "setQuery",
+            nonFunctionProps: "query",
+          },
         },
       ],
     },
@@ -585,7 +675,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "LocaleContext.Provider" },
+          data: {
+            contextName: "LocaleContext.Provider",
+            functionProps: "translate",
+            nonFunctionProps: "preferredLocale",
+          },
         },
       ],
     },
@@ -605,7 +699,11 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "ThemeContext.Provider" },
+          data: {
+            contextName: "ThemeContext.Provider",
+            functionProps: "toggleTheme",
+            nonFunctionProps: "theme",
+          },
         },
       ],
     },
@@ -624,7 +722,134 @@ ruleTester.run("context-provider-split-values", rule, {
       errors: [
         {
           messageId: "contextMixesDataAndFunctions",
-          data: { contextName: "SearchContext.Provider" },
+          data: {
+            contextName: "SearchContext.Provider",
+            functionProps: "setQuery",
+            nonFunctionProps: "query",
+          },
+        },
+      ],
+    },
+
+    // ─── Structural .Provider detection (no "Context" in name) ──────────
+    {
+      code: `
+        function MyProvider({children}) {
+            return (
+                <Theme.Provider value={{ data: 1, fn: () => {} }}>
+                    {children}
+                </Theme.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: {
+            contextName: "Theme.Provider",
+            functionProps: "fn",
+            nonFunctionProps: "data",
+          },
+        },
+      ],
+    },
+
+    // ─── Mixed useReducer: state + dispatch ─────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const [state, dispatch] = useReducer(reducer, initialState);
+            const value = { state, dispatch };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "dispatch",
+            nonFunctionProps: "state",
+          },
+        },
+      ],
+    },
+
+    // ─── ConditionalExpression returning function mixed with data ────────
+    {
+      code: `
+        function MyProvider({children}) {
+            const fnA = () => {};
+            const fnB = () => {};
+            const value = { handler: condition ? fnA : fnB, count: 5 };
+            return (
+                <MyContext.Provider value={value}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "handler",
+            nonFunctionProps: "count",
+          },
+        },
+      ],
+    },
+
+    // ─── Method shorthand mixed with data ───────────────────────────────
+    {
+      code: `
+        function MyProvider({children}) {
+            return (
+                <MyContext.Provider value={{ getValue() { return 1; }, count: 5 }}>
+                    {children}
+                </MyContext.Provider>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: {
+            contextName: "MyContext.Provider",
+            functionProps: "getValue",
+            nonFunctionProps: "count",
+          },
+        },
+      ],
+    },
+
+    // ─── React 19 shorthand with React.createContext, mixed ─────────────
+    {
+      code: `
+        const AppContext = React.createContext(null);
+        function MyProvider({children}) {
+            const [count, setCount] = useState(0);
+            const value = { count, setCount };
+            return (
+                <AppContext value={value}>
+                    {children}
+                </AppContext>
+            );
+        }
+      `,
+      errors: [
+        {
+          messageId: "contextMixesDataAndFunctions",
+          data: {
+            contextName: "AppContext",
+            functionProps: "setCount",
+            nonFunctionProps: "count",
+          },
         },
       ],
     },
