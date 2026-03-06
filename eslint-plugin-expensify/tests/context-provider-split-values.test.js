@@ -162,145 +162,50 @@ ruleTester.run("context-provider-split-values", rule, {
                     );
                 }
             `
-    }
-  ],
-  invalid: [
-    {
-      // Invalid: State context contains a function
-      code: `
-                function MyContextProvider({children}) {
-                    const handleClick = () => {};
-                    const stateContextValue = { handleClick };
-                    return (
-                        <MyStateContext.Provider value={stateContextValue}>
-                            {children}
-                        </MyStateContext.Provider>
-                    );
-                }
-            `,
-      errors: [
-        {
-          messageId: "stateContextHasFunction",
-          data: {
-            contextName: "MyStateContext.Provider",
-            properties: "handleClick"
-          }
-        }
-      ]
     },
     {
-      // Invalid: State context with inline function
+      // Valid: Generic context with only data (no naming convention enforced)
       code: `
-                function MyContextProvider({children}) {
+                function AttachmentProvider({children}) {
+                    const attachment = { id: 1, name: 'file.pdf' };
                     return (
-                        <MyStateContext.Provider value={{ onClick: () => {} }}>
+                        <AttachmentContext.Provider value={attachment}>
                             {children}
-                        </MyStateContext.Provider>
+                        </AttachmentContext.Provider>
                     );
                 }
-            `,
-      errors: [
-        {
-          messageId: "stateContextHasFunction",
-          data: {
-            contextName: "MyStateContext.Provider",
-            properties: "onClick"
-          }
-        }
-      ]
+            `
     },
     {
-      // Invalid: Actions context contains a non-function value
+      // Valid: Generic context with only data (object with multiple data props)
       code: `
-                function MyContextProvider({children}) {
-                    const isLoading = true;
-                    const actionsContextValue = { isLoading };
+                function CurrentUserPersonalDetailsProvider({children}) {
+                    const userPersonalDetails = { name: 'John', email: 'john@example.com' };
                     return (
-                        <MyActionsContext.Provider value={actionsContextValue}>
+                        <CurrentUserPersonalDetailsContext.Provider value={userPersonalDetails}>
                             {children}
-                        </MyActionsContext.Provider>
+                        </CurrentUserPersonalDetailsContext.Provider>
                     );
                 }
-            `,
-      errors: [
-        {
-          messageId: "actionsContextHasNonFunction",
-          data: {
-            contextName: "MyActionsContext.Provider",
-            properties: "isLoading"
-          }
-        }
-      ]
+            `
     },
     {
-      // Invalid: Actions context with inline non-function value
-      code: `
-                function MyContextProvider({children}) {
-                    return (
-                        <MyActionsContext.Provider value={{ count: 5 }}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `,
-      errors: [
-        {
-          messageId: "actionsContextHasNonFunction",
-          data: {
-            contextName: "MyActionsContext.Provider",
-            properties: "count"
-          }
-        }
-      ]
-    },
-    {
-      // Invalid: State context with multiple functions
+      // Valid: Generic context with only functions
       code: `
                 function MyContextProvider({children}) {
                     const handleClick = () => {};
                     const onSubmit = () => {};
-                    const stateContextValue = { handleClick, onSubmit };
+                    const value = { handleClick, onSubmit };
                     return (
-                        <MyStateContext.Provider value={stateContextValue}>
+                        <MyContext.Provider value={value}>
                             {children}
-                        </MyStateContext.Provider>
+                        </MyContext.Provider>
                     );
                 }
-            `,
-      errors: [
-        {
-          messageId: "stateContextHasFunction",
-          data: {
-            contextName: "MyStateContext.Provider",
-            properties: "handleClick, onSubmit"
-          }
-        }
-      ]
-    },
-    {
-      // Invalid: Actions context with multiple non-function values
-      code: `
-                function MyContextProvider({children}) {
-                    const count = 5;
-                    const name = 'test';
-                    const actionsContextValue = { count, name };
-                    return (
-                        <MyActionsContext.Provider value={actionsContextValue}>
-                            {children}
-                        </MyActionsContext.Provider>
-                    );
-                }
-            `,
-      errors: [
-        {
-          messageId: "actionsContextHasNonFunction",
-          data: {
-            contextName: "MyActionsContext.Provider",
-            properties: "count, name"
-          }
-        }
-      ]
-    },
+            `
+    }
+  ],
+  invalid: [
     {
       // Invalid: Mixed content in State context (function among data)
       code: `
@@ -317,10 +222,9 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "stateContextHasFunction",
+          messageId: "contextMixesDataAndFunctions",
           data: {
-            contextName: "MyStateContext.Provider",
-            properties: "handleClick"
+            contextName: "MyStateContext.Provider"
           }
         }
       ]
@@ -341,60 +245,15 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "actionsContextHasNonFunction",
+          messageId: "contextMixesDataAndFunctions",
           data: {
-            contextName: "MyActionsContext.Provider",
-            properties: "count"
+            contextName: "MyActionsContext.Provider"
           }
         }
       ]
     },
     {
-      // Invalid: Generic context with only data → suggest rename to *StateContext
-      code: `
-                function CurrentUserPersonalDetailsProvider({children}) {
-                    const userPersonalDetails = { name: 'John', email: 'john@example.com' };
-                    return (
-                        <CurrentUserPersonalDetailsContext.Provider value={userPersonalDetails}>
-                            {children}
-                        </CurrentUserPersonalDetailsContext.Provider>
-                    );
-                }
-            `,
-      errors: [
-        {
-          messageId: "contextRenameToState",
-          data: {
-            contextName: "CurrentUserPersonalDetailsContext.Provider"
-          }
-        }
-      ]
-    },
-    {
-      // Invalid: Generic context with only functions → suggest rename to *ActionsContext
-      code: `
-                function MyContextProvider({children}) {
-                    const handleClick = () => {};
-                    const onSubmit = () => {};
-                    const value = { handleClick, onSubmit };
-                    return (
-                        <MyContext.Provider value={value}>
-                            {children}
-                        </MyContext.Provider>
-                    );
-                }
-            `,
-      errors: [
-        {
-          messageId: "contextRenameToActions",
-          data: {
-            contextName: "MyContext.Provider"
-          }
-        }
-      ]
-    },
-    {
-      // Invalid: Generic context (mixed data and functions) must be split
+      // Invalid: Generic context (mixed data and functions)
       code: `
                 function MyContextProvider({children}) {
                     const value = { data: 'test', handler: () => {} };
@@ -407,7 +266,7 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "contextMustBeSplit",
+          messageId: "contextMixesDataAndFunctions",
           data: {
             contextName: "MyContext.Provider"
           }
@@ -415,7 +274,7 @@ ruleTester.run("context-provider-split-values", rule, {
       ]
     },
     {
-      // Invalid: SearchContext (not split into State/Actions)
+      // Invalid: SearchContext (mixed data and functions)
       code: `
                 function SearchContextProvider({children}) {
                     const searchContext = { query: '', setQuery: () => {} };
@@ -428,7 +287,7 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "contextMustBeSplit",
+          messageId: "contextMixesDataAndFunctions",
           data: {
             contextName: "SearchContext.Provider"
           }
@@ -436,7 +295,7 @@ ruleTester.run("context-provider-split-values", rule, {
       ]
     },
     {
-      // Invalid: ThemeContext (generic context without State/Actions naming)
+      // Invalid: ThemeContext (mixed data and functions)
       code: `
                 function ThemeProvider({children}) {
                     return (
@@ -448,7 +307,7 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "contextMustBeSplit",
+          messageId: "contextMixesDataAndFunctions",
           data: {
             contextName: "ThemeContext.Provider"
           }
@@ -456,7 +315,7 @@ ruleTester.run("context-provider-split-values", rule, {
       ]
     },
     {
-      // Invalid: State context with spread that includes functions
+      // Invalid: State context with spread that includes functions (mixed)
       code: `
                 function MyContextProvider({children}) {
                     const actionsContextValue = {
@@ -474,16 +333,15 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "stateContextHasFunction",
+          messageId: "contextMixesDataAndFunctions",
           data: {
-            contextName: "MyStateContext.Provider",
-            properties: "openSearchRouter, closeSearchRouter"
+            contextName: "MyStateContext.Provider"
           }
         }
       ]
     },
     {
-      // Invalid: Actions context with spread that includes non-functions
+      // Invalid: Actions context with spread that includes non-functions (mixed)
       code: `
                 function MyContextProvider({children}) {
                     const stateContextValue = { isLoading: true, count: 5 };
@@ -498,10 +356,9 @@ ruleTester.run("context-provider-split-values", rule, {
             `,
       errors: [
         {
-          messageId: "actionsContextHasNonFunction",
+          messageId: "contextMixesDataAndFunctions",
           data: {
-            contextName: "MyActionsContext.Provider",
-            properties: "isLoading, count"
+            contextName: "MyActionsContext.Provider"
           }
         }
       ]

@@ -28,18 +28,13 @@ const meta = {
   type: "suggestion",
   docs: {
     description:
-      "Enforce separation of state and actions in React Context Providers. " +
-      "All contexts must be named *StateContext or *ActionsContext. " +
-      "State contexts should only contain data, Actions contexts should only contain functions.",
+      "Enforce that React Context Providers do not mix data (state) and functions (actions) in the same context value. " +
+      "Use separate context providers when you have both.",
     recommended: "error"
   },
   schema: [],
   messages: {
-    stateContextHasFunction: CONST.MESSAGE.STATE_CONTEXT_HAS_FUNCTION,
-    actionsContextHasNonFunction: CONST.MESSAGE.ACTIONS_CONTEXT_HAS_NON_FUNCTION,
-    contextMustBeSplit: CONST.MESSAGE.CONTEXT_MUST_BE_SPLIT,
-    contextRenameToState: CONST.MESSAGE.CONTEXT_RENAME_TO_STATE,
-    contextRenameToActions: CONST.MESSAGE.CONTEXT_RENAME_TO_ACTIONS
+    contextMixesDataAndFunctions: CONST.MESSAGE.CONTEXT_MIXES_DATA_AND_FUNCTIONS
   }
 };
 
@@ -149,33 +144,6 @@ function getJSXElementName(node) {
 }
 
 /**
- * Check if a JSX element is a Context Provider with "State" in the name
- * @param {Node} node - JSX opening element node
- * @returns {boolean}
- */
-function isStateContextProvider(node) {
-  const elementName = getJSXElementName(node);
-  return (
-    elementName && elementName.includes("State") && elementName.includes("Context") && elementName.includes("Provider")
-  );
-}
-
-/**
- * Check if a JSX element is a Context Provider with "Actions" in the name
- * @param {Node} node - JSX opening element node
- * @returns {boolean}
- */
-function isActionsContextProvider(node) {
-  const elementName = getJSXElementName(node);
-  return (
-    elementName &&
-    elementName.includes("Actions") &&
-    elementName.includes("Context") &&
-    elementName.includes("Provider")
-  );
-}
-
-/**
  * Check if a JSX element is any Context Provider (ends with Context.Provider)
  * @param {Node} node - JSX opening element node
  * @returns {boolean}
@@ -183,15 +151,6 @@ function isActionsContextProvider(node) {
 function isAnyContextProvider(node) {
   const elementName = getJSXElementName(node);
   return elementName && elementName.includes("Context") && elementName.endsWith(".Provider");
-}
-
-/**
- * Check if a JSX element is a generic Context Provider (not State or Actions)
- * @param {Node} node - JSX opening element node
- * @returns {boolean}
- */
-function isGenericContextProvider(node) {
-  return isAnyContextProvider(node) && !isStateContextProvider(node) && !isActionsContextProvider(node);
 }
 
 /**
@@ -462,116 +421,40 @@ function analyzeObjectProperties(objectNode, context, visited = new Set()) {
 function create(context) {
   return {
     JSXOpeningElement(node) {
-      const elementName = getJSXElementName(node);
+      // Only enforce: do not mix data and functions in the same context value.
+      // No naming convention is enforced.
+      if (!isAnyContextProvider(node)) {
+        return;
+      }
 
-      // Check if this is a generic context provider (not State or Actions)
-      // Analyze the value: only data → suggest *StateContext; only functions → suggest *ActionsContext; mixed → must split
-      if (isGenericContextProvider(node)) {
-        const valueProp = getValueProp(node.attributes);
-        let messageId = "contextMustBeSplit";
+      const valueProp = getValueProp(node.attributes);
+      if (!valueProp) {
+        return;
+      }
 
-        if (valueProp) {
-          let objectToAnalyze = valueProp;
-          if (valueProp.type === "Identifier") {
-            const declaration = findVariableDeclaration(context, node, valueProp.name);
-            if (declaration) {
-              objectToAnalyze = declaration;
-            }
-          }
-
-          if (objectToAnalyze.type === "ObjectExpression") {
-            const analysis = analyzeObjectProperties(objectToAnalyze, context);
-            const onlyData = analysis.hasNonFunctions && !analysis.hasFunctions;
-            const onlyFunctions = analysis.hasFunctions && !analysis.hasNonFunctions;
-            if (onlyData) {
-              messageId = "contextRenameToState";
-            } else if (onlyFunctions) {
-              messageId = "contextRenameToActions";
-            }
-          } else {
-            // Single value (literal, identifier to non-object, etc.) is treated as data
-            messageId = "contextRenameToState";
-          }
+      let objectToAnalyze = valueProp;
+      if (valueProp.type === "Identifier") {
+        const declaration = findVariableDeclaration(context, node, valueProp.name);
+        if (declaration) {
+          objectToAnalyze = declaration;
         }
+      }
 
+      if (objectToAnalyze.type !== "ObjectExpression") {
+        return; // Single value (no object) cannot "mix" - allow
+      }
+
+      const analysis = analyzeObjectProperties(objectToAnalyze, context);
+      const mixed = analysis.hasFunctions && analysis.hasNonFunctions;
+
+      if (mixed) {
         context.report({
           node,
-          messageId,
+          messageId: "contextMixesDataAndFunctions",
           data: {
-            contextName: elementName
+            contextName: getJSXElementName(node)
           }
         });
-        return; // No need to check further for generic contexts
-      }
-
-      // Check if this is a State context provider
-      if (isStateContextProvider(node)) {
-        const valueProp = getValueProp(node.attributes);
-
-        if (!valueProp) {
-          return;
-        }
-
-        let objectToAnalyze = valueProp;
-
-        // If value is an identifier, try to find its declaration
-        if (valueProp.type === "Identifier") {
-          const declaration = findVariableDeclaration(context, node, valueProp.name);
-          if (declaration) {
-            objectToAnalyze = declaration;
-          }
-        }
-
-        // Analyze the object properties
-        if (objectToAnalyze.type === "ObjectExpression") {
-          const analysis = analyzeObjectProperties(objectToAnalyze, context);
-
-          if (analysis.hasFunctions && analysis.functionProps.length > 0) {
-            context.report({
-              node,
-              messageId: "stateContextHasFunction",
-              data: {
-                contextName: elementName,
-                properties: analysis.functionProps.join(", ")
-              }
-            });
-          }
-        }
-      }
-
-      // Check if this is an Actions context provider
-      if (isActionsContextProvider(node)) {
-        const valueProp = getValueProp(node.attributes);
-
-        if (!valueProp) {
-          return;
-        }
-
-        let objectToAnalyze = valueProp;
-
-        // If value is an identifier, try to find its declaration
-        if (valueProp.type === "Identifier") {
-          const declaration = findVariableDeclaration(context, node, valueProp.name);
-          if (declaration) {
-            objectToAnalyze = declaration;
-          }
-        }
-
-        // Analyze the object properties
-        if (objectToAnalyze.type === "ObjectExpression") {
-          const analysis = analyzeObjectProperties(objectToAnalyze, context);
-
-          if (analysis.hasNonFunctions && analysis.nonFunctionProps.length > 0) {
-            context.report({
-              node,
-              messageId: "actionsContextHasNonFunction",
-              data: {
-                contextName: elementName,
-                properties: analysis.nonFunctionProps.join(", ")
-              }
-            });
-          }
-        }
       }
     }
   };
