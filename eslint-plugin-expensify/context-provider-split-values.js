@@ -94,6 +94,20 @@ function isDataValue(node) {
   return false;
 }
 
+// Function-like identifier names (setters, handlers, etc.) - used for naming fallback
+// eslint-disable-next-line max-len -- long regex for function-like identifier names
+const FUNCTION_NAME_PATTERNS =
+  /^(on|handle|set|get|is|has|can|should|do|create|update|delete|fetch|load|save|remove|add|toggle|clear|reset|submit|validate|format|parse|convert|transform|dispatch|register|unregister|open|close)/i;
+
+/**
+ * Check if a name looks like a function (setter, handler, etc.) based on naming convention.
+ * @param {string} name - Identifier or property name
+ * @returns {boolean}
+ */
+function looksLikeFunctionName(name) {
+  return typeof name === "string" && FUNCTION_NAME_PATTERNS.test(name);
+}
+
 /**
  * Get the full name of a JSX element
  * @param {Node} node - JSX opening element node
@@ -202,6 +216,80 @@ function getValueProp(attributes) {
 }
 
 /**
+ * Get the init node from a variable definition, including when the variable
+ * comes from array or object destructuring (e.g. const [a, b] = useState()).
+ * @param {Object} def - Variable definition from scope
+ * @returns {Node|null}
+ */
+function getInitFromVariableDef(def) {
+  if (!def || !def.node) {
+    return null;
+  }
+  if (def.node.init) {
+    return def.node.init;
+  }
+  // Destructuring: def.node is the pattern element (e.g. Identifier in array).
+  // Walk up to the VariableDeclarator and use its init.
+  let node = def.node;
+  while (node && node.type !== "VariableDeclarator") {
+    node = node.parent;
+  }
+  return node && node.init ? node.init : null;
+}
+
+/**
+ * Check if a CallExpression is useState (useState or React.useState).
+ * @param {Node} node - CallExpression node
+ * @returns {boolean}
+ */
+function isUseStateCall(node) {
+  if (!node || node.type !== "CallExpression") {
+    return false;
+  }
+  const callee = node.callee;
+  if (callee.type === "Identifier" && callee.name === "useState") {
+    return true;
+  }
+  if (
+    callee.type === "MemberExpression" &&
+    callee.property &&
+    callee.property.type === "Identifier" &&
+    callee.property.name === "useState"
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Check if the given variable (from scope) is the setter from useState,
+ * i.e. the second element of [state, setState] = useState().
+ * @param {Object} variable - ESLint scope variable
+ * @returns {boolean}
+ */
+function isUseStateSetterVariable(variable) {
+  if (!variable || !variable.defs || variable.defs.length === 0) {
+    return false;
+  }
+  const def = variable.defs[0];
+  const init = getInitFromVariableDef(def);
+  if (!init || !isUseStateCall(init)) {
+    return false;
+  }
+  // Variable must be from array destructuring at index 1
+  let patternNode = def.node;
+  while (patternNode && patternNode.type !== "ArrayPattern") {
+    patternNode = patternNode.parent;
+  }
+  if (!patternNode || patternNode.type !== "ArrayPattern") {
+    return false;
+  }
+  const elements = patternNode.elements;
+  const index = elements.indexOf(def.node);
+  return index === 1;
+}
+
+/**
  * Find the variable declaration for an identifier in the current scope
  * @param {Object} context - ESLint rule context
  * @param {Node} node - Current AST node for scope resolution
@@ -217,10 +305,34 @@ function findVariableDeclaration(context, node, identifierName) {
   while (currentScope) {
     for (const variable of currentScope.variables) {
       if (variable.name === identifierName) {
-        const def = variable.defs[0];
-        if (def && def.node && def.node.init) {
-          return def.node.init;
+        const init = getInitFromVariableDef(variable.defs[0]);
+        if (init) {
+          return init;
         }
+      }
+    }
+    currentScope = currentScope.upper;
+  }
+
+  return null;
+}
+
+/**
+ * Get the scope variable for an identifier (for useState setter check).
+ * @param {Object} context - ESLint rule context
+ * @param {Node} node - Current AST node for scope resolution
+ * @param {string} identifierName - Name of the identifier to find
+ * @returns {Object|null} - Scope variable or null
+ */
+function findScopeVariable(context, node, identifierName) {
+  const sourceCode = context.sourceCode || context.getSourceCode();
+  const scope = sourceCode.getScope(node);
+  let currentScope = scope;
+
+  while (currentScope) {
+    for (const variable of currentScope.variables) {
+      if (variable.name === identifierName) {
+        return variable;
       }
     }
     currentScope = currentScope.upper;
@@ -287,10 +399,12 @@ function analyzeObjectProperties(objectNode, context, visited = new Set()) {
     let valueNode = prop.value;
 
     // Handle shorthand properties: { foo } means { foo: foo }
+    // Only substitute the declaration when we can classify it directly (function or data).
+    // Do not substitute when declaration is useState() CallExpression - we need the Identifier
+    // to resolve the scope variable and detect useState setter (second array element).
     if (prop.shorthand && prop.key && prop.key.type === "Identifier") {
-      // Try to find the variable declaration
       const declaration = findVariableDeclaration(context, objectNode, prop.key.name);
-      if (declaration) {
+      if (declaration && (isFunctionValue(declaration) || isDataValue(declaration))) {
         valueNode = declaration;
       }
     }
@@ -300,8 +414,14 @@ function analyzeObjectProperties(objectNode, context, visited = new Set()) {
       result.functionProps.push(propName);
     } else if (valueNode && valueNode.type === "Identifier") {
       // For identifiers, try to resolve them
+      const scopeVariable = findScopeVariable(context, objectNode, valueNode.name);
       const declaration = findVariableDeclaration(context, objectNode, valueNode.name);
-      if (declaration && isFunctionValue(declaration)) {
+
+      if (scopeVariable && isUseStateSetterVariable(scopeVariable)) {
+        // React useState setter (e.g. setSplashScreenState from [state, setSplashScreenState] = useState())
+        result.hasFunctions = true;
+        result.functionProps.push(propName);
+      } else if (declaration && isFunctionValue(declaration)) {
         result.hasFunctions = true;
         result.functionProps.push(propName);
       } else if (declaration && isDataValue(declaration)) {
@@ -309,18 +429,24 @@ function analyzeObjectProperties(objectNode, context, visited = new Set()) {
         result.nonFunctionProps.push(propName);
       } else {
         // Can't determine, assume based on naming convention
-        // Functions typically start with verbs or common patterns
-        const valueName = valueNode.name;
-        // eslint-disable-next-line max-len -- long regex for function-like identifier names
-        const functionPatterns =
-          /^(on|handle|set|get|is|has|can|should|do|create|update|delete|fetch|load|save|remove|add|toggle|clear|reset|submit|validate|format|parse|convert|transform|dispatch|register|unregister|open|close)/i;
-        if (functionPatterns.test(valueName)) {
+        if (looksLikeFunctionName(valueNode.name)) {
           result.hasFunctions = true;
           result.functionProps.push(propName);
         } else {
           result.hasNonFunctions = true;
           result.nonFunctionProps.push(propName);
         }
+      }
+    } else if (valueNode && valueNode.type === "MemberExpression") {
+      // e.g. setSplashScreenState: ref.current.setSplashScreenState or stateSetters.setSplashScreenState
+      const propIdentifier =
+        valueNode.property && valueNode.property.type === "Identifier" ? valueNode.property.name : null;
+      if (propIdentifier && looksLikeFunctionName(propIdentifier)) {
+        result.hasFunctions = true;
+        result.functionProps.push(propName);
+      } else {
+        result.hasNonFunctions = true;
+        result.nonFunctionProps.push(propName);
       }
     } else if (valueNode) {
       result.hasNonFunctions = true;

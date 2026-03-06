@@ -117,6 +117,51 @@ ruleTester.run("context-provider-split-values", rule, {
                     );
                 }
             `
+    },
+    {
+      // Valid: Actions context with useState setter (setSplashScreenState from [state, setState] = useState())
+      code: `
+                function SplashScreenContextProvider({children}) {
+                    const [splashScreenState, setSplashScreenState] = useState(initialState);
+                    const stateValue = { splashScreenState };
+                    const actionsValue = { setSplashScreenState };
+                    return (
+                        <SplashScreenStateContext.Provider value={stateValue}>
+                            <SplashScreenActionsContext.Provider value={actionsValue}>
+                                {children}
+                            </SplashScreenActionsContext.Provider>
+                        </SplashScreenStateContext.Provider>
+                    );
+                }
+            `
+    },
+    {
+      // Valid: Actions context with React.useState setter
+      code: `
+                function MyContextProvider({children}) {
+                    const [count, setCount] = React.useState(0);
+                    const actionsValue = { setCount };
+                    return (
+                        <MyActionsContext.Provider value={actionsValue}>
+                            {children}
+                        </MyActionsContext.Provider>
+                    );
+                }
+            `
+    },
+    {
+      // Valid: Actions context with MemberExpression (setter from object) - property name looks like function
+      code: `
+                function MyContextProvider({children}) {
+                    const setters = { setSplashScreenState: () => {} };
+                    const actionsValue = { setSplashScreenState: setters.setSplashScreenState };
+                    return (
+                        <MyActionsContext.Provider value={actionsValue}>
+                            {children}
+                        </MyActionsContext.Provider>
+                    );
+                }
+            `
     }
   ],
   invalid: [
