@@ -36,6 +36,10 @@ const config = defineConfig([
     expensify,
     unicorn,
     {
+        linterOptions: {
+            reportUnusedDisableDirectives: 'error',
+        },
+
         plugins: {
             expensify: expensifyPlugin,
         },
