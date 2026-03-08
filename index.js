@@ -1,5 +1,4 @@
 import {defineConfig} from 'eslint/config';
-import eslintPluginLwc from '@lwc/eslint-plugin-lwc';
 import expensifyPlugin from './eslint-plugin-expensify/index.js';
 import globals from 'globals';
 import babelParser from '@babel/eslint-parser';
@@ -38,7 +37,6 @@ const config = defineConfig([
     unicorn,
     {
         plugins: {
-            '@lwc/lwc': eslintPluginLwc,
             expensify: expensifyPlugin,
         },
 

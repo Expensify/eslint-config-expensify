@@ -19,9 +19,6 @@ const config = defineConfig([{
             requireForBlockBody: true,
         }],
 
-        // Do not allow the use of async/await
-        '@lwc/lwc/no-async-await': 'error',
-
         // Use of `this` outside class methods can lead to crashes on minified code
         'no-invalid-this': 'error',
 
@@ -39,14 +36,6 @@ const config = defineConfig([{
             {
                 selector: 'WithStatement',
                 message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
-            },
-            {
-                selector: 'LogicalExpression[operator="??"]',
-                message: 'Nullish coalescing operator (??) is not allowed yet.',
-            },
-            {
-                selector: 'ChainExpression',
-                message: 'Optional chaining (?.) is not allowed yet.',
             },
         ],
     },
