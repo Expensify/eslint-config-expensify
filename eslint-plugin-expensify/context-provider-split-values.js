@@ -189,8 +189,13 @@ function isContextProvider(node, ruleContext) {
     }
 
     // React 19 shorthand: <Ctx value={...}> without .Provider
+    // Skip intrinsic/HTML elements (lowercase names) — they can never be context providers.
     if (node.name && node.name.type === 'JSXIdentifier') {
-        const init = findVariableInit(ruleContext, node, node.name.name);
+        const identName = node.name.name;
+        if (identName[0] && identName[0] === identName[0].toLowerCase()) {
+            return false;
+        }
+        const init = findVariableInit(ruleContext, node, identName);
         if (init && isCreateContextCall(init)) {
             return true;
         }
@@ -531,12 +536,12 @@ function analyzeObjectProperties(objectNode, context, scopeNode, visited) {
 function create(context) {
     return {
         JSXOpeningElement(node) {
-            if (!isContextProvider(node, context)) {
+            const valueProp = getValueProp(node.attributes);
+            if (!valueProp) {
                 return;
             }
 
-            const valueProp = getValueProp(node.attributes);
-            if (!valueProp) {
+            if (!isContextProvider(node, context)) {
                 return;
             }
 
