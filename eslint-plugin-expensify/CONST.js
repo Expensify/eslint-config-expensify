@@ -40,6 +40,7 @@ const CONST = {
             'Avoid calling a function directly in the useState initializer. Use an initializer function instead (a callback).',
         NO_OBJECT_KEYS_INCLUDES: 'Avoid Object.keys({{object}}).includes({{key}}) for O(n) complexity. Use {{key}} in {{object}} or !!{{object}}[{{key}}] for O(1) complexity.',
         PREFER_NARROW_HOOK_DEPENDENCIES: 'Dependency "{{dependency}}" is too broad. Use specific properties instead: {{properties}}',
+        CONTEXT_MIXES_DATA_AND_FUNCTIONS: 'Context `{{contextName}}` mixes data ({{nonFunctionProps}}) and functions ({{functionProps}}). Use separate context providers for state (data) and actions (functions).',
     },
 };
 
