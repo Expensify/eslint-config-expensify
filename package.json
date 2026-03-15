@@ -13,9 +13,6 @@
     "postinstall": "patch-package"
   },
   "type": "module",
-  "engines": {
-    "node": ">=20.19.0"
-  },
   "dependencies": {
     "@babel/core": "^8.0.0-rc.2",
     "@babel/eslint-parser": "^8.0.0-rc.2",

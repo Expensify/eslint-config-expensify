@@ -25,9 +25,13 @@ const config = defineConfig([
             'import/extensions': ['error', 'ignorePackages', {
                 js: 'always',
             }],
+            // Disabled when linting this repo only; import style here is acceptable.
             'expensify/prefer-import-module-contents': 'off',
 
-            // Workaround: ESLint 10 compatibility with some rules/plugins
+            // ESLint 10 compatibility: indent and import/order throw at runtime with current
+            // parser/plugin versions (e.g. indent "reading 'range' of undefined",
+            // import/order "getTokenOrCommentBefore is not a function"). Re-enable when
+            // upstream fixes land.
             indent: 'off',
             'import/order': 'off',
         },
