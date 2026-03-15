@@ -19,7 +19,7 @@ function create(context) {
             actionsNamespaces.push(_.last(pathName.split('/')));
         },
         MemberExpression(node) {
-            if (!isReactViewFile(context.getFilename())) {
+            if (!isReactViewFile(context.filename)) {
                 return;
             }
 

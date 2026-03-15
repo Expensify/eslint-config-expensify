@@ -6,11 +6,11 @@ const message = CONST.MESSAGE.NO_API_IN_VIEWS;
 function create(context) {
     return {
         Identifier(node) {
-            if (isInActionFile(context.getFilename())) {
+            if (isInActionFile(context.filename)) {
                 return;
             }
 
-            if (isInTestFile(context.getFilename())) {
+            if (isInTestFile(context.filename)) {
                 return;
             }
 

@@ -35,7 +35,7 @@ function isDateUtilsUsedAsProperty(node) {
 function create(context) {
     return {
         ObjectExpression: (node) => {
-            if (!isInActionFile(context.getFilename())) {
+            if (!isInActionFile(context.filename)) {
                 return;
             }
 

@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import {AST_NODE_TYPES} from '@typescript-eslint/utils';
 import CONST from './CONST.js';
 import {addNamedImport} from './utils/imports.js';
@@ -36,19 +35,19 @@ function create(context) {
             }
 
             // Ensure that objectType is of TSTypeQuery type
-            if (objectType?.type !== AST_NODE_TYPES.TSTypeQuery) {
+            if (objectType.type !== AST_NODE_TYPES.TSTypeQuery) {
                 return;
             }
 
             // Case for when the object type is a plain identifier (COLORS)
-            if (objectType?.exprName?.type === AST_NODE_TYPES.Identifier) {
-                const objectTypeText = context.getSourceCode().getText(objectType.exprName);
+            if (objectType.exprName && objectType.exprName.type === AST_NODE_TYPES.Identifier) {
+                const objectTypeText = context.sourceCode.getText(objectType.exprName);
 
                 // Ensure that indexType is keyed by type 'keyof' ((typeof COLORS)[keyof COLORS])
-                if (indexType?.type === AST_NODE_TYPES.TSTypeOperator && indexType?.operator === 'keyof') {
+                if (indexType.type === AST_NODE_TYPES.TSTypeOperator && indexType.operator === 'keyof') {
                     // Ensure that the object type is the same as the index type and both exist
 
-                    const indexTypeText = context.getSourceCode().getText(indexType.typeAnnotation.typeName);
+                    const indexTypeText = context.sourceCode.getText(indexType.typeAnnotation.typeName);
                     if (objectTypeText && objectTypeText === indexTypeText) {
                         context.report({
                             node,
@@ -63,7 +62,7 @@ function create(context) {
                 }
 
                 // Ensure that indexType is keyed by type 'number' ((typeof STUFF)[number])
-                if (indexType?.type === AST_NODE_TYPES.TSNumberKeyword) {
+                if (indexType.type === AST_NODE_TYPES.TSNumberKeyword) {
                     context.report({
                         node,
                         message: PREFER_TYPE_FEST_TUPLE_TO_UNION,
@@ -77,12 +76,12 @@ function create(context) {
             }
 
             // Case for when the object type is a nested object (CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)
-            if (objectType?.exprName?.type === AST_NODE_TYPES.TSQualifiedName) {
-                const objectTypeText = context.getSourceCode().getText(objectType.exprName);
+            if (objectType.exprName && objectType.exprName.type === AST_NODE_TYPES.TSQualifiedName) {
+                const objectTypeText = context.sourceCode.getText(objectType.exprName);
 
                 // Ensure that indexType is keyed by type 'keyof' ((typeof CONST.VIDEO_PLAYER)[keyof CONST.VIDEO_PLAYER])
-                if (indexType?.type === AST_NODE_TYPES.TSTypeOperator && indexType?.operator === 'keyof') {
-                    const indexTypeText = context.getSourceCode().getText(indexType.typeAnnotation.exprName);
+                if (indexType.type === AST_NODE_TYPES.TSTypeOperator && indexType.operator === 'keyof') {
+                    const indexTypeText = context.sourceCode.getText(indexType.typeAnnotation.exprName);
 
                     if (objectTypeText && objectTypeText === indexTypeText) {
                         context.report({
@@ -98,7 +97,7 @@ function create(context) {
                 }
 
                 // Ensure that indexType is keyed by type 'number' ((typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number])
-                if (indexType?.type === AST_NODE_TYPES.TSNumberKeyword) {
+                if (indexType.type === AST_NODE_TYPES.TSNumberKeyword) {
                     context.report({
                         node,
                         message: PREFER_TYPE_FEST_TUPLE_TO_UNION,

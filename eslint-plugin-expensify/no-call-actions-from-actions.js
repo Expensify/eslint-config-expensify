@@ -18,11 +18,11 @@ function create(context) {
     }
 
     function checkFunctionBody(node) {
-        if (!isInActionFile(context.getFilename())) {
+        if (!isInActionFile(context.filename)) {
             return;
         }
 
-        const tokens = context.getSourceCode().getTokens(node);
+        const tokens = context.sourceCode.getTokens(node);
 
         if (hasAPICall(tokens) && hasActionCall(tokens)) {
             context.report({

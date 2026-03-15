@@ -15,13 +15,13 @@ function isInLibs(filename) {
 function create(context) {
     return {
         MemberExpression(node) {
-            const filename = context.getFilename();
+            const filename = context.filename;
 
             if (!isOnyxMethodCall(node)) {
                 return;
             }
 
-            if (isInTestFile(context.getFilename())) {
+            if (isInTestFile(context.filename)) {
                 return;
             }
 

@@ -19,13 +19,6 @@ const config = defineConfig([{
             requireForBlockBody: true,
         }],
 
-        // Do not allow the use of async/await
-        '@lwc/lwc/no-async-await': 'error',
-
-        // Do not use these features yet
-        'es/no-nullish-coalescing-operators': 'error',
-        'es/no-optional-chaining': 'error',
-
         // Use of `this` outside class methods can lead to crashes on minified code
         'no-invalid-this': 'error',
 
