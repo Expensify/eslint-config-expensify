@@ -38,6 +38,7 @@ const config = defineConfig([{
         'expensify/no-inline-useOnyx-selector': 'error',
         'expensify/no-set-or-map-return-in-useOnyx-selector': 'error',
         'expensify/prefer-narrow-hook-dependencies': 'error',
+        'expensify/context-provider-split-values': 'error',
     },
 }]);
 

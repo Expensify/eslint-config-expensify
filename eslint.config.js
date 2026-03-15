@@ -25,6 +25,7 @@ const config = defineConfig([
             'import/extensions': ['error', 'ignorePackages', {
                 js: 'always',
             }],
+
             // Disabled when linting this repo only; import style here is acceptable.
             'expensify/prefer-import-module-contents': 'off',
 

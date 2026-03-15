@@ -8,6 +8,7 @@ import * as noAccSpreadInReduce from './no-acc-spread-in-reduce.js';
 import * as noApiInViews from './no-api-in-views.js';
 import * as noApiSideEffectsMethod from './no-api-side-effects-method.js';
 import * as noBetaHandler from './no-beta-handler.js';
+import * as contextProviderSplitValues from './context-provider-split-values.js';
 import * as noCallActionsFromActions from './no-call-actions-from-actions.js';
 import * as noDeepEqualInMemo from './no-deep-equal-in-memo.js';
 import * as noDefaultIdValues from './no-default-id-values.js';
@@ -55,6 +56,7 @@ export default {
         'no-api-side-effects-method': ruleEntry(noApiSideEffectsMethod),
         'no-beta-handler': ruleEntry(noBetaHandler),
         'no-call-actions-from-actions': ruleEntry(noCallActionsFromActions),
+        'context-provider-split-values': ruleEntry(contextProviderSplitValues),
         'no-deep-equal-in-memo': ruleEntry(noDeepEqualInMemo),
         'no-default-id-values': ruleEntry(noDefaultIdValues),
         'no-default-props': ruleEntry(noDefaultProps),
