@@ -171,7 +171,7 @@ const config = defineConfig([{
 
         // Prevent usage of dangerous JSX properties
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-danger.md
-        'react/no-danger': 'warn',
+        'react/no-danger': 'error',
 
         // Prevent usage of deprecated methods
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-deprecated.md
@@ -400,9 +400,7 @@ const config = defineConfig([{
 
         // Forbids using non-exported propTypes
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/forbid-foreign-prop-types.md
-        // this is intentionally set to "warn". it would be "error",
-        // but it's only critical if you're stripping propTypes in production.
-        'react/forbid-foreign-prop-types': ['warn', {allowInPropTypes: true}],
+        'react/forbid-foreign-prop-types': ['error', {allowInPropTypes: true}],
 
         // Prevent void DOM elements from receiving children
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/void-dom-elements-no-children.md

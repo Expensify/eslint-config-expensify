@@ -4,7 +4,7 @@ const config = defineConfig([{
     rules: {
         'rulesdir/no-negated-variables': 'error',
         'rulesdir/no-api-in-views': 'error',
-        'rulesdir/no-onyx-connect': 'warn',
+        'rulesdir/no-onyx-connect': 'error',
         'rulesdir/prefer-actions-set-data': 'error',
         'rulesdir/prefer-onyx-connect-in-libs': 'error',
         'rulesdir/no-thenable-actions-in-views': 'error',
@@ -32,7 +32,7 @@ const config = defineConfig([{
                 message: 'Please use SafeAreaView from react-native-safe-area-context',
             }],
         }],
-        'rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth': 'warn',
+        'rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth': 'error',
         'rulesdir/no-use-state-initializer-functions': 'error',
         'rulesdir/no-unstable-hook-defaults': 'error',
         'rulesdir/no-inline-useOnyx-selector': 'error',

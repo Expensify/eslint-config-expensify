@@ -26,10 +26,10 @@ const config = defineConfig([{
         'no-cond-assign': ['error', 'always'],
 
         // disallow use of console
-        'no-console': 'warn',
+        'no-console': 'error',
 
         // disallow use of constant expressions in conditions
-        'no-constant-condition': 'warn',
+        'no-constant-condition': 'error',
 
         // disallow control characters in regular expressions
         'no-control-regex': 'error',

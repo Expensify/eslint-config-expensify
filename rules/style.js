@@ -60,12 +60,12 @@ const config = defineConfig([{
             allowClassStart: true,
         }],
         'no-multiple-empty-lines': ['error', {max: 1}],
-        'max-len': ['warn', {
+        'max-len': ['error', {
             code: 190,
         }],
         'new-cap': 'off',
         'no-alert': 'off',
-        'no-mixed-operators': ['warn', {
+        'no-mixed-operators': ['error', {
             groups: [
                 ['+', '-', '*', '/', '%', '**'],
                 ['&', '|', '^', '~', '<<', '>>', '>>>'],

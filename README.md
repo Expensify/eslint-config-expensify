@@ -4,6 +4,19 @@
 
 This package provides Expensify's `.eslintrc` as an extensible shared config. Most of our rules are based on [Airbnb's style guide](https://github.com/airbnb/javascript).
 
+## 3.0.0 — Breaking changes
+
+Every rule previously configured as `'warn'` is now `'error'`:
+
+- All `react-hooks/*` (e.g. `exhaustive-deps`, `preserve-manual-memoization`, `set-state-in-effect`).
+- `rulesdir/no-onyx-connect`, `rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth`.
+- `react/no-danger`, `react/forbid-foreign-prop-types`.
+- `max-len`, `no-mixed-operators`, `no-alert`, `no-console`, `no-constant-condition`, `func-names`.
+
+Rationale: warnings are indistinguishable from errors in most CI setups (`--max-warnings 0`) and actively harmful under [eslint-seatbelt](https://github.com/justjake/eslint-seatbelt), which treats `'warn'` as a no-op.
+
+Consumers must either fix the violations or adopt eslint-seatbelt to ratchet existing warnings down over time.
+
 ## How to Develop
 
 1. You only need to make a PR with the changes. There is no need to bump the version in `package.json` file in your PR. A github action will automatically bump the version and publish the package to npm after PR is merged.
