@@ -49,6 +49,24 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const NOTABLE_EXCEPTIONS = [];',
         },
+        {
+            code: 'const shouldShowNotFoundPage = true;',
+        },
+        {
+            code: 'function ReportNotFoundGuard() {}',
+        },
+        {
+            code: 'const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);',
+        },
+        {
+            code: 'const IS_NOT_FOUND = true;',
+        },
+        {
+            code: 'const isReportNotFound = () => false;',
+        },
+        {
+            code: 'const memberNotFoundMessage = "";',
+        },
     ],
     invalid: [
         {
@@ -107,6 +125,36 @@ ruleTester.run('no-negated-variables', rule, {
         },
         {
             code: 'const THIS_IS_NOT_GOOD = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const participantNotSelected = {};',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const cannotBeFlagged = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isNotFoundation = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const NOT_FOUNDATION = true;',
+            errors: [{
+                message,
+            }],
+        },
+        {
+            code: 'const isTripNotInitialized = false;',
             errors: [{
                 message,
             }],
