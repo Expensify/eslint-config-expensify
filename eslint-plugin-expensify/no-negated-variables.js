@@ -13,6 +13,13 @@ const BANNED_SUBSTRINGS = [
     'dont',
 ];
 
+// Whitelisted morphemes/domain concepts that happen to contain a banned substring.
+// Entries may be:
+//   - Single English words (e.g. "notification") — matched loosely so natural
+//     suffixes like plural "Notifications" or "Notches" still count.
+//   - camelCase compounds (e.g. "notFound") — matched only when followed by a
+//     word boundary (next char is uppercase/underscore/end), so we do not
+//     accidentally whitelist unrelated words like "Foundation".
 const NOTABLE_EXCEPTIONS = [
     'notification',
     'notify',
@@ -21,16 +28,53 @@ const NOTABLE_EXCEPTIONS = [
     'notable',
     'notion',
     'notice',
+    'notFound',
 ];
+
+/**
+ * @param {String} word
+ * @returns {String}
+ */
+function camelToUpperSnake(word) {
+    return word.replaceAll(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+}
+
+/**
+ * Build the list of regex alternatives that identify an occurrence of an
+ * exception word inside a larger identifier. Multi-word exceptions require a
+ * trailing word boundary so that they do not leak into unrelated identifiers.
+ *
+ * @param {String} word
+ * @returns {String[]}
+ */
+function buildExceptionAlternatives(word) {
+    const hasInternalCap = /[a-z][A-Z]/.test(word);
+    const upperFirst = word[0].toUpperCase() + word.slice(1);
+    const lowerFirst = word[0].toLowerCase() + word.slice(1);
+    const snake = camelToUpperSnake(word);
+
+    if (hasInternalCap) {
+        return [
+            `${upperFirst}(?=[A-Z_]|$)`,
+            `${lowerFirst}(?=[A-Z_]|$)`,
+            `_?${snake}(?=_|$)`,
+        ];
+    }
+
+    return [
+        upperFirst,
+        lowerFirst,
+        `_?${snake}_?`,
+    ];
+}
 
 /**
  * @param {String} string
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    const buzzWordMatcher = new RegExp(`[nN](?:${_.map(NOTABLE_EXCEPTIONS, word => word.slice(1)).join('|')})`);
-    const upperSnakeCaseMatcher = new RegExp(`_?${_.map(NOTABLE_EXCEPTIONS, word => word.toUpperCase()).join('|')}_?`);
-    const regex = new RegExp(`(.*)(?:${buzzWordMatcher.source}|${upperSnakeCaseMatcher.source})(.*)`, 'm');
+    const alternatives = _.flatten(_.map(NOTABLE_EXCEPTIONS, buildExceptionAlternatives));
+    const regex = new RegExp(`(.*?)(?:${alternatives.join('|')})(.*)`, 'm');
     const matches = regex.exec(string);
 
     if (!matches) {
@@ -54,7 +98,7 @@ function isFalsePositive(string) {
  */
 function isNegatedVariableName(name) {
     if (!name) {
-        return;
+        return false;
     }
 
     return _.any(BANNED_SUBSTRINGS, badSubstring => name.toLowerCase().includes(badSubstring))
