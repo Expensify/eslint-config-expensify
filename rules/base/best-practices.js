@@ -69,7 +69,7 @@ const config = defineConfig([{
 
         // disallow the use of alert, confirm, and prompt
         // https://eslint.org/docs/rules/no-alert
-        'no-alert': 'warn',
+        'no-alert': 'error',
 
         // disallow use of arguments.caller or arguments.callee
         // https://eslint.org/docs/rules/no-caller

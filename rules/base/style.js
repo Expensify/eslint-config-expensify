@@ -95,7 +95,7 @@ const config = defineConfig([{
 
         // require function expressions to have a name
         // https://eslint.org/docs/rules/func-names
-        'func-names': 'warn',
+        'func-names': 'error',
 
         // enforces use of function declarations or expressions
         // https://eslint.org/docs/rules/func-style
