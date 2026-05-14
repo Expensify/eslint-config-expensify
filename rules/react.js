@@ -497,15 +497,6 @@ const config = defineConfig([{
         // TODO: set to "static public field" once babel-preset-airbnb supports public class fields
         'react/static-property-placement': ['error', 'property assignment'],
 
-        // Disallow JSX props spreading
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-props-no-spreading.md
-        'react/jsx-props-no-spreading': ['error', {
-            html: 'enforce',
-            custom: 'enforce',
-            explicitSpread: 'ignore',
-            exceptions: [],
-        }],
-
         // Enforce that props are read-only
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-read-only-props.md
         'react/prefer-read-only-props': 'off',
