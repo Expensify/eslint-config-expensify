@@ -1,5 +1,4 @@
 import {defineConfig} from 'eslint/config';
-import eslintPluginLwc from '@lwc/eslint-plugin-lwc';
 import es from 'eslint-plugin-es';
 import rulesdir from 'eslint-plugin-rulesdir';
 import globals from 'globals';
@@ -46,7 +45,6 @@ const config = defineConfig([
         },
 
         plugins: {
-            '@lwc/lwc': eslintPluginLwc,
             es,
             rulesdir,
         },
