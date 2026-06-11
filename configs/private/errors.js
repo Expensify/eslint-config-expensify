@@ -25,8 +25,8 @@ const config = defineConfig([{
         // disallow assignment in conditional expressions
         'no-cond-assign': ['error', 'always'],
 
-        // disallow use of console
-        'no-console': 'error',
+        // disallow use of console, except for debug and error
+        'no-console': ['error', {allow: ['debug', 'error']}],
 
         // disallow use of constant expressions in conditions
         'no-constant-condition': 'error',
