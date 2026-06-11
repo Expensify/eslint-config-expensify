@@ -6,6 +6,8 @@ import node from './configs/public/node.js';
 import react from './configs/public/react.js';
 import typescript from './configs/public/typescript.js';
 import expensify from './configs/public/expensify.js';
+import formatting from './configs/public/formatting.js';
+import reactFormatting from './configs/public/react-formatting.js';
 
 const config = defineConfig([
     ...browser,
@@ -13,6 +15,8 @@ const config = defineConfig([
     ...react,
     ...typescript,
     ...expensify,
+    ...formatting,
+    ...reactFormatting,
     {
         languageOptions: {
             globals: {
