@@ -19,6 +19,11 @@ const config = defineConfig([{
         'no-redeclare': 'off',
         '@typescript-eslint/no-redeclare': 'error',
 
+        // Core no-unused-vars can report false positives on type-only imports, enums, and other
+        // TypeScript-specific constructs; the extension rule handles these correctly
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': ['error', {vars: 'all', args: 'after-used', ignoreRestSiblings: true}],
+
         '@typescript-eslint/consistent-type-imports': 'error',
         '@typescript-eslint/consistent-type-exports': 'error',
         '@typescript-eslint/no-explicit-any': 'error',
