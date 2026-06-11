@@ -14,13 +14,17 @@ const config = defineConfig([{
     settings: {
         'import/resolver': {
             node: {
-                extensions: ['.mjs', '.js', '.json'],
+                extensions: ['.mjs', '.js', '.json', '.ts', '.tsx', '.cts', '.mts'],
             },
         },
         'import/extensions': [
             '.js',
             '.mjs',
             '.jsx',
+            '.ts',
+            '.tsx',
+            '.cts',
+            '.mts',
         ],
         'import/core-modules': [
         ],
@@ -79,7 +83,9 @@ const config = defineConfig([{
                 'test.{js,jsx}', // repos with a single test file
                 'test-*.{js,jsx}', // repos with multiple top-level test files
                 '**/*{.,_}{test,spec}.{js,jsx}', // tests where the extension or filename suffix denotes that it is a test
+                '**/*{.,_}{test,spec}.{ts,tsx,cts,mts}',
                 '**/jest.config.js', // jest config
+                '**/jest.config.{ts,mts}',
                 '**/jest.setup.js', // jest setup
                 '**/vue.config.js', // vue-cli config
                 '**/webpack.config.js', // webpack config
@@ -93,6 +99,9 @@ const config = defineConfig([{
                 '**/protractor.conf.*.js', // protractor config
                 '**/karma.conf.js', // karma config
                 '**/.eslintrc.js', // eslint config
+                '**/vitest.config.{ts,mts}',
+                '**/vite.config.{ts,mts}',
+                '**/eslint.config.{mjs,mts}',
             ],
             optionalDependencies: false,
         }],
@@ -142,6 +151,10 @@ const config = defineConfig([{
             js: 'never',
             mjs: 'never',
             jsx: 'never',
+            ts: 'never',
+            tsx: 'never',
+            cts: 'never',
+            mts: 'never',
         }],
 
         // ensure absolute imports are above relative imports and that unassigned imports are ignored
