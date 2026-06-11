@@ -11,11 +11,6 @@ const config = defineConfig([{
     rules: {
         'no-console': 'off',
         'import/no-extraneous-dependencies': 'off',
-        'react-hooks/rules-of-hooks': 'off',
-        'react-hooks/exhaustive-deps': 'off',
-        'react/jsx-filename-extension': 'off',
-        'react/jsx-uses-react': 'off',
-        'react/react-in-jsx-scope': 'off',
     },
 }]);
 
