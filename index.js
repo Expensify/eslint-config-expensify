@@ -56,7 +56,7 @@ const config = defineConfig([
                 ...globals.node,
             },
             parser: babelParser,
-            ecmaVersion: 2018,
+            ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
                 requireConfigFile: false,
