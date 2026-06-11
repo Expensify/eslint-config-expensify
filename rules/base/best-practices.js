@@ -246,10 +246,6 @@ const config = defineConfig([{
         // https://eslint.org/docs/rules/no-proto
         'no-proto': 'error',
 
-        // disallow declaring the same variable more than once
-        // https://eslint.org/docs/rules/no-redeclare
-        'no-redeclare': 'error',
-
         // disallow certain object properties
         // https://eslint.org/docs/rules/no-restricted-properties
         'no-restricted-properties': ['error', {
@@ -407,6 +403,14 @@ const config = defineConfig([{
         // https://eslint.org/docs/rules/yoda
         yoda: 'error',
     },
-}]);
+}, {
+    files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+    rules: {
+        // disallow declaring the same variable more than once
+        // https://eslint.org/docs/rules/no-redeclare
+        'no-redeclare': 'error',
+    },
+},
+]);
 
 export default config;

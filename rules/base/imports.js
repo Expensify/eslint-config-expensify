@@ -37,14 +37,6 @@ const config = defineConfig([{
     rules: {
         // Static analysis:
 
-        // ensure imports point to files/modules that can be resolved
-        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-unresolved.md
-        'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
-
-        // ensure named imports coupled with named exports
-        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/named.md#when-not-to-use-it
-        'import/named': 'error',
-
         // ensure default import coupled with default export
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/default.md#when-not-to-use-it
         'import/default': 'off',
@@ -283,6 +275,17 @@ const config = defineConfig([{
         // Use this rule to prevent importing packages through relative paths.
         // https://github.com/benmosher/eslint-plugin-import/blob/1012eb951767279ce3b540a4ec4f29236104bb5b/docs/rules/no-relative-packages.md
         'import/no-relative-packages': 'error',
+    },
+}, {
+    files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+    rules: {
+        // ensure imports point to files/modules that can be resolved
+        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-unresolved.md
+        'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
+
+        // ensure named imports coupled with named exports
+        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/named.md#when-not-to-use-it
+        'import/named': 'error',
     },
 }]);
 

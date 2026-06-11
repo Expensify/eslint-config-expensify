@@ -109,6 +109,12 @@ const config = defineConfig([
             }],
         },
     },
+    {
+        files: ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts'],
+        rules: {
+            'jsdoc/no-types': 'error',
+        },
+    },
 ]);
 
 export default config;
