@@ -4,7 +4,6 @@ import babelParser from '@babel/eslint-parser';
 
 import bestPractices from '../rules/base/best-practices.js';
 import errors from '../rules/base/errors.js';
-import node from '../rules/base/node.js';
 import styleBase from '../rules/base/style.js';
 import variables from '../rules/base/variables.js';
 import es6Base from '../rules/base/es6.js';
@@ -17,7 +16,6 @@ import unicorn from '../rules/unicorn.js';
 const config = defineConfig([
     bestPractices,
     errors,
-    node,
     styleBase,
     variables,
     es6Base,

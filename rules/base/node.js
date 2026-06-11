@@ -1,13 +1,6 @@
 import {defineConfig} from 'eslint/config';
-import globals from 'globals';
 
 const config = defineConfig([{
-    languageOptions: {
-        globals: {
-            ...globals.node,
-        },
-    },
-
     rules: {
         // enforce return after a callback
         'callback-return': 'off',

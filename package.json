@@ -6,6 +6,8 @@
   "exports": {
     ".": "./index.js",
     "./base": "./configs/base.js",
+    "./browser": "./configs/browser.js",
+    "./node": "./configs/node.js",
     "./react": "./configs/react.js",
     "./typescript": "./configs/typescript.js",
     "./scripts": "./configs/scripts.js",
