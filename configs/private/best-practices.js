@@ -187,12 +187,6 @@ const config = defineConfig([{
             detectObjects: false,
         }],
 
-        // disallow use of multiple spaces
-        // https://eslint.org/docs/rules/no-multi-spaces
-        'no-multi-spaces': ['error', {
-            ignoreEOLComments: false,
-        }],
-
         // disallow use of multiline strings
         // https://eslint.org/docs/rules/no-multi-str
         'no-multi-str': 'error',
@@ -245,10 +239,6 @@ const config = defineConfig([{
         // disallow usage of __proto__ property
         // https://eslint.org/docs/rules/no-proto
         'no-proto': 'error',
-
-        // disallow declaring the same variable more than once
-        // https://eslint.org/docs/rules/no-redeclare
-        'no-redeclare': 'error',
 
         // disallow certain object properties
         // https://eslint.org/docs/rules/no-restricted-properties
@@ -407,6 +397,14 @@ const config = defineConfig([{
         // https://eslint.org/docs/rules/yoda
         yoda: 'error',
     },
-}]);
+}, {
+    files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+    rules: {
+        // disallow declaring the same variable more than once
+        // https://eslint.org/docs/rules/no-redeclare
+        'no-redeclare': 'error',
+    },
+},
+]);
 
 export default config;

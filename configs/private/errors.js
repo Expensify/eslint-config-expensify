@@ -151,7 +151,6 @@ const config = defineConfig([{
 
         // Disallow Unused Private Class Members
         // https://eslint.org/docs/rules/no-unused-private-class-members
-        // TODO: enable once eslint 7 is dropped (which is semver-major)
         'no-unused-private-class-members': 'off',
 
         // Disallow useless backreferences in regular expressions

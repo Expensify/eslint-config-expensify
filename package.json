@@ -1,8 +1,19 @@
 {
   "name": "eslint-config-expensify",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "Expensify's ESLint configuration following our style guide",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./browser": "./configs/public/browser.js",
+    "./expensify": "./configs/public/expensify.js",
+    "./formatting": "./configs/public/formatting.js",
+    "./node": "./configs/public/node.js",
+    "./react": "./configs/public/react.js",
+    "./react-formatting": "./configs/public/react-formatting.js",
+    "./scripts": "./configs/public/scripts.js",
+    "./typescript": "./configs/public/typescript.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Expensify/eslint-config-expensify.git"
@@ -28,12 +39,12 @@
     "eslint-plugin-unicorn": "^61.0.2",
     "globals": "^15.14.0",
     "lodash": "^4.17.21",
+    "typescript-eslint": "^8.61.0",
     "underscore": "^1.13.6"
   },
   "files": [
+    "configs",
     "eslint-plugin-expensify",
-    "rules",
-    "sample-props.js",
     "index.js"
   ],
   "keywords": [

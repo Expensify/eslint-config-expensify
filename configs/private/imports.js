@@ -14,13 +14,17 @@ const config = defineConfig([{
     settings: {
         'import/resolver': {
             node: {
-                extensions: ['.mjs', '.js', '.json'],
+                extensions: ['.mjs', '.js', '.json', '.ts', '.tsx', '.cts', '.mts'],
             },
         },
         'import/extensions': [
             '.js',
             '.mjs',
             '.jsx',
+            '.ts',
+            '.tsx',
+            '.cts',
+            '.mts',
         ],
         'import/core-modules': [
         ],
@@ -32,14 +36,6 @@ const config = defineConfig([{
 
     rules: {
         // Static analysis:
-
-        // ensure imports point to files/modules that can be resolved
-        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-unresolved.md
-        'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
-
-        // ensure named imports coupled with named exports
-        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/named.md#when-not-to-use-it
-        'import/named': 'error',
 
         // ensure default import coupled with default export
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/default.md#when-not-to-use-it
@@ -79,7 +75,9 @@ const config = defineConfig([{
                 'test.{js,jsx}', // repos with a single test file
                 'test-*.{js,jsx}', // repos with multiple top-level test files
                 '**/*{.,_}{test,spec}.{js,jsx}', // tests where the extension or filename suffix denotes that it is a test
+                '**/*{.,_}{test,spec}.{ts,tsx,cts,mts}',
                 '**/jest.config.js', // jest config
+                '**/jest.config.{ts,mts}',
                 '**/jest.setup.js', // jest setup
                 '**/vue.config.js', // vue-cli config
                 '**/webpack.config.js', // webpack config
@@ -93,6 +91,9 @@ const config = defineConfig([{
                 '**/protractor.conf.*.js', // protractor config
                 '**/karma.conf.js', // karma config
                 '**/.eslintrc.js', // eslint config
+                '**/vitest.config.{ts,mts}',
+                '**/vite.config.{ts,mts}',
+                '**/eslint.config.{mjs,mts}',
             ],
             optionalDependencies: false,
         }],
@@ -113,7 +114,6 @@ const config = defineConfig([{
 
         // No Node.js builtin modules
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-nodejs-modules.md
-        // TODO: enable?
         'import/no-nodejs-modules': 'off',
 
         // Style guide:
@@ -132,7 +132,6 @@ const config = defineConfig([{
         'import/no-duplicates': 'error',
 
         // disallow namespace imports
-        // TODO: enable?
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-namespace.md
         'import/no-namespace': 'off',
 
@@ -142,11 +141,14 @@ const config = defineConfig([{
             js: 'never',
             mjs: 'never',
             jsx: 'never',
+            ts: 'never',
+            tsx: 'never',
+            cts: 'never',
+            mts: 'never',
         }],
 
         // ensure absolute imports are above relative imports and that unassigned imports are ignored
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/order.md
-        // TODO: enforce a stricter convention in module import order?
         'import/order': ['error', {groups: [['builtin', 'external', 'internal']]}],
 
         // Require a newline after the last import/require in a group
@@ -212,7 +214,6 @@ const config = defineConfig([{
 
         // This rule enforces that all exports are declared at the bottom of the file.
         // https://github.com/benmosher/eslint-plugin-import/blob/98acd6afd04dcb6920b81330114e146dc8532ea4/docs/rules/exports-last.md
-        // TODO: enable?
         'import/exports-last': 'off',
 
         // Reports when named exports are not grouped together in a single export declaration
@@ -254,7 +255,6 @@ const config = defineConfig([{
 
         // Reports modules without any exports, or with unused exports
         // https://github.com/benmosher/eslint-plugin-import/blob/f63dd261809de6883b13b6b5b960e6d7f42a7813/docs/rules/no-unused-modules.md
-        // TODO: enable once it supports CJS
         'import/no-unused-modules': ['off', {
             ignoreExports: [],
             missingExports: true,
@@ -270,6 +270,17 @@ const config = defineConfig([{
         // Use this rule to prevent importing packages through relative paths.
         // https://github.com/benmosher/eslint-plugin-import/blob/1012eb951767279ce3b540a4ec4f29236104bb5b/docs/rules/no-relative-packages.md
         'import/no-relative-packages': 'error',
+    },
+}, {
+    files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+    rules: {
+        // ensure imports point to files/modules that can be resolved
+        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-unresolved.md
+        'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
+
+        // ensure named imports coupled with named exports
+        // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/named.md#when-not-to-use-it
+        'import/named': 'error',
     },
 }]);
 
