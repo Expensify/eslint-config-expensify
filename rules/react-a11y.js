@@ -126,11 +126,13 @@ const config = defineConfig([{
 
         // Enforce that a label tag has a text label and an associated control.
         // https://github.com/evcohen/eslint-plugin-jsx-a11y/blob/b800f40a2a69ad48015ae9226fbe879f946757ed/docs/rules/label-has-associated-control.md
+        // By default, this rule makes us use both "for" attributes and nest inputs inside of
+        // labels. We would rather just do either since browsers don't have a preference.
         'jsx-a11y/label-has-associated-control': ['error', {
             labelComponents: [],
             labelAttributes: [],
             controlComponents: [],
-            assert: 'both',
+            assert: 'either',
             depth: 25,
         }],
 

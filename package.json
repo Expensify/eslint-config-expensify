@@ -3,6 +3,14 @@
   "version": "3.0.3",
   "description": "Expensify's ESLint configuration following our style guide",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./base": "./configs/base.js",
+    "./react": "./configs/react.js",
+    "./typescript": "./configs/typescript.js",
+    "./scripts": "./configs/scripts.js",
+    "./expensify": "./configs/expensify.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Expensify/eslint-config-expensify.git"
@@ -32,6 +40,7 @@
     "underscore": "^1.13.6"
   },
   "files": [
+    "configs",
     "eslint-plugin-expensify",
     "rules",
     "sample-props.js",
