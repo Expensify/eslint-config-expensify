@@ -1,9 +1,0 @@
-{
-    "compilerOptions": {
-        "module": "ESNext",
-        "target": "ES2022",
-        "strict": true,
-        "noEmit": true
-    },
-    "include": ["./**/*"]
-}
