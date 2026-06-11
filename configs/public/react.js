@@ -273,9 +273,9 @@ const config = defineConfig([
             // https://github.com/yannickcr/eslint-plugin-react/blob/ac102885765be5ff37847a871f239c6703e1c7cc/docs/rules/jsx-no-target-blank.md
             'react/jsx-no-target-blank': ['error', {enforceDynamicLinks: 'always'}],
 
-            // Only .js and .tsx files may have JSX
+            // .js, .jsx, .tsx files may have JSX. Not .ts
             // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-filename-extension.md
-            'react/jsx-filename-extension': [1, {extensions: ['.js', '.tsx']}],
+            'react/jsx-filename-extension': [1, {extensions: ['.js', '.jsx', '.tsx']}],
 
             // prevent accidental JS comments from being injected into JSX as text
             // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-comment-textnodes.md
