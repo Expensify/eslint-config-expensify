@@ -1,14 +1,14 @@
 import {defineConfig} from 'eslint/config';
 import globals from 'globals';
 
-import nodeRules from '../rules/base/node.js';
+import base from '../private/base.js';
 
 const config = defineConfig([
-    ...nodeRules,
+    ...base,
     {
         languageOptions: {
             globals: {
-                ...globals.node,
+                ...globals.browser,
             },
         },
     },

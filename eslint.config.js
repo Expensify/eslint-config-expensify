@@ -1,8 +1,8 @@
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
 import indexConfig from './index.js';
-import formatting from './configs/formatting.js';
-import reactFormatting from './configs/react-formatting.js';
+import formatting from './configs/public/formatting.js';
+import reactFormatting from './configs/public/react-formatting.js';
 
 /**
  * Configuration to lint this project's own code, not for external use.

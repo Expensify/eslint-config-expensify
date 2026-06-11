@@ -1,6 +1,6 @@
 import babelParser from '@babel/eslint-parser';
-import react from '../configs/react.js';
-import reactFormatting from '../configs/react-formatting.js';
+import react from '../configs/public/react.js';
+import reactFormatting from '../configs/public/react-formatting.js';
 
 export default [
     ...react,

@@ -1,4 +1,4 @@
-import baseConfig from '../configs/base.js';
-import typescriptConfig from '../configs/typescript.js';
+import browserConfig from '../configs/public/browser.js';
+import typescriptConfig from '../configs/public/typescript.js';
 
-export default [...baseConfig, ...typescriptConfig];
+export default [...browserConfig, ...typescriptConfig];

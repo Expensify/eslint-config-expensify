@@ -5,15 +5,14 @@
   "main": "index.js",
   "exports": {
     ".": "./index.js",
-    "./base": "./configs/base.js",
-    "./browser": "./configs/browser.js",
-    "./node": "./configs/node.js",
-    "./react": "./configs/react.js",
-    "./typescript": "./configs/typescript.js",
-    "./scripts": "./configs/scripts.js",
-    "./expensify": "./configs/expensify.js",
-    "./formatting": "./configs/formatting.js",
-    "./react-formatting": "./configs/react-formatting.js"
+    "./browser": "./configs/public/browser.js",
+    "./node": "./configs/public/node.js",
+    "./react": "./configs/public/react.js",
+    "./typescript": "./configs/public/typescript.js",
+    "./scripts": "./configs/public/scripts.js",
+    "./expensify": "./configs/public/expensify.js",
+    "./formatting": "./configs/public/formatting.js",
+    "./react-formatting": "./configs/public/react-formatting.js"
   },
   "repository": {
     "type": "git",
@@ -46,7 +45,6 @@
   "files": [
     "configs",
     "eslint-plugin-expensify",
-    "rules",
     "sample-props.js",
     "index.js"
   ],

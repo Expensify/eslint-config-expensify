@@ -2,28 +2,24 @@ import {defineConfig} from 'eslint/config';
 import es from 'eslint-plugin-es';
 import babelParser from '@babel/eslint-parser';
 
-import bestPractices from '../rules/base/best-practices.js';
-import errors from '../rules/base/errors.js';
-import styleBase from '../rules/base/style.js';
-import variables from '../rules/base/variables.js';
-import es6Base from '../rules/base/es6.js';
-import imports from '../rules/base/imports.js';
-import strictBase from '../rules/base/strict.js';
-import es6 from '../rules/es6.js';
-import style from '../rules/style.js';
-import unicorn from '../rules/unicorn.js';
+import bestPractices from './best-practices.js';
+import errors from './errors.js';
+import es6 from './es6.js';
+import imports from './imports.js';
+import strict from './strict.js';
+import style from './style.js';
+import unicorn from './unicorn.js';
+import variables from './variables.js';
 
 const config = defineConfig([
-    bestPractices,
-    errors,
-    styleBase,
-    variables,
-    es6Base,
-    imports,
-    strictBase,
-    es6,
-    style,
-    unicorn,
+    ...bestPractices,
+    ...errors,
+    ...es6,
+    ...imports,
+    ...strict,
+    ...style,
+    ...unicorn,
+    ...variables,
     {
         linterOptions: {
             reportUnusedDisableDirectives: 'error',

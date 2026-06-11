@@ -1,4 +1,4 @@
-import baseConfig from '../configs/base.js';
-import scriptsConfig from '../configs/scripts.js';
+import nodeConfig from '../configs/public/node.js';
+import scriptsConfig from '../configs/public/scripts.js';
 
-export default [...baseConfig, ...scriptsConfig];
+export default [...nodeConfig, ...scriptsConfig];

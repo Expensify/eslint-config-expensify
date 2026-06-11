@@ -1,4 +1,4 @@
-import base from '../configs/base.js';
-import formatting from '../configs/formatting.js';
+import browser from '../configs/public/browser.js';
+import formatting from '../configs/public/formatting.js';
 
-export default [...base, ...formatting];
+export default [...browser, ...formatting];
