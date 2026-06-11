@@ -6,13 +6,13 @@
   "exports": {
     ".": "./index.js",
     "./browser": "./configs/public/browser.js",
-    "./node": "./configs/public/node.js",
-    "./react": "./configs/public/react.js",
-    "./typescript": "./configs/public/typescript.js",
-    "./scripts": "./configs/public/scripts.js",
     "./expensify": "./configs/public/expensify.js",
     "./formatting": "./configs/public/formatting.js",
-    "./react-formatting": "./configs/public/react-formatting.js"
+    "./node": "./configs/public/node.js",
+    "./react": "./configs/public/react.js",
+    "./react-formatting": "./configs/public/react-formatting.js",
+    "./scripts": "./configs/public/scripts.js",
+    "./typescript": "./configs/public/typescript.js"
   },
   "repository": {
     "type": "git",
