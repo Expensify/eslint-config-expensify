@@ -45,7 +45,6 @@
   "files": [
     "configs",
     "eslint-plugin-expensify",
-    "sample-props.js",
     "index.js"
   ],
   "keywords": [
