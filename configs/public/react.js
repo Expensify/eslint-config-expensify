@@ -379,11 +379,9 @@ const config = defineConfig([
             'react/jsx-fragments': ['error', 'syntax'],
 
             // Enforce state initialization style
-            // TODO: set to "never" once babel-preset-airbnb supports public class fields
             'react/state-in-constructor': ['error', 'always'],
 
             // Enforces where React component static properties should be positioned
-            // TODO: set to "static public field" once babel-preset-airbnb supports public class fields
             'react/static-property-placement': ['error', 'property assignment'],
 
             'react/prefer-read-only-props': 'off',

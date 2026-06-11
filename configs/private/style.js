@@ -7,12 +7,10 @@ const config = defineConfig([
         rules: {
             // enforce line breaks after opening and before closing array brackets
             // https://eslint.org/docs/rules/array-bracket-newline
-            // TODO: enable? semver-major
             'array-bracket-newline': ['off', 'consistent'],
 
             // enforce line breaks between array elements
             // https://eslint.org/docs/rules/array-element-newline
-            // TODO: enable? semver-major
             'array-element-newline': ['off', {multiline: true, minItems: 3}],
 
             // require camel case names — off per Expensify convention
@@ -48,7 +46,6 @@ const config = defineConfig([
 
             // enforces use of function declarations or expressions
             // https://eslint.org/docs/rules/func-style
-            // TODO: enable
             'func-style': ['off', 'expression'],
 
             // disallow specified identifiers
@@ -63,7 +60,6 @@ const config = defineConfig([
 
             // enforce position of line comments
             // https://eslint.org/docs/rules/line-comment-position
-            // TODO: enable?
             'line-comment-position': ['off', {
                 position: 'above',
                 ignorePattern: '',
@@ -109,7 +105,6 @@ const config = defineConfig([
 
             // require multiline ternary
             // https://eslint.org/docs/rules/multiline-ternary
-            // TODO: enable?
             'multiline-ternary': ['off', 'never'],
 
             // require a capital letter for constructors — off per Expensify convention
