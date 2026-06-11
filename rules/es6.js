@@ -9,11 +9,6 @@ const config = defineConfig([
             // to make use of them, and when not; see https://github.com/Expensify/Style-Guide/pull/60 for more details
             'prefer-destructuring': 'off',
 
-            // Only require parens around arrow function arguments when there is a block body
-            'arrow-parens': ['error', 'as-needed', {
-                requireForBlockBody: true,
-            }],
-
             // Use of `this` outside class methods can lead to crashes on minified code
             'no-invalid-this': 'error',
 

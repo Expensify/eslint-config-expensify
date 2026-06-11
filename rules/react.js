@@ -24,10 +24,6 @@ const config = defineConfig([{
             enforceInMethodNames: true,
         }],
 
-        // Specify whether double or single quotes should be used in JSX attributes
-        // https://eslint.org/docs/rules/jsx-quotes
-        'jsx-quotes': ['error', 'prefer-double'],
-
         'class-methods-use-this': ['error', {
             exceptMethods: [
                 'render',
@@ -69,18 +65,6 @@ const config = defineConfig([{
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-boolean-value.md
         'react/jsx-boolean-value': ['error', 'never', {always: []}],
 
-        // Validate closing bracket location in JSX
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-closing-bracket-location.md
-        'react/jsx-closing-bracket-location': ['error', 'line-aligned'],
-
-        // Validate closing tag location in JSX
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-closing-tag-location.md
-        'react/jsx-closing-tag-location': 'error',
-
-        // Enforce or disallow spaces inside of curly braces in JSX attributes
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-curly-spacing.md
-        'react/jsx-curly-spacing': ['error', 'never', {allowMultiline: true}],
-
         // Enforce event handler naming conventions in JSX
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-handler-names.md
         'react/jsx-handler-names': ['off', {
@@ -88,18 +72,10 @@ const config = defineConfig([{
             eventHandlerPropPrefix: 'on',
         }],
 
-        // Validate props indentation in JSX
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-indent-props.md
-        'react/jsx-indent-props': ['error', 4],
-
         // Validate JSX has key prop when in array or iterator
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-key.md
         // Turned off because it has too many false positives
         'react/jsx-key': 'off',
-
-        // Limit maximum of props on a single line in JSX
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-max-props-per-line.md
-        'react/jsx-max-props-per-line': ['error', {maximum: 1, when: 'multiline'}],
 
         // Prevent usage of .bind() in JSX props
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-bind.md
@@ -294,30 +270,6 @@ const config = defineConfig([{
             },
         }],
 
-        // Prevent missing parentheses around multilines JSX
-        // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/jsx-wrap-multilines.md
-        'react/jsx-wrap-multilines': ['error', {
-            declaration: 'parens-new-line',
-            assignment: 'parens-new-line',
-            return: 'parens-new-line',
-            arrow: 'parens-new-line',
-            condition: 'parens-new-line',
-            logical: 'parens-new-line',
-            prop: 'parens-new-line',
-        }],
-
-        // Require that the first prop in a JSX element be on a new line when the element is multiline
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-first-prop-new-line.md
-        'react/jsx-first-prop-new-line': ['error', 'multiline-multiprop'],
-
-        // Enforce spacing around jsx equals signs
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-equals-spacing.md
-        'react/jsx-equals-spacing': ['error', 'never'],
-
-        // Enforce JSX indentation
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-indent.md
-        'react/jsx-indent': ['error', 4],
-
         // Disallow target="_blank" on links
         // https://github.com/yannickcr/eslint-plugin-react/blob/ac102885765be5ff37847a871f239c6703e1c7cc/docs/rules/jsx-no-target-blank.md
         'react/jsx-no-target-blank': ['error', {enforceDynamicLinks: 'always'}],
@@ -374,20 +326,6 @@ const config = defineConfig([{
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-children-prop.md
         'react/no-children-prop': 'error',
 
-        // Validate whitespace in and around the JSX opening and closing brackets
-        // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/jsx-tag-spacing.md
-        'react/jsx-tag-spacing': ['error', {
-            closingSlash: 'never',
-            beforeSelfClosing: 'always',
-            afterOpening: 'never',
-            beforeClosing: 'never',
-        }],
-
-        // Enforce spaces before the closing bracket of self-closing JSX elements
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-space-before-closing.md
-        // Deprecated in favor of jsx-tag-spacing
-        'react/jsx-space-before-closing': ['off', 'always'],
-
         // Prevent usage of Array index in keys
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/no-array-index-key.md
         'react/no-array-index-key': 'error',
@@ -430,14 +368,6 @@ const config = defineConfig([{
         // https://github.com/yannickcr/eslint-plugin-react/blob/73abadb697034b5ccb514d79fb4689836fe61f91/docs/rules/no-typos.md
         'react/no-typos': 'error',
 
-        // Enforce curly braces or disallow unnecessary curly braces in JSX props and/or children
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-curly-brace-presence.md
-        'react/jsx-curly-brace-presence': ['error', {props: 'never', children: 'never'}],
-
-        // One JSX Element Per Line
-        // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/jsx-one-expression-per-line.md
-        'react/jsx-one-expression-per-line': ['error', {allow: 'single-child'}],
-
         // Do not enforce consistent usage of destructuring assignment of props, state, and context
         // https://github.com/yannickcr/eslint-plugin-react/blob/843d71a432baf0f01f598d7cf1eea75ad6896e4b/docs/rules/destructuring-assignment.md
         'react/destructuring-assignment': ['off', 'always'],
@@ -479,13 +409,6 @@ const config = defineConfig([{
         // Enforce shorthand or standard form for React fragments
         // https://github.com/yannickcr/eslint-plugin-react/blob/bc976b837abeab1dffd90ac6168b746a83fc83cc/docs/rules/jsx-fragments.md
         'react/jsx-fragments': ['error', 'syntax'],
-
-        // Enforce linebreaks in curly braces in JSX attributes and expressions.
-        // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-curly-newline.md
-        'react/jsx-curly-newline': ['error', {
-            multiline: 'consistent',
-            singleline: 'consistent',
-        }],
 
         // Enforce state initialization style
         // https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/state-in-constructor.md

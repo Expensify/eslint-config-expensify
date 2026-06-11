@@ -9,7 +9,9 @@
     "./react": "./configs/react.js",
     "./typescript": "./configs/typescript.js",
     "./scripts": "./configs/scripts.js",
-    "./expensify": "./configs/expensify.js"
+    "./expensify": "./configs/expensify.js",
+    "./formatting": "./configs/formatting.js",
+    "./react-formatting": "./configs/react-formatting.js"
   },
   "repository": {
     "type": "git",

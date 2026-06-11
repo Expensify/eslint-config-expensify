@@ -1,0 +1,3 @@
+function badlyIndented() {
+  return 'wrong';
+}

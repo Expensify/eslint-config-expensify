@@ -10,7 +10,6 @@ const config = defineConfig([
         rules: {
             camelcase: 'off',
             'class-methods-use-this': 'off',
-            'comma-dangle': ['error', 'always-multiline'],
             'consistent-return': 'off',
             'consistent-this': [1, 'self'],
             curly: ['error', 'all'],
@@ -22,48 +21,6 @@ const config = defineConfig([
             'import/no-unresolved': 'off',
             'jsx-a11y/click-events-have-key-events': 'off',
             'jsx-a11y/label-has-for': 'off',
-
-            // Enforce indentation of 4 spaces; the third option parameter was copied from Airbnb:
-            // https://github.com/airbnb/javascript/blob/60b96d322277c4c71a21a05caba8eb3320e0e3fa/packages/eslint-config-airbnb-base/rules/style.js#L120-L145
-            indent: ['error', 4, {
-                SwitchCase: 1,
-                VariableDeclarator: 1,
-                outerIIFEBody: 1,
-                FunctionDeclaration: {
-                    parameters: 1,
-                    body: 1,
-                },
-                FunctionExpression: {
-                    parameters: 1,
-                    body: 1,
-                },
-                CallExpression: {
-                    arguments: 1,
-                },
-                ArrayExpression: 1,
-                ObjectExpression: 1,
-                ImportDeclaration: 1,
-                flatTernaryExpressions: false,
-
-                // list derived from https://github.com/benjamn/ast-types/blob/HEAD/def/jsx.js
-                // eslint-disable-next-line max-len
-                ignoredNodes: ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild'],
-                ignoreComments: false,
-            }],
-
-            // Airbnb didn't want this rule to be enabled even though it complies with their styleguide - so we're adding it
-            // https://github.com/airbnb/javascript/pull/1994
-            'lines-around-comment': ['error', {
-                beforeLineComment: true,
-                allowBlockStart: true,
-                allowObjectStart: true,
-                allowArrayStart: true,
-                allowClassStart: true,
-            }],
-            'no-multiple-empty-lines': ['error', {max: 1}],
-            'max-len': ['error', {
-                code: 190,
-            }],
             'new-cap': 'off',
             'no-alert': 'off',
             'no-mixed-operators': ['error', {
@@ -78,19 +35,8 @@ const config = defineConfig([
             }],
             'no-plusplus': 'off',
             'no-return-assign': 'off',
-            'object-curly-spacing': ['error', 'never'],
-
-            // Require space before function opening parenthesis
-            'space-before-function-paren': ['error', {
-                anonymous: 'always',
-                named: 'never',
-            }],
             strict: ['error', 'never'],
-
             'vars-on-top': 'off',
-
-            // This enforces wrapping always the function expression.
-            'wrap-iife': ['error', 'inside'],
         },
     },
     {

@@ -1,6 +1,8 @@
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
 import indexConfig from './index.js';
+import formatting from './configs/formatting.js';
+import reactFormatting from './configs/react-formatting.js';
 
 /**
  * Configuration to lint this project's own code, not for external use.
@@ -8,6 +10,8 @@ import indexConfig from './index.js';
 const config = defineConfig([
     globalIgnores(['tests/fixtures/**']),
     indexConfig,
+    formatting,
+    reactFormatting,
     {
         files: ['tests/**/*.test.js'],
         languageOptions: {

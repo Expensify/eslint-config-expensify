@@ -100,4 +100,40 @@ describe('eslint-config-expensify composability', () => {
 
         expect(hasRule(results, 'no-console')).toBe(false);
     });
+
+    test('indent rule is silent without formatting config', () => {
+        const results = runEslint(
+            path.join(dirname, 'eslint.base-typescript.config.mjs'),
+            ['tests/fixtures/bad-indent.js'],
+        );
+
+        expect(hasRule(results, 'indent')).toBe(false);
+    });
+
+    test('indent rule fires with formatting config', () => {
+        const results = runEslint(
+            path.join(dirname, 'eslint.formatting.config.mjs'),
+            ['tests/fixtures/bad-indent.js'],
+        );
+
+        expect(hasRule(results, 'indent')).toBe(true);
+    });
+
+    test('react/jsx-indent is silent without react-formatting config', () => {
+        const results = runEslint(
+            path.join(dirname, 'eslint.base-typescript.config.mjs'),
+            ['tests/fixtures/bad-jsx-indent.js'],
+        );
+
+        expect(hasRule(results, 'react/jsx-indent')).toBe(false);
+    });
+
+    test('react/jsx-indent fires with react-formatting config', () => {
+        const results = runEslint(
+            path.join(dirname, 'eslint.react-formatting.config.mjs'),
+            ['tests/fixtures/bad-jsx-indent.js'],
+        );
+
+        expect(hasRule(results, 'react/jsx-indent')).toBe(true);
+    });
 });

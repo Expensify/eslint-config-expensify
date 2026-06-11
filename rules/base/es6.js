@@ -20,20 +20,8 @@ const config = defineConfig([{
             requireReturnForObjectLiteral: false,
         }],
 
-        // require parens in arrow function arguments
-        // https://eslint.org/docs/rules/arrow-parens
-        'arrow-parens': ['error', 'always'],
-
-        // require space before/after arrow function's arrow
-        // https://eslint.org/docs/rules/arrow-spacing
-        'arrow-spacing': ['error', {before: true, after: true}],
-
         // verify super() callings in constructors
         'constructor-super': 'error',
-
-        // enforce the spacing around the * in generator functions
-        // https://eslint.org/docs/rules/generator-star-spacing
-        'generator-star-spacing': ['error', {before: false, after: true}],
 
         // disallow modifying variables of class declarations
         // https://eslint.org/docs/rules/no-class-assign
@@ -175,13 +163,6 @@ const config = defineConfig([{
         // https://eslint.org/docs/rules/symbol-description
         'symbol-description': 'error',
 
-        // enforce usage of spacing in template strings
-        // https://eslint.org/docs/rules/template-curly-spacing
-        'template-curly-spacing': 'error',
-
-        // enforce spacing around the * in yield* expressions
-        // https://eslint.org/docs/rules/yield-star-spacing
-        'yield-star-spacing': ['error', 'after'],
     },
 }]);
 
