@@ -19,6 +19,7 @@ import reactA11y from './rules/react-a11y.js';
 import es6 from './rules/es6.js';
 import style from './rules/style.js';
 import expensify from './rules/expensify.js';
+import typescript from './rules/typescript.js';
 import unicorn from './rules/unicorn.js';
 
 rulesdir.RULES_DIR = path.resolve(import.meta.dirname, 'eslint-plugin-expensify');
@@ -67,6 +68,7 @@ const config = defineConfig([
             },
         },
     },
+    typescript,
 ]);
 
 export default config;
