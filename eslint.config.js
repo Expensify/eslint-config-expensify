@@ -1,6 +1,7 @@
 import {defineConfig} from 'eslint/config';
 import indexConfig from './index.js';
 import formatting from './configs/public/formatting.js';
+import jestConfig from './configs/public/jest.js';
 import reactFormatting from './configs/public/react-formatting.js';
 
 /**
@@ -10,6 +11,7 @@ const config = defineConfig([
     indexConfig,
     formatting,
     reactFormatting,
+    ...jestConfig,
     {
         rules: {
             'import/extensions': ['error', 'ignorePackages', {
