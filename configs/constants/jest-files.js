@@ -1,6 +1,5 @@
 /**
  * ESLint file globs for Jest test, mock, and setup files.
- * Keep in sync with devDependencies paths in configs/private/imports.js.
  */
 const jestFiles = [
     'tests/**',
