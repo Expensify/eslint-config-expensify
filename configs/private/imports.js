@@ -66,6 +66,7 @@ const config = defineConfig([{
         // https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-extraneous-dependencies.md
         // paths are treated both as absolute paths, and relative to process.cwd()
         'import/no-extraneous-dependencies': ['error', {
+            // Keep test file paths in sync with configs/constants/jest-files.js
             devDependencies: [
                 'test/**', // tape, common npm pattern
                 'tests/**', // also common npm pattern
