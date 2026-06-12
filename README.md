@@ -36,6 +36,21 @@ Just add `extends: 'expensify'` to the `.eslintrc` file in the root directory of
 
 Just add `extends: 'expensify/legacy'` to the `.eslintrc` file in the root directory of your project.
 
+### eslint-config-expensify/jest
+
+Opt-in config for Jest test, mock, and setup files. Enables Jest globals, `eslint-plugin-jest` recommended and style rules, and relaxes `no-console`, `no-await-in-loop`, and `no-import-assign` for test files.
+
+```js
+import {defineConfig} from 'eslint/config';
+import expensifyConfig from 'eslint-config-expensify';
+import jestConfig from 'eslint-config-expensify/jest';
+
+export default defineConfig([
+    ...expensifyConfig,
+    ...jestConfig,
+]);
+```
+
 ## Style Guide
 
 Feel free to also check out our [Javascript style guide](https://github.com/Expensify/Style-Guides/blob/main/javascript.md), our [general language-agnostic coding standards](https://github.com/Expensify/Style-Guides/blob/main/general.md), and the [ESlint config docs](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information.
