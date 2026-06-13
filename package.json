@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-expensify",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Expensify's ESLint configuration following our style guide",
   "main": "index.js",
   "exports": {
