@@ -38,7 +38,7 @@ Just add `extends: 'expensify/legacy'` to the `.eslintrc` file in the root direc
 
 ### eslint-config-expensify/jest
 
-Opt-in config for Jest test, mock, and setup files. Enables Jest globals, `eslint-plugin-jest` recommended and style rules, and relaxes `no-console`, `no-await-in-loop`, and `no-import-assign` for test files.
+Opt-in config for Jest test, mock, and setup files. Enables Jest globals, `eslint-plugin-jest` recommended and style rules, relaxes `no-console`, `no-await-in-loop`, and `no-import-assign` for test files, and allows the `@jest-environment` JSDoc tag via `jsdoc/check-tag-names`.
 
 ```js
 import {defineConfig} from 'eslint/config';
