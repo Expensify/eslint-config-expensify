@@ -13,4 +13,4 @@ function mergeConfigRules(...configArrays) {
     );
 }
 
-export {mergeConfigRules};
+export default mergeConfigRules;

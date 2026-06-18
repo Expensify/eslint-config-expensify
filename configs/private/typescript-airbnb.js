@@ -7,7 +7,7 @@ import imports from './imports.js';
 import style from './style.js';
 import variables from './variables.js';
 import formatting from '../public/formatting.js';
-import {mergeConfigRules} from './typescript-utils.js';
+import mergeConfigRules from './typescript-utils.js';
 
 const tsFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts'];
 
