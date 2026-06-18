@@ -22,7 +22,7 @@ const config = defineConfig([
         },
     },
     {
-        files: ['configs/private/typescript-*.js', 'configs/public/typescript.js'],
+        files: ['configs/public/typescript.js'],
         rules: {
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/no-acc-spread-in-reduce': 'off',
