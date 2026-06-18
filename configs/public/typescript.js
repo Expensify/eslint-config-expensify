@@ -1,5 +1,6 @@
 import {defineConfig} from 'eslint/config';
 import tseslint from 'typescript-eslint';
+import _ from 'underscore';
 
 import bestPractices from '../private/best-practices.js';
 import errors from '../private/errors.js';
@@ -13,12 +14,15 @@ const tsFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts'];
 const jsFiles = ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'];
 
 function mergeConfigRules(...configArrays) {
-    return Object.assign(
-        {},
-        ...configArrays.flatMap((configArray) => configArray
-            .filter((entry) => entry.rules)
-            .map((entry) => entry.rules)),
-    );
+    return _.reduce(configArrays, (result, configArray) => {
+        _.each(configArray, (entry) => {
+            if (!entry.rules) {
+                return;
+            }
+            _.extend(result, entry.rules);
+        });
+        return result;
+    }, {});
 }
 
 const baseBestPracticesRules = mergeConfigRules(bestPractices);
@@ -44,23 +48,27 @@ const importNoExtraneousDependenciesRule = [
     baseImportsRules['import/no-extraneous-dependencies'][0],
     {
         ...baseImportsRules['import/no-extraneous-dependencies'][1],
-        devDependencies: baseImportsRules['import/no-extraneous-dependencies'][1].devDependencies.reduce((result, devDep) => {
-            const toAppend = [devDep];
-            const devDepWithTs = devDep.replace(/\bjs(x?)\b/g, 'ts$1');
-            if (devDepWithTs !== devDep) {
-                toAppend.push(devDepWithTs);
-            }
-            return [...result, ...toAppend];
-        }, []),
+        devDependencies: _.reduce(
+            baseImportsRules['import/no-extraneous-dependencies'][1].devDependencies,
+            (result, devDep) => {
+                result.push(devDep);
+                const devDepWithTs = devDep.replaceAll(/\bjs(x?)\b/g, 'ts$1');
+                if (devDepWithTs !== devDep) {
+                    result.push(devDepWithTs);
+                }
+                return result;
+            },
+            [],
+        ),
     },
 ];
 
-const scopedRecommendedTypeChecked = tseslint.configs.recommendedTypeChecked.map((block) => ({
+const scopedRecommendedTypeChecked = _.map(tseslint.configs.recommendedTypeChecked, block => ({
     ...block,
     files: block.files || tsFiles,
 }));
 
-const scopedStylisticTypeChecked = tseslint.configs.stylisticTypeChecked.map((block) => ({
+const scopedStylisticTypeChecked = _.map(tseslint.configs.stylisticTypeChecked, block => ({
     ...block,
     files: block.files || tsFiles,
 }));
@@ -270,6 +278,8 @@ const config = defineConfig([
             // Requires eslint-config-expensify/expensify (rulesdir plugin).
             'rulesdir/prefer-at': 'error',
             'rulesdir/boolean-conditional-rendering': 'error',
+            'rulesdir/prefer-underscore-method': 'off',
+            'jsdoc/require-param': 'off',
         },
     },
     {

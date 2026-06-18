@@ -22,16 +22,6 @@ const config = defineConfig([
         },
     },
     {
-        files: ['configs/public/typescript.js'],
-        rules: {
-            'rulesdir/prefer-underscore-method': 'off',
-            'rulesdir/no-acc-spread-in-reduce': 'off',
-            'unicorn/prefer-string-replace-all': 'off',
-            'jsdoc/require-param': 'off',
-            'arrow-parens': 'off',
-        },
-    },
-    {
         files: ['eslint-plugin-expensify/fixtures/**/*'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
