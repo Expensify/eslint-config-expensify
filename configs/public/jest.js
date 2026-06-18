@@ -17,6 +17,9 @@ const config = defineConfig([{
         'no-console': 'off',
         'no-await-in-loop': 'off',
         'no-import-assign': 'off',
+        'jsdoc/check-tag-names': ['error', {
+            definedTags: ['jest-environment'],
+        }],
     },
 }]);
 
