@@ -67,6 +67,21 @@ ruleTester.run('no-negated-variables', rule, {
         {
             code: 'const memberNotFoundMessage = "";',
         },
+        {
+            code: 'const notation = {};',
+        },
+        {
+            code: 'const annotation = {};',
+        },
+        {
+            code: 'const musicalNotation = {};',
+        },
+        {
+            code: 'const textAnnotation = {};',
+        },
+        {
+            code: 'const ANNOTATION = {};',
+        },
     ],
     invalid: [
         {

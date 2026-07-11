@@ -28,6 +28,8 @@ const NOTABLE_EXCEPTIONS = [
     'notable',
     'notion',
     'notice',
+    'notation',
+    'annotation',
     'notFound',
 ];
 
