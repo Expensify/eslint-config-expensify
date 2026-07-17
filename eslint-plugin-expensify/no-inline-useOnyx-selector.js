@@ -16,6 +16,9 @@ const meta = {
         noNonMemoizedSelector: 'useOnyx() selector defined within component should be memoized with useCallback.\n\n'
             + 'Wrap the selector function with useCallback to prevent unnecessary re-renders:\n\n'
             + 'const memoizedSelector = useCallback((val) => ({...}), [dependencies]);',
+        noInlineFactorySelector: 'useOnyx() selector is produced by a factory call inline, so it returns a new function on every render.\n\n'
+            + 'Memoize the factory result with useMemo so the reference stays stable:\n\n'
+            + 'const memoizedSelector = useMemo(() => makeSelector(arg), [arg]);',
     },
 };
 
@@ -44,12 +47,12 @@ function create(context) {
     }
 
     /**
-     * Check if a variable is defined with useCallback.
+     * Check if a variable is defined with a memoization hook (useCallback or useMemo).
      *
      * @param {Variable} variable - The variable to check.
      * @returns {boolean}
      */
-    function isDefinedWithUseCallback(variable) {
+    function isDefinedWithMemoHook(variable) {
         if (!variable || variable.defs.length === 0) {
             return false;
         }
@@ -57,7 +60,7 @@ function create(context) {
         const def = variable.defs[0];
         if (def.node.init && def.node.init.type === 'CallExpression') {
             const callee = def.node.init.callee;
-            return callee.name === 'useCallback';
+            return callee.name === 'useCallback' || callee.name === 'useMemo';
         }
 
         return false;
@@ -99,6 +102,16 @@ function create(context) {
     }
 
     /**
+     * Check if a property is a selector defined by an inline factory call, e.g. `selector: makeSelector(arg)`.
+     *
+     * @param {Property} property - The property to check.
+     * @returns {boolean}
+     */
+    function isFactorySelector(property) {
+        return property.type === 'Property' && property.key.name === 'selector' && property.value.type === 'CallExpression';
+    }
+
+    /**
      * Check if an object has an inline selector property.
      *
      * @param {ObjectExpression} objectExpression - The object to check.
@@ -125,7 +138,7 @@ function create(context) {
             return; // Variable not found in current scope
         }
 
-        if (isDefinedInCurrentComponent(variable) && !isDefinedWithUseCallback(variable)) {
+        if (isDefinedInCurrentComponent(variable) && !isDefinedWithMemoHook(variable)) {
             context.report({
                 node,
                 messageId: 'noNonMemoizedSelector',
@@ -191,6 +204,11 @@ function create(context) {
                             node: node.init,
                             messageId: 'noInlineSelector',
                         });
+                    } else if (_.some(optionsArgument.properties, isFactorySelector)) {
+                        context.report({
+                            node: node.init,
+                            messageId: 'noInlineFactorySelector',
+                        });
                     } else {
                         const selectorProperty = findProperty(optionsArgument, 'selector');
                         if (selectorProperty && selectorProperty.value.type === 'Identifier') {
@@ -206,6 +224,11 @@ function create(context) {
                         context.report({
                             node: node.init,
                             messageId: 'noInlineSelector',
+                        });
+                    } else if (resolvedValue && _.some(resolvedValue.properties, isFactorySelector)) {
+                        context.report({
+                            node: node.init,
+                            messageId: 'noInlineFactorySelector',
                         });
                     } else if (resolvedValue) {
                         const selectorProperty = findProperty(resolvedValue, 'selector');

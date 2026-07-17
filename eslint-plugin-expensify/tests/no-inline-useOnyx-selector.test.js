@@ -58,6 +58,15 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
             }`,
         },
 
+        // Factory result memoized with useMemo within component - should not error
+        {
+            code: `function MyComponent() {
+                const memoizedSelector = useMemo(() => makeSelector(arg), [arg]);
+                const [data] = useOnyx(ONYXKEYS.DATA, {selector: memoizedSelector});
+                return null;
+            }`,
+        },
+
         // Selector defined with useCallback in options object within component - should not error
         {
             code: `function MyComponent() {
@@ -123,6 +132,34 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
             code: 'const options = {selector: function(data) { return data.value; }, canBeMissing: false}; const [data] = useOnyx(ONYXKEYS.DATA, options);',
             errors: [{
                 messageId: 'noInlineSelector',
+            }],
+        },
+
+        // Inline factory call selector - should error
+        {
+            code: 'const [data] = useOnyx(ONYXKEYS.DATA, {selector: makeSelector(id), canBeMissing: false});',
+            errors: [{
+                messageId: 'noInlineFactorySelector',
+            }],
+        },
+
+        // Options as variable with factory call selector - should error
+        {
+            code: 'const options = {selector: makeSelector(id)}; const [data] = useOnyx(ONYXKEYS.DATA, options);',
+            errors: [{
+                messageId: 'noInlineFactorySelector',
+            }],
+        },
+
+        // Factory result assigned to a plain (non-memoized) variable within component - should error
+        {
+            code: `function MyComponent() {
+                const nonMemoizedSelector = makeSelector(arg);
+                const [data] = useOnyx(ONYXKEYS.DATA, {selector: nonMemoizedSelector});
+                return null;
+            }`,
+            errors: [{
+                messageId: 'noNonMemoizedSelector',
             }],
         },
 
