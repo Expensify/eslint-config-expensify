@@ -122,6 +122,16 @@ function create(context) {
     }
 
     /**
+     * Check if an object has a selector property defined by an inline factory call.
+     *
+     * @param {ObjectExpression} objectExpression - The object to check.
+     * @returns {boolean}
+     */
+    function hasFactorySelector(objectExpression) {
+        return _.some(objectExpression.properties, isFactorySelector);
+    }
+
+    /**
      * Check if a selector identifier should be memoized within component.
      *
      * @param {string} selectorName - The name of the selector identifier.
@@ -216,7 +226,7 @@ function create(context) {
                             node: node.init,
                             messageId: 'noInlineSelector',
                         });
-                    } else if (_.some(optionsArgument.properties, isFactorySelector)) {
+                    } else if (hasFactorySelector(optionsArgument)) {
                         context.report({
                             node: node.init,
                             messageId: 'noInlineFactorySelector',
@@ -237,7 +247,7 @@ function create(context) {
                             node: node.init,
                             messageId: 'noInlineSelector',
                         });
-                    } else if (resolvedValue && _.some(resolvedValue.properties, isFactorySelector)) {
+                    } else if (resolvedValue && hasFactorySelector(resolvedValue)) {
                         context.report({
                             node: node.init,
                             messageId: 'noInlineFactorySelector',
