@@ -159,7 +159,7 @@ ruleTester.run('no-inline-useOnyx-selector', rule, {
                 return null;
             }`,
             errors: [{
-                messageId: 'noNonMemoizedSelector',
+                messageId: 'noInlineFactorySelector',
             }],
         },
 

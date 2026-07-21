@@ -139,6 +139,18 @@ function create(context) {
         }
 
         if (isDefinedInCurrentComponent(variable) && !isDefinedWithMemoHook(variable)) {
+            const init = variable.defs[0].node.init;
+
+            // A factory call assigned to a plain variable returns a new function on every render,
+            // so it needs to be memoized with useMemo rather than useCallback.
+            if (init && init.type === 'CallExpression') {
+                context.report({
+                    node,
+                    messageId: 'noInlineFactorySelector',
+                });
+                return;
+            }
+
             context.report({
                 node,
                 messageId: 'noNonMemoizedSelector',
