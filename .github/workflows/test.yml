@@ -22,7 +22,7 @@ jobs:
         # v4
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
         with:
-          node-version: 20
+          node-version-file: .nvmrc
 
       - name: Run npm install
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847

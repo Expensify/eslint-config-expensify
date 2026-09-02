@@ -24,6 +24,18 @@
     "lint": "eslint ."
   },
   "type": "module",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=24.19.0",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.10.0",
+      "onFail": "error"
+    }
+  },
   "dependencies": {
     "@babel/eslint-parser": "^7.28.4",
     "@typescript-eslint/parser": "^8.44.1",
