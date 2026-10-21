@@ -2,6 +2,7 @@ import {defineConfig} from 'eslint/config';
 import jsxA11Y from 'eslint-plugin-jsx-a11y';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import reactYouMightNotNeedAnEffect from 'eslint-plugin-react-you-might-not-need-an-effect';
 
 const config = defineConfig([
     // ─── React core rules ────────────────────────────────────────────────────────
@@ -461,6 +462,14 @@ const config = defineConfig([
             'react-hooks/use-memo': 'error',
             'react-hooks/incompatible-library': 'error',
         },
+    },
+
+    // Catch unnecessary effects without adding the preset's browser globals to native consumers.
+    {
+        plugins: {
+            'react-you-might-not-need-an-effect': reactYouMightNotNeedAnEffect,
+        },
+        rules: reactYouMightNotNeedAnEffect.configs.strict.rules,
     },
 
     // ─── Accessibility ───────────────────────────────────────────────────────────
