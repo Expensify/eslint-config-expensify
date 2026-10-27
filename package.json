@@ -54,7 +54,7 @@
     "globals": "^15.14.0",
     "lodash": "^4.17.21",
     "typescript-eslint": "^8.61.0",
-    "underscore": "^1.13.6"
+    "underscore": "^1.13.8"
   },
   "files": [
     "configs",
