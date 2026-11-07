@@ -4,8 +4,17 @@ import CONST from './CONST.js';
 const message = CONST.MESSAGE.NO_MULTIPLE_API_CALLS;
 
 function create(context) {
+    const sourceCode = context.getSourceCode();
+
     function checkFunctionBody(node) {
-        const tokens = context.getSourceCode().getTokens(node);
+        const functionText = sourceCode.text.slice(node.range[0], node.range[1]);
+
+        // Identifiers can spell API with Unicode escapes, which tokenization resolves.
+        if (functionText.indexOf('API') === -1 && functionText.indexOf('\\u') === -1) {
+            return;
+        }
+
+        const tokens = sourceCode.getTokens(node);
         let hasCalledAPI = false;
 
         _.each(tokens, (token) => {
