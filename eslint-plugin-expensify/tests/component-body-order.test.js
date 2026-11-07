@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-underscore-method */
 import {RuleTester} from 'eslint';
 import tsParser from '@typescript-eslint/parser';
 import * as rule from '../component-body-order.js';
@@ -42,6 +43,24 @@ ruleTester.run(rule.name, rule, {
         'function Factory() { return function Inner() { useEffect(effect, []); const value = derive(); return value; }; }',
         'const Component = () => <View />;',
         'async function Component() { useEffect(effect, []); const value = derive(); return value; }',
+        'function Component() { useEffect(effect, []); const state = useState(0) as State; return state; }',
+        'function Component() { useEffect(effect, []); const state = useState(0)!; return state; }',
+        'function Component() { useEffect(effect, []); const state = useState(0) satisfies State; return state; }',
+        {filename: 'component.ts', code: 'function Component() { useEffect(effect, []); const state = <State>useState(0); return state; }'},
+        'function Component() { useEffect(effect, []); const state = Other.useState(0); return state; }',
+        'function Component() { useEffect(effect, []); const state = React["useState"](0); return state; }',
+        'import {useState as readState} from "react"; function Component() { useEffect(effect, []); const state = readState(0); return state; }',
+        'function Component() { useEffect(effect, []); const value = decorate(useCustom()); return value; }',
+        'function Component() { useEffect(effect, []); const value = flag ? useCustom() : null; return value; }',
+        'function Component() { useEffect(effect, []); const {value = useCustom()} = input; return value; }',
+        'function Component(props) { const {value} = props; const context = useContext(Context); return value; }',
+        'function Component() { useEffect(effect, []); const view = <View />; return view; }',
+        'export default function ordinary() { useEffect(effect, []); const value = derive(); return value; }',
+        'function Component() { useEffect(effect, []); const state = (() => useState(0))(); return state; }',
+        'function Component() { useEffect(effect, []); const state = (function () { return useState(0); })(); return state; }',
+        'function Component() { useEffect(effect, []); const state = React[`useState`](0); return state; }',
+        'function Component() { useEffect(effect, []); const state = React[hookName](0); return state; }',
+        'function Component() { useEffect(effect, []); const state = readState(0); return state; } import {useState as readState} from "react";',
     ],
     invalid: [
         {
@@ -69,5 +88,24 @@ ruleTester.run(rule.name, rule, {
             errors: [{messageId: 'order'}],
             output: null,
         },
+        {
+            code: 'function Component() { useEffect(effect, []); const value = 1; const state = useState(0); return [value, state]; }',
+            errors: [{messageId: 'order', data: {group: 'derived values', previous: 'effects'}}],
+            output: null,
+        },
+        {
+            code: 'import {useState as readState} from "react"; function Component(readState) { useEffect(effect, []); const value = readState(); return value; }',
+            errors: [{messageId: 'order', data: {group: 'derived values', previous: 'effects'}}],
+            output: null,
+        },
+        ...[
+            'const Component = memo(() => { useEffect(effect, []); const value = derive(); return value; });',
+            'const Component = React.forwardRef((props, ref) => { useEffect(effect, []); const value = derive(); return value; });',
+            'const Component = memo(forwardRef((props, ref) => { useEffect(effect, []); const value = derive(); return value; }));',
+            'import {memo as cached} from "react"; const Component = cached(() => { useEffect(effect, []); const value = derive(); return value; });',
+            'const Component = function inner() { useEffect(effect, []); const value = derive(); return value; };',
+            'export default function () { useEffect(effect, []); const value = derive(); return <View value={value} />; }',
+            'function Component() { useEffect(effect, []); const submit = () => useSomething(); return submit; }',
+        ].map(code => ({code, errors: [{messageId: 'order', suggestions: []}], output: null})),
     ],
 });
