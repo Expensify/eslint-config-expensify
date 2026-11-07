@@ -14,20 +14,19 @@ function isDataSettingMethod(methodName) {
 }
 
 function create(context) {
+    const filename = context.getFilename();
+    if (isInTestFile(filename) || isInActionFile(filename)) {
+        return {};
+    }
+
     return {
         MemberExpression(node) {
-            const filename = context.getFilename();
-
             if (!isOnyxMethodCall(node)) {
                 return;
             }
 
-            if (isInTestFile(context.getFilename())) {
-                return;
-            }
-
             const methodName = lodashGet(node, 'property.name');
-            if (!isDataSettingMethod(methodName) || isInActionFile(context.getFilename(filename))) {
+            if (!isDataSettingMethod(methodName)) {
                 return;
             }
 

@@ -26,6 +26,14 @@ ruleTester.run('no-api-in-views', rule, {
             code: example2,
             filename: './src/libs/actions/Test.js',
         },
+        {
+            code: example,
+            filename: './tests/Foo.js',
+        },
+        {
+            code: example2,
+            filename: './tests/Foo.js',
+        },
     ],
     invalid: [
         {

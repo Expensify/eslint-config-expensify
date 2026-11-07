@@ -6,7 +6,7 @@ const message = CONST.MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
 
 const ruleTester = new RuleTester({
     languageOptions: {
-        ecmaVersion: 6,
+        ecmaVersion: 2020,
         sourceType: 'module',
     },
 });
@@ -21,6 +21,8 @@ ruleTester.run('no-api-side-effects-method', rule, {
                 }
             `,
         },
+        {code: 'makeRequestWithSideEffects();'},
+        {code: 'API["makeRequestWithSideEffects"]();'},
     ],
     invalid: [
         {
@@ -34,5 +36,6 @@ ruleTester.run('no-api-side-effects-method', rule, {
                 message,
             }],
         },
+        {code: 'API?.makeRequestWithSideEffects();', errors: [{message}]},
     ],
 });

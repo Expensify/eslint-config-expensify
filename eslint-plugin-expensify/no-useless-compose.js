@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get.js';
 import CONST from './CONST.js';
 
 const message = CONST.MESSAGE.NO_USELESS_COMPOSE;
@@ -6,7 +5,7 @@ const message = CONST.MESSAGE.NO_USELESS_COMPOSE;
 function create(context) {
     return {
         CallExpression(node) {
-            const name = lodashGet(node, 'callee.name');
+            const name = node.callee.name;
             if (!name) {
                 return;
             }

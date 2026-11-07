@@ -37,6 +37,14 @@ ruleTester.run('prefer-actions-set-data', rule, {
             // Mock filename - it's acceptable to use Onyx in an action file, but not component
             filename: './src/libs/actions/Test.js',
         },
+        {
+            code: goodExample,
+            filename: './tests/Test.js',
+        },
+        {
+            code: 'Onyx.get("key"); Other.set("key", value);',
+            filename: './src/components/Test.js',
+        },
     ],
     invalid: [
         {

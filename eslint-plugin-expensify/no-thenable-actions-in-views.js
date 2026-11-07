@@ -7,6 +7,10 @@ import CONST from './CONST.js';
 const message = CONST.MESSAGE.NO_THENABLE_ACTIONS_IN_VIEWS;
 
 function create(context) {
+    if (!isReactViewFile(context.getFilename())) {
+        return {};
+    }
+
     const actionsNamespaces = [];
     return {
         // Using import declaration to create a map of all the imports for this file and which ones are "actions"
@@ -19,10 +23,6 @@ function create(context) {
             actionsNamespaces.push(_.last(pathName.split('/')));
         },
         MemberExpression(node) {
-            if (!isReactViewFile(context.getFilename())) {
-                return;
-            }
-
             if (lodashGet(node, 'property.name') !== 'then') {
                 return;
             }

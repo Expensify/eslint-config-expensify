@@ -4,16 +4,13 @@ import CONST from './CONST.js';
 const message = CONST.MESSAGE.NO_API_IN_VIEWS;
 
 function create(context) {
+    const filename = context.getFilename();
+    if (isInActionFile(filename) || isInTestFile(filename)) {
+        return {};
+    }
+
     return {
         Identifier(node) {
-            if (isInActionFile(context.getFilename())) {
-                return;
-            }
-
-            if (isInTestFile(context.getFilename())) {
-                return;
-            }
-
             if (node.name !== 'API' && node.name !== 'DeprecatedAPI') {
                 return;
             }

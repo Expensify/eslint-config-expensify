@@ -26,6 +26,9 @@ ruleTester.run('prefer-onyx-connect-in-libs', rule, {
             // Mock filename - it's acceptable to use Onyx.connect() in an action file only
             filename: './src/libs/actions/Test.js',
         },
+        {code: example, filename: './src/libs/Test.js'},
+        {code: example, filename: './tests/Test.js'},
+        {code: 'Onyx.get("key"); Other.connect();', filename: './src/components/Test.js'},
     ],
     invalid: [
         {

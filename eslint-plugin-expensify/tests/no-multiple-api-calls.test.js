@@ -39,5 +39,13 @@ ruleTester.run('no-multiple-api-calls', rule, {
                 message,
             }],
         },
+        {
+            code: String.raw`function test() { AP\u0049.write(); A\u0050I.read(); }`,
+            errors: [{message}],
+        },
+        {
+            code: '\uFEFFfunction test() { API.write(); API.read(); }',
+            errors: [{message}],
+        },
     ],
 });

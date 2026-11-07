@@ -4,15 +4,6 @@ import CONST from './CONST.js';
 
 const message = CONST.MESSAGE.NO_NEGATED_VARIABLES;
 
-const BANNED_SUBSTRINGS = [
-    'not',
-    'isnot',
-    'cannot',
-    'shouldnot',
-    'cant',
-    'dont',
-];
-
 // Whitelisted morphemes/domain concepts that happen to contain a banned substring.
 // Entries may be:
 //   - Single English words (e.g. "notification") — matched loosely so natural
@@ -70,14 +61,15 @@ function buildExceptionAlternatives(word) {
     ];
 }
 
+const exceptionAlternatives = _.flatten(_.map(NOTABLE_EXCEPTIONS, buildExceptionAlternatives));
+const exceptionRegex = new RegExp(`(.*?)(?:${exceptionAlternatives.join('|')})(.*)`, 'm');
+
 /**
  * @param {String} string
  * @returns {Boolean}
  */
 function isFalsePositive(string) {
-    const alternatives = _.flatten(_.map(NOTABLE_EXCEPTIONS, buildExceptionAlternatives));
-    const regex = new RegExp(`(.*?)(?:${alternatives.join('|')})(.*)`, 'm');
-    const matches = regex.exec(string);
+    const matches = exceptionRegex.exec(string);
 
     if (!matches) {
         return false;
@@ -103,8 +95,8 @@ function isNegatedVariableName(name) {
         return false;
     }
 
-    return _.any(BANNED_SUBSTRINGS, badSubstring => name.toLowerCase().includes(badSubstring))
-        && !isFalsePositive(name);
+    const lowercase = name.toLowerCase();
+    return (lowercase.includes('not') || lowercase.includes('cant') || lowercase.includes('dont')) && !isFalsePositive(name);
 }
 
 function create(context) {
