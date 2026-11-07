@@ -1,0 +1,6 @@
+{
+    "plugins": [],
+    "jsPlugins": ["./plugin.mjs"],
+    "categories": {"correctness": "off"},
+    "rules": {"ordering-poc/component-body-order": "warn"}
+}

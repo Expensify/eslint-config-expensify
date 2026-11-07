@@ -51,6 +51,10 @@ export default defineConfig([
 ]);
 ```
 
+## Experimental component ordering
+
+The opt-in `rulesdir/component-body-order` POC lives in this package. See [its documentation](./benchmarks/component-body-order/README.md) for conservative autofix eligibility, isolated Oxlint benchmarks, and runtime/compiler memoization experiments. It is not enabled by default. The [App autofix showcase](./benchmarks/component-body-order/autofix-showcase.md) includes before/after examples and measured compiler tradeoffs.
+
 ## Style Guide
 
 Feel free to also check out our [Javascript style guide](https://github.com/Expensify/Style-Guides/blob/main/javascript.md), our [general language-agnostic coding standards](https://github.com/Expensify/Style-Guides/blob/main/general.md), and the [ESlint config docs](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information.

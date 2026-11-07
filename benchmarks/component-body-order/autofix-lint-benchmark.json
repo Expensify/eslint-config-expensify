@@ -1,0 +1,61 @@
+{
+    "node": "v24.22.1",
+    "oxlint": "1.90.0",
+    "cpu": "Apple M5 Max",
+    "platform": "darwin arm64",
+    "target": "/Users/rory/Expensidev/App-Worktrees/component-order-autofix/src",
+    "samples": 5,
+    "threads": 1,
+    "warmups": 2,
+    "results": {
+        "parseOnly": {
+            "files": 8591,
+            "rules": 0,
+            "diagnostics": 0,
+            "diagnosticHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "medianMs": 683.1437079999996,
+            "minMs": 666.5761659999989,
+            "maxMs": 700.343458000003,
+            "runsMs": [
+                688.2750830000004,
+                677.3927919999987,
+                700.343458000003,
+                683.1437079999996,
+                666.5761659999989
+            ]
+        },
+        "bridgeOnly": {
+            "files": 8591,
+            "rules": 1,
+            "diagnostics": 0,
+            "diagnosticHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "medianMs": 1975.656082999998,
+            "minMs": 1917.2434169999979,
+            "maxMs": 2053.486208000002,
+            "runsMs": [
+                1978.9424999999992,
+                1975.656082999998,
+                2053.486208000002,
+                1917.2434169999979,
+                1973.0618750000067
+            ]
+        },
+        "rule": {
+            "files": 8591,
+            "rules": 1,
+            "diagnostics": 1723,
+            "diagnosticHash": "24225e078a6581ce62c8cca9be1eff96c2b8237d6701d5c23ce922464d8087f4",
+            "medianMs": 2500.1108330000025,
+            "minMs": 2464.494999999999,
+            "maxMs": 2689.4038340000006,
+            "runsMs": [
+                2562.505416,
+                2491.9017920000006,
+                2689.4038340000006,
+                2500.1108330000025,
+                2464.494999999999
+            ]
+        }
+    },
+    "ruleOverBridgeMs": 524.4547500000044
+}

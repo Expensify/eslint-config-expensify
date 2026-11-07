@@ -1,0 +1,188 @@
+{
+    "node": "v24.22.1",
+    "cpu": "Apple M5 Max",
+    "versions": {
+        "node": "24.22.1",
+        "oxc": "0.156.0"
+    },
+    "configRef": "b14f3591fad1db21c32271e79e9fe66b433fc5dc",
+    "configHash": "324f69babac1ff7e309ab05ecb8a514db24e5f6aca3bbbe7cb8a12f3cc63ba04",
+    "compilerOptions": {
+        "target": "19",
+        "environment": {
+            "enableTreatRefLikeIdentifiersAsRefs": true
+        },
+        "eslintSuppressionRules": [],
+        "panicThreshold": "none"
+    },
+    "target": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks",
+    "files": [
+        "createContextNamespace.ts",
+        "useAndroidBackButtonHandler/index.android.ts",
+        "useBeforeRemove.tsx",
+        "useChangeTransactionsReportReports.ts",
+        "useContentHeaderHeight.ts",
+        "useDefaultFundID.ts",
+        "useDuplicateFeedDetection.ts",
+        "useExportActions.ts",
+        "useGeographicalStateAndCountryFromRoute.ts",
+        "useHtmlPaste/types.ts",
+        "useIsHiddenWideTabPreMount.ts",
+        "useIsWorkspacesTabFocused.ts",
+        "useMarkAsRead.ts",
+        "useNewTransactions.ts",
+        "usePageRefresh/type.ts",
+        "usePersonalDetailsFormSubmit.ts",
+        "useReceiptScanDrop.tsx",
+        "useReportTransactionViolations.ts",
+        "useRowHighlightAnimation.ts",
+        "useSearchBulkEditPolicyID.ts",
+        "useShouldDisplayButtonsInSeparateLine.ts",
+        "useSubPage/types.ts",
+        "useTodoCounts.ts",
+        "useVerifyAccountAndResume.ts",
+        "useWorkspacesTabIndicatorStatus.ts"
+    ],
+    "corpusHash": "fa309030ed0274aa9ead108b3b96599d1fc0fd2394de16f68976f11d64252607",
+    "reportHash": "135aee540f1c90f567a5a7010a2a014271aa9666509a098deec465a21976956c",
+    "reporterExitCode": 1,
+    "statuses": [
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/createContextNamespace.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useAndroidBackButtonHandler/index.android.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useBeforeRemove.tsx",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useChangeTransactionsReportReports.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useContentHeaderHeight.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useDefaultFundID.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useDuplicateFeedDetection.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useExportActions.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useGeographicalStateAndCountryFromRoute.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useHtmlPaste/types.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useIsHiddenWideTabPreMount.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useIsWorkspacesTabFocused.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useMarkAsRead.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useNewTransactions.ts",
+            "status": "diagnostics",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/usePageRefresh/type.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/usePersonalDetailsFormSubmit.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useReceiptScanDrop.tsx",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useReportTransactionViolations.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useRowHighlightAnimation.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useSearchBulkEditPolicyID.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useShouldDisplayButtonsInSeparateLine.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useSubPage/types.ts",
+            "status": "unchanged",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useTodoCounts.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useVerifyAccountAndResume.ts",
+            "status": "compiled-output",
+            "failure": null
+        },
+        {
+            "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useWorkspacesTabIndicatorStatus.ts",
+            "status": "compiled-output",
+            "failure": null
+        }
+    ],
+    "warmups": 1,
+    "samples": 5,
+    "medianMs": 258.298417,
+    "minMs": 255.44349999999997,
+    "maxMs": 275.530125,
+    "runsMs": [
+        255.80191700000006,
+        255.44349999999997,
+        261.43875,
+        258.298417,
+        275.530125
+    ]
+}
