@@ -24,10 +24,8 @@ const React = requireApp('react');
 const PropTypes = requireApp('prop-types');
 const {act, create} = requireApp('react-test-renderer');
 const {transformSync} = requireApp('oxc-transform-react');
-const babel = requireApp('@babel/core');
-const babelCompiler = requireApp('babel-plugin-react-compiler');
 const esbuild = requireApp('esbuild');
-const {parse} = requireApp('@babel/parser');
+const parse = requireApp('@typescript-eslint/parser').parse;
 const config = requireApp(path.join(app, 'config/babel/oxcReactCompilerConfig.js'));
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -45,42 +43,14 @@ function compilerOptions(engine) {
         return false;
     }
     const options = config();
-    if (!engine.startsWith('babel')) {
+    if (engine !== 'uncompiled') {
         options.reportDiagnostics = true;
-    }
-    if (engine === 'forest') {
-        options.environment = {...options.environment, enableForest: true};
-    }
-    if (engine === 'babel-reorder') {
-        options.environment = {...options.environment, enableInstructionReordering: true};
     }
     return options;
 }
 
 function compile(text, engine) {
     const filename = 'src/hooks/useSchedulingProbe.ts';
-    if (engine.startsWith('babel')) {
-        const errors = [];
-        const options = {
-            ...compilerOptions(engine),
-            logger: {
-                logEvent(file, event) {
-                    if (event.kind !== 'CompileError') {
-                        return;
-                    }
-                    errors.push(event);
-                },
-            },
-        };
-        const result = babel.transformSync(text, {
-            filename,
-            babelrc: false,
-            configFile: false,
-            plugins: [[babelCompiler, options]],
-        });
-        assert.deepEqual(errors, [], 'Babel compiler diagnostics');
-        return result.code;
-    }
     const result = transformSync(filename, text, {lang: 'ts', reactCompiler: compilerOptions(engine)});
     assert.equal(result.fatal, false);
     assert.deepEqual(result.errors, [], 'OXC compiler diagnostics');
@@ -270,7 +240,7 @@ assert.equal(schedules.length, 30);
 const expectedArrays = ({inputA, inputB}) => ({a: [...inputA, 1], b: [...inputB, 2]});
 const report = {
     node: process.version,
-    versions: Object.fromEntries(['oxc-transform-react', 'babel-plugin-react-compiler', '@babel/core', 'react', 'react-test-renderer', 'esbuild']
+    versions: Object.fromEntries(['oxc-transform-react', 'react', 'react-test-renderer', 'esbuild']
         .map(name => [name, requireApp(`${name}/package.json`).version])),
     compilerConfig: config(),
     legend: {
@@ -300,7 +270,7 @@ assert.equal(report.ruleCounterexample.beforeDiagnostics.length, 1);
 assert(report.ruleCounterexample.beforeDiagnostics[0].includes('derived values before effects'));
 assert.deepEqual(report.ruleCounterexample.afterDiagnostics, []);
 
-for (const engine of ['uncompiled', 'oxc', 'forest', 'babel', 'babel-reorder']) {
+for (const engine of ['uncompiled', 'oxc']) {
     const results = {};
     for (const order of schedules) {
         const text = source(order.map(token => statements[token]).join('\n'));

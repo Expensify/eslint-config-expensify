@@ -3,8 +3,6 @@
     "cpu": "Apple M5 Max",
     "versions": {
         "node": "24.22.1",
-        "babel": "7.29.7",
-        "babelCompiler": "1.0.0",
         "oxc": "0.156.0"
     },
     "configRef": "b14f3591fad1db21c32271e79e9fe66b433fc5dc",
@@ -46,170 +44,145 @@
         "useWorkspacesTabIndicatorStatus.ts"
     ],
     "corpusHash": "fa309030ed0274aa9ead108b3b96599d1fc0fd2394de16f68976f11d64252607",
-    "reportHash": "87afe06977f4d37491abbe64082f72a5d477a20ed1a63cf7605caf8d5825e063",
+    "reportHash": "135aee540f1c90f567a5a7010a2a014271aa9666509a098deec465a21976956c",
     "reporterExitCode": 1,
     "statuses": [
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/createContextNamespace.ts",
-            "babel": "skipped-or-ineligible",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useAndroidBackButtonHandler/index.android.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useBeforeRemove.tsx",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useChangeTransactionsReportReports.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useContentHeaderHeight.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useDefaultFundID.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useDuplicateFeedDetection.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useExportActions.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useGeographicalStateAndCountryFromRoute.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useHtmlPaste/types.ts",
-            "babel": "skipped-or-ineligible",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useIsHiddenWideTabPreMount.ts",
-            "babel": "compiled",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useIsWorkspacesTabFocused.ts",
-            "babel": "compiled",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useMarkAsRead.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useNewTransactions.ts",
-            "babel": "diagnostics",
-            "oxc": "diagnostics",
+            "status": "diagnostics",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/usePageRefresh/type.ts",
-            "babel": "skipped-or-ineligible",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/usePersonalDetailsFormSubmit.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useReceiptScanDrop.tsx",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useReportTransactionViolations.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useRowHighlightAnimation.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useSearchBulkEditPolicyID.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useShouldDisplayButtonsInSeparateLine.ts",
-            "babel": "compiled",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useSubPage/types.ts",
-            "babel": "skipped-or-ineligible",
-            "oxc": "unchanged",
+            "status": "unchanged",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useTodoCounts.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useVerifyAccountAndResume.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         },
         {
             "filename": "/private/var/folders/lx/k606j6cd5356xrd4m1f3b5_h0000gn/T/opencode/ordering-poc-b14f359/src/hooks/useWorkspacesTabIndicatorStatus.ts",
-            "babel": "compiled",
-            "oxc": "compiled-output",
+            "status": "compiled-output",
             "failure": null
         }
     ],
     "warmups": 1,
     "samples": 5,
-    "medianMs": 484.49987499999986,
-    "minMs": 478.75924999999984,
-    "maxMs": 496.85679200000004,
+    "medianMs": 258.298417,
+    "minMs": 255.44349999999997,
+    "maxMs": 275.530125,
     "runsMs": [
-        484.49987499999986,
-        491.79104200000006,
-        496.85679200000004,
-        478.75924999999984,
-        479.22379200000023
+        255.80191700000006,
+        255.44349999999997,
+        261.43875,
+        258.298417,
+        275.530125
     ]
 }

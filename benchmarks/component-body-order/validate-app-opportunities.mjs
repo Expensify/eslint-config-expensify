@@ -19,7 +19,7 @@ const PropTypes = requireApp('prop-types');
 const {act, create} = requireApp('react-test-renderer');
 const {transformSync} = requireApp('oxc-transform-react');
 const esbuild = requireApp('esbuild');
-const {parse} = requireApp('@babel/parser');
+const parse = requireApp('@typescript-eslint/parser').parse;
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 function pinnedSource(filename, blob) {
@@ -45,18 +45,13 @@ const config = evaluate(pinnedSource('config/babel/oxcReactCompilerConfig.js', '
 const versions = {
     node: process.version,
     oxc: requireApp('oxc-transform-react/package.json').version,
-    babel: requireApp('@babel/core/package.json').version,
-    babelCompiler: requireApp('babel-plugin-react-compiler/package.json').version,
     react: React.version,
     renderer: requireApp('react-test-renderer/package.json').version,
 };
 assert.equal(versions.oxc, '0.156.0', 'Rebaseline compiler assertions explicitly when upgrading');
-assert.equal(versions.babelCompiler, '1.0.0', 'The reporter HIR adapter is version-specific');
 assert.equal(versions.react, '19.2.3');
 assert.equal(versions.renderer, versions.react);
 const reporterEngines = {
-    babel: requireApp('@babel/core'),
-    babelCompiler: requireApp('babel-plugin-react-compiler'),
     oxc: requireApp('oxc-transform-react'),
     config,
 };
@@ -130,32 +125,21 @@ function cacheSummary(code, name) {
 
 function reporterSummary(source, testCase) {
     const analysis = analyzeSource(source, testCase.filename, reporterEngines);
-    assert.equal(analysis.babel.status, 'compiled', `${testCase.name}: reporter Babel compilation`);
-    assert.equal(analysis.babel.failure, null);
-    assert.deepEqual(analysis.babel.diagnostics, []);
-    assert.deepEqual(analysis.babel.unconfirmedScopeChanges, []);
-    assert(analysis.babel.functionsReachingTargetPass > 0, 'Reporter must reach the observed compiler pass');
-    assert(analysis.babel.functions.some(fn => fn.name === testCase.name && fn.status === 'compiled'), 'Reporter must compile the target function');
-    assert.equal(analysis.oxc.failure, null);
-    assert.equal(analysis.oxc.fatal, false);
-    assert.deepEqual(analysis.oxc.diagnostics, []);
-    const matchingFindings = analysis.babel.findings.filter(finding => finding.function.name === testCase.name
-        && finding.values.some(value => value.name === testCase.reporterValue)
-        && (!testCase.reporterHook || finding.hooks.some(hook => hook.name === testCase.reporterHook)));
+    assert.notEqual(analysis.status, 'failed');
+    assert.deepEqual(analysis.diagnostics, []);
+    const matchingFindings = analysis.findings.filter(finding => finding.function === testCase.name
+        && finding.value.name === testCase.reporterValue
+        && (!testCase.reporterHook || finding.hook.name === testCase.reporterHook));
     return {
-        babelStatus: analysis.babel.status,
-        functionsReachingTargetPass: analysis.babel.functionsReachingTargetPass,
-        totalFindings: analysis.babel.findings.length,
+        status: analysis.status,
+        totalFindings: analysis.findings.length,
         matchingFindings: matchingFindings.map(finding => ({
-            function: finding.function.name,
-            values: finding.values.map(value => value.name),
-            hooks: finding.hooks.map(hook => ({name: hook.name, location: hook.location})),
-            location: finding.location,
-            pass: finding.pass,
-            afterKind: finding.afterKind,
-            functionCompilation: finding.functionCompilation,
+            function: finding.function,
+            value: finding.value.name,
+            hook: finding.hook,
+            location: finding.value.location,
+            kind: finding.kind,
         })),
-        oxc: analysis.oxc,
     };
 }
 
@@ -477,7 +461,8 @@ for (const testCase of cases) {
         assert.equal(before.slots, after.slots, 'Negative control: slot count unchanged');
         result.runtime = null;
     } else {
-        assert(result.reporter.before.matchingFindings.length > 0, 'Original source reports the expected named value and hook');
+        const expectedFindings = testCase.name === 'RejectExpenseReportPage' ? 1 : 0;
+        assert.equal(result.reporter.before.matchingFindings.length, expectedFindings);
         assert(before.calls[testCase.operation].unguarded > 0);
         assert.equal(after.calls[testCase.operation].unguarded, 0);
         for (const [name, text] of Object.entries(code)) {

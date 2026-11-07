@@ -1,38 +1,34 @@
-# Targeted memoization opportunity POC
+# OXC-only memoization opportunity POC
 
-This follows the investigation in [App issue 105956](https://github.com/Expensify/App/issues/105956). The first category-order rule can recommend harmful movements. The next step is an explanatory report tied to compiler analysis.
-
-## What the report establishes
-
-The reporter examines Babel's reference compiler immediately before and after the pass that removes memoization scopes containing hooks. It identifies the affected construction and the intervening hook, rather than recommending a generic category permutation.
-
-App uses the native OXC compiler. A Babel finding is a **candidate explanation**, not proof that the native compiler makes the same decision. The report separately compiles each file through OXC with the shared App configuration and recoverable diagnostics enabled. Successful native compilation alone does not validate a caching improvement or prove a movement safe.
-
-This first implementation is an offline development tool in `eslint-config-expensify`. It reads source files and reports opportunities; moving code still requires reviewing dependencies, possible mutations, and behavioral constraints.
-
-## Running the reporter
-
-From `eslint-config-expensify`, using Node 24.22.1 and an App checkout with installed dependencies:
+The offline reporter in `tooling/memoization` uses **only App's installed OXC React Compiler**. It finds a deliberately narrow source pattern: named construction before a hook, later direct work on the constructed value, and an unguarded matching construction in native compiler output. It does not claim to identify OXC's internal reason for leaving the value unguarded. There is no autofix or assertion that a movement is safe.
 
 ```sh
 node tooling/memoization/report.mjs --app ../App -- ../App/src/hooks/useExample.ts
-node tooling/memoization/report.mjs --app ../App --json -- ../App/src/components/Example.tsx
+node tooling/memoization/report.mjs --app ../App --json -- ../App/src/pages/Example.tsx
 ```
 
-Use actual source paths in place of the examples. The tool's compiler versions and individual file statuses are part of the result. Keep those with any finding so it can be reproduced after compiler upgrades.
+This uses the App checkout's installed `oxc-transform-react` and shared configuration; it never writes App source. The report records compiler version and per-file errors. `reportDiagnostics: true` includes recoverable diagnostics. Findings require a uniquely matched named function, an imported direct hook call, and a cache-runtime import added by OXC relative to the compiler-off transform. Files with no emitted compiler cache, unsupported patterns or ambiguous emitted names are omitted; absence of a finding does not imply optimal caching.
 
-## Reviewing a candidate
+## Actual App validation
 
-1. Read the full computation, including its later uses, captures, and mutations. A declaration is not necessarily the complete computation.
-2. Determine whether a complete construction can move without changing hook order, input availability, control flow, or observable evaluation order.
-3. Compile the original and candidate with App's native compiler. Check whether the relevant work is cached and whether unrelated inputs now invalidate it.
-4. Exercise repeated renders, independently changing inputs, and relevant effects/reference identities. Equal rendered values are only part of the behavioral check.
+Pinned source from App commit `b14f3591fad1db21c32271e79e9fe66b433fc5dc` was manually moved in memory. Native compilation and controlled React rendering compared original/candidate source and original/candidate compiled output. See [the full results and mock assumptions](./app-opportunity-results.md).
 
-An explanation can be useful even when no safe movement exists. For example, a construction used to form a hook argument and later modified using the hook's result cannot simply move wholesale across that hook.
+| App function | Native finding before → after | Controlled result |
+| --- | --- | --- |
+| `usePoliciesWithCardFeedErrors` | 0 → 0; native baseline does not expose a cache, so no compilation finding is claimed | Archive checks 27 → 18; admin checks 9 → 6 |
+| `RejectExpenseReportPage` | `options` crossing `usePersonalDetailByLogin`: 1 → 0 | Options-array constructions 8 → 5 |
+| `useWorkspaceAgentsTable` | No `policyRoles` finding: 0 → 0 | No demonstrated improvement |
 
-## Measuring analysis cost
+The two manually moved cases checked 76 renders in total, including values, hook order, reference stability, mocked effects, and page state/ref interactions. The reporter covers the page but intentionally abstains on the policies case. This is not application-level QA or a latency benchmark. Read the full computation, its later uses, potential side effects, and required hook arguments before moving anything.
 
-This analysis runs two compilers and is separate from the lightweight one-rule Oxlint benchmark. Measure it on explicit, pinned source snapshots rather than treating the earlier lint timing as its cost:
+```sh
+node --test tooling/memoization/analyze.test.mjs
+node benchmarks/component-body-order/validate-app-opportunities.mjs --app ../App
+```
+
+## Separate analysis benchmark
+
+The reporter calls the installed native compiler; it is not part of the lightweight Oxlint rule. The reproducible benchmark selects files from a pinned source snapshot and verifies that the App compiler configuration matches the pinned Git blob:
 
 ```sh
 node benchmarks/component-body-order/benchmark-opportunities.mjs \
@@ -40,29 +36,8 @@ node benchmarks/component-body-order/benchmark-opportunities.mjs \
   --limit 25 --samples 5 --output "$SCRATCH_DIR/opportunity-benchmark.json"
 ```
 
-The benchmark selects a deterministic spread of source files, includes process startup and report serialization, excludes one warmup, and records every measured sample. It verifies exact input-file coverage and deterministic report output, and records a content fingerprint for the selected corpus. It also checks that the working compiler configuration matches the Git blob at `--config-ref` (defaults to the source pin below), records its SHA-256 and compiler options, and verifies it before and after every run. This benchmark supports self-contained configurations only: configurations containing imports or requires are rejected until their dependencies can also be pinned. This is a sample measurement, not a full-repository timing or an estimate of per-keystroke editor latency.
+It records one warmup, five fresh-process timings, exact sampled files, source/configuration hashes, and compiler statuses. The output's `reportHash` includes checkout-specific paths; source and configuration hashes are portable. The sample includes a file with existing compiler diagnostics; the reporter returns exit code 1, and the benchmark records it rather than silently excluding that file.
 
-## Results from this iteration
+In the OXC-only run on 25 pinned App hook files, the median was **258 ms** across five runs (range **255–276 ms**) on Apple M5 Max / Node 24.22.1. This includes process startup, source parsing, native compilation, reporting and one existing diagnostic file. Raw samples: [opportunity-benchmark.json](./opportunity-benchmark.json). It is not a complete App scan or editor-interaction measurement.
 
-The reporter identifies both native-validated positive cases and stays quiet on the negative control:
-
-| Pinned App function | Relevant finding before → after | Controlled native result |
-| --- | --- | --- |
-| `usePoliciesWithCardFeedErrors` | `cleanPolicies` crossing `useCardFeedErrors`: 1 → 0 | Archive checks 27 → 18; admin checks 9 → 6 |
-| `RejectExpenseReportPage` | `options` crossing `usePersonalDetailByLogin`: 1 → 0 | Options-array constructions 8 → 5 |
-| `useWorkspaceAgentsTable` | No `policyRoles` finding: 0 → 0 | No demonstrated cache improvement |
-
-The positive cases compare original/candidate source and original/candidate native output using real React rendering, with controlled imported dependencies. Across 76 renders they check values, reference reuse, hook ordering, mocked effect lifecycle, and page state/ref interactions. The source movements are authored explicitly, not generated or applied by the reporter. See [the detailed evidence and assumptions](./app-opportunity-results.md).
-
-Run the evidence and reporter checks:
-
-```sh
-node --test tooling/memoization/analyze.test.mjs
-node benchmarks/component-body-order/validate-app-opportunities.mjs --app ../App
-```
-
-On the 25-file sample from App commit `b14f3591fad1db21c32271e79e9fe66b433fc5dc`, five fresh-process runs after one warmup had a **484 ms median**, with a **479–497 ms range**, on Node 24.22.1 / Apple M5 Max. Raw results and the exact selected files are in [opportunity-benchmark.json](./opportunity-benchmark.json). The sample includes ineligible/type-only files and one file with compiler diagnostics (`useNewTransactions`); the reporter returns exit code 1 for those diagnostics, and the benchmark records that status rather than silently excluding the file. These timings are not an all-clean analysis result.
-
-This first diagnostic recognizes named construction scopes with work on both sides of a hook. It suppresses ordinary hook-return scopes, which would otherwise swamp useful findings. It does not yet diagnose the separate problem of independent constructions acquiring unnecessarily broad cache dependencies. That is the next analysis extension; the existing guard-count check alone cannot cover it.
-
-The raw benchmark retains the measured checkout's absolute paths. `reportHash` verifies repeatability at those paths and is host-path-specific; use `corpusHash` and `configHash` to compare input contents across checkouts.
+**Broadened cache dependencies remain unsolved.** A guarded call can still start rerunning for unrelated input changes. The next analysis extension needs to compare the native compiler's invalidation predicates for corresponding callsites. The [research summary](./static-optimization-research.md) explains why a fixed category order is insufficient.

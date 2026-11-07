@@ -25,7 +25,7 @@ const {act, create} = requireApp('react-test-renderer');
 const {transformSync} = requireApp('oxc-transform-react');
 const esbuild = requireApp('esbuild');
 const config = requireApp(path.join(app, 'config/babel/oxcReactCompilerConfig.js'));
-const {parse} = requireApp('@babel/parser');
+const parse = requireApp('@typescript-eslint/parser').parse;
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 function compile(source, filename = 'src/hooks/useOrderingProbe.ts') {

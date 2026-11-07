@@ -100,9 +100,7 @@ const output = {
     corpusHash: fingerprint.digest('hex'),
     reportHash,
     reporterExitCode: exitCode,
-    statuses: report.files.map(file => ({
-        filename: file.filename, babel: file.babel && file.babel.status, oxc: file.oxc && file.oxc.status, failure: file.failure || null,
-    })),
+    statuses: report.files.map(file => ({filename: file.filename, status: file.status, failure: file.failure || null})),
     warmups: 1,
     samples,
     medianMs: sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle],

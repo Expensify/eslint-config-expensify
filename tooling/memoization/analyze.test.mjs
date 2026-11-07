@@ -1,179 +1,121 @@
-/* eslint-disable rulesdir/prefer-underscore-method -- Assertions inspect native arrays from the reporter. */
+/* eslint-disable rulesdir/prefer-underscore-method -- The test inspects native arrays. */
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {test as nodeTest} from 'node:test';
+import {test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {analyzeSource, loadEngines} from './analyze.mjs';
 
 const app = process.env.MEMOIZATION_APP || fileURLToPath(new URL('../../../App/', import.meta.url));
 const engines = loadEngines(app);
-const imports = `import {useEffect, useState, use} from 'react';
-import {build} from './operations';`;
-const crossing = `const a = build(x);
-    useEffect(() => {}, []);
-    a.push(1);
-    return a;`;
 
 function analyze(body) {
-    return analyzeSource(`${imports}\nexport function useProbe(x) {\n    ${body}\n}`, 'probe.ts', engines);
+    return analyzeSource(`import {useEffect} from 'react';
+import {build} from './operations';
+export function useProbe(x) { ${body} }`, 'src/hooks/useProbe.ts', engines);
 }
 
-nodeTest('reports the specific hook-crossing scope and original locations, but not the intact construction', () => {
-    const report = analyze(crossing);
-    assert.equal(report.babel.status, 'compiled');
-    assert.equal(report.babel.findings.length, 1);
-    const [finding] = report.babel.findings;
-    assert.equal(finding.function.name, 'useProbe');
-    assert.equal(finding.pass, 'FlattenScopesWithHooksOrUseHIR');
-    assert.deepEqual(finding.values.map(value => value.name), ['a']);
-    assert.deepEqual(finding.hooks.map(hook => hook.name), ['useEffect']);
-    assert.equal(finding.values[0].location.start.line, 4);
-    assert.equal(finding.hooks[0].location.start.line, 5);
-    assert.equal(finding.hooks[0].location.start.column, 4);
-    assert.equal(report.oxc.status, 'compiled-output');
-    assert.deepEqual(report.oxc.diagnostics, []);
-    assert.equal(report.oxc.memoRuntimeImportAdded, true);
-    assert.deepEqual(analyze('const a = build(x); a.push(1); useEffect(() => {}, []); return a;').babel.findings, []);
-    assert.doesNotThrow(() => JSON.stringify(report));
+test('reports an unguarded native construction spanning a hook, but not a complete one', () => {
+    const before = analyze('const a = build(x); useEffect(() => {}, []); a.push(1); return a;');
+    assert.equal(before.status, 'compiled-output');
+    assert.deepEqual(before.diagnostics, []);
+    assert.equal(before.findings.length, 1);
+    assert.equal(before.findings[0].kind, 'oxc-unguarded-hook-crossing-candidate');
+    assert.equal(before.findings[0].value.name, 'a');
+    assert.equal(before.findings[0].hook.name, 'useEffect');
+    assert.equal(before.findings[0].continuation.operation, 'push');
+    const after = analyze('useEffect(() => {}, []); const a = build(x); a.push(1); return a;');
+    assert.deepEqual(after.findings, []);
 });
 
-nodeTest('preserves TSX wrapper names and source offsets across branch mutation', () => {
-    const source = `import {memo, useEffect} from 'react';
+test('recognizes an unguarded construction even when other native caches are present', () => {
+    const result = analyze('const a = build(x); useEffect(() => {}, []); a.find(item => item); return a;');
+    assert.equal(result.status, 'compiled-output');
+    assert.equal(result.findings.length, 1);
+});
+
+test('finds arrays with a conditional push before and another push after the hook', () => {
+    const result = analyze('const a = []; if (x) { a.push(1); } useEffect(() => {}, []); a.push(2); return a;');
+    assert.equal(result.findings.length, 1);
+    assert.equal(result.findings[0].value.kind, 'ArrayExpression');
+});
+
+test('matches emitted declarations inside their owning function', () => {
+    const source = `import {useEffect} from 'react';
 import {build} from './operations';
-export const Panel = memo(({x, flag}: {x: number[], flag: boolean}) => {
-    const items = (build(x) as number[]);
-    useEffect(() => {}, []);
-    if (flag) { items.push(1); } else { items.push(2); }
-    return <div>{items.length}</div>;
-});`;
-    const result = analyzeSource(source, 'Panel.tsx', engines);
-    assert.equal(result.babel.status, 'compiled');
-    assert.equal(result.babel.findings.length, 1);
-    const [finding] = result.babel.findings;
-    assert.equal(finding.function.name, 'Panel');
-    assert.deepEqual(finding.values.map(value => value.name), ['items']);
-    const {start, end} = finding.hooks[0].location;
-    assert.equal(source.slice(start.index, end.index), 'useEffect(() => {}, [])');
-    assert.equal(start.line, 5);
-    assert.equal(result.oxc.status, 'compiled-output');
+export function useProbe(x) { const a = build(x); useEffect(() => {}, []); a.push(1); return a; }
+export function useOther(x) { const a = build(x); useEffect(() => {}, []); a.push(1); return a; }`;
+    const report = analyzeSource(source, 'src/hooks/useProbe.ts', engines);
+    assert.deepEqual(report.findings.map(finding => finding.function), ['useProbe', 'useOther']);
 });
 
-nodeTest('ignores ordinary hook-call scopes, named hook returns, and hook default wrappers', () => {
-    const source = `import {useContext, useState} from 'react';
-import {useThing, Context} from './hooks';
-export function useDirect() { const value = useThing(); return value; }
-export function useDefault() { const value = useThing() ?? []; return value; }
-export function useArguments() { const value = useThing({enabled: true}); return value; }
-export function Panel() {
-    const theme = useContext(Context);
-    const [count, setCount] = useState(0);
-    return <button onClick={() => setCount(count + 1)}>{theme.name}: {count}</button>;
-}`;
-    const result = analyzeSource(source, 'ordinary.tsx', engines);
-    assert.equal(result.babel.status, 'compiled');
-    assert.equal(result.babel.functions.length, 4);
-    assert.deepEqual(result.babel.findings, []);
-    assert.ok(result.babel.ignoredHookPrunedScopes > 0);
-    assert.equal(result.oxc.status, 'compiled-output');
+test('does not mistake object methods or caller-provided runtime imports for compiled hook evidence', () => {
+    const source = `import {useEffect} from 'react';
+import {build} from './operations';
+export function useProbe(x, obj) { const a = build(x); obj.useThing(); a.push(1); return a; }`;
+    assert.deepEqual(analyzeSource(source, 'src/hooks/useProbe.ts', engines).findings, []);
+    const importedRuntime = `import 'react/compiler-runtime';\n${source.replace('obj.useThing()', 'useEffect(() => {}, [])')}`;
+    assert.deepEqual(analyzeSource(importedRuntime, 'src/hooks/useProbe.ts', engines).findings, []);
+    const skippedFunction = `import {useEffect} from 'react';
+export function useProbe(x) { 'use no memo'; const a = build(x); useEffect(() => {}, []); a.push(1); return a; }
+export function useCompiled() { const value = []; useEffect(() => {}, []); return value; }`;
+    assert.deepEqual(analyzeSource(skippedFunction, 'src/hooks/useProbe.ts', engines).findings, []);
 });
 
-nodeTest('retains mutable default construction crossing a hook and identifies both sides', () => {
-    const result = analyze('const a = build(x) ?? []; useEffect(() => {}, []); a.push(1); return a;');
-    assert.equal(result.babel.status, 'compiled');
-    assert.equal(result.babel.findings.length, 1);
-    const [finding] = result.babel.findings;
-    assert.ok(finding.values.some(value => value.name === 'a'));
-    assert.ok(finding.constructions.some(construction => construction.instructionId < finding.hooks[0].instructionId));
-    assert.ok(finding.continuations.some(continuation => continuation.instructionId > finding.hooks[0].instructionId));
+test('a user-defined $.enabled check is not an OXC cache guard', () => {
+    const source = `import {useEffect} from 'react';
+export function useProbe(x) { const a = build(x); useEffect(() => {}, []); a.push(1); return a; }`;
+    const fake = {
+        config: () => ({}),
+        oxc: {
+            transformSync(filename, text, options) {
+                return {
+                    fatal: false,
+                    errors: [],
+                    code: options.reactCompiler
+                        ? `import {c as _c} from 'react/compiler-runtime'; export function useProbe(x) {
+                        const $ = _c(2);
+                        if ($.enabled) { const a = build(x); useEffect(() => {}, []); a.push(1); return a; }
+                    }`
+                        : text,
+                };
+            },
+        },
+    };
+    const report = analyzeSource(source, 'src/hooks/useProbe.ts', fake);
+    assert.equal(report.findings.length, 1);
 });
 
-nodeTest('keeps function-local scope IDs separate and does not attribute callback contents to render', () => {
-    const source = `${imports}
-export function useFirst(x) { ${crossing} }
-export function useSecond(x) { ${crossing.replaceAll('a', 'items')} }
-export function useCallbackOnly(x) {
-    const callback = () => { const items = build(x); items.push(1); return items; };
-    useEffect(() => {}, []);
-    return callback;
-}`;
-    const report = analyzeSource(source, 'nested.js', engines);
-    assert.equal(report.babel.status, 'compiled');
-    assert.deepEqual(report.babel.findings.map(finding => finding.function.name), ['useFirst', 'useSecond']);
-    assert.deepEqual(report.babel.findings.map(finding => finding.values[0].name), ['a', 'items']);
+test('rejects ineligible, invalid, conditional-hook, and unsupported source patterns', () => {
+    assert.deepEqual(analyze('const a = build(x); a.push(1); useEffect(() => {}, []); return a;').findings, []);
+    assert.deepEqual(analyze('const [a] = useState(x); useEffect(() => {}, []); return a;').findings, []);
+    assert.deepEqual(analyze('const a = build(x); useEffect(() => {}, []); return a;').findings, []);
+    assert.equal(analyze('const a = build(x); if (x) { useEffect(() => {}, []); } a.push(1); return a;').status, 'diagnostics');
+    assert.equal(analyzeSource('export function {', 'invalid.js', engines).status, 'failed');
+    assert.throws(() => analyzeSource('', 'invalid.json', engines), /Unsupported/);
 });
 
-nodeTest('does not report opt-out debug IR as a compiled opportunity', () => {
-    const result = analyze(`'use no memo'; ${crossing}`);
-    assert.equal(result.babel.status, 'skipped-or-ineligible');
-    assert.ok(result.babel.diagnostics.some(diagnostic => diagnostic.kind === 'CompileSkip'));
-    assert.deepEqual(result.babel.findings, []);
-    assert.ok(result.babel.unconfirmedScopeChanges.length > 0);
-    assert.equal(result.oxc.memoRuntimeImportAdded, false);
-    assert.equal(result.oxc.status, 'unchanged');
-});
-
-nodeTest('surfaces recoverable compiler bailouts independently from both engines', () => {
-    const result = analyze('const a = build(x); if (x.length) { useEffect(() => {}, []); } a.push(1); return a;');
-    assert.equal(result.babel.status, 'diagnostics');
-    assert.ok(result.babel.diagnostics.some(diagnostic => diagnostic.kind === 'CompileError'));
-    assert.deepEqual(result.babel.findings, []);
-    assert.equal(result.oxc.status, 'diagnostics');
-    assert.ok(result.oxc.diagnostics.length > 0);
-    assert.equal(result.oxc.fatal, false);
-});
-
-nodeTest('does not conflate loop pruning or nested hook errors with hook-crossing evidence', () => {
-    assert.deepEqual(analyze('const a = build(x); for (const v of x) { a.push(v); } useEffect(() => {}, []); return a;').babel.findings, []);
-    const invalid = analyze('const callback = () => { useEffect(() => {}, []); }; useEffect(() => {}, []); return callback;');
-    assert.equal(invalid.babel.status, 'diagnostics');
-    assert.deepEqual(invalid.babel.findings, []);
-});
-
-nodeTest('recognizes hook dependencies and use without promising a legal movement', () => {
-    const dependent = analyze('const a = build(x); const [count] = useState(a.length); a.push(count); return a;');
-    assert.deepEqual(dependent.babel.findings[0].hooks.map(hook => hook.kind), ['useState']);
-    const useResult = analyze('"use memo"; const a = build(x); const value = use(x); a.push(value); return a;');
-    assert.equal(useResult.babel.status, 'compiled');
-    assert.deepEqual(useResult.babel.findings[0].hooks.map(hook => hook.kind), ['use']);
-});
-
-nodeTest('returns both parse failures and handles explicitly ineligible JavaScript', () => {
-    const broken = analyzeSource('export function {', 'broken.js', engines);
-    assert.equal(broken.babel.status, 'failed');
-    assert.equal(broken.oxc.status, 'failed');
-    const plain = analyzeSource('export const value = 1;', 'plain.js', engines);
-    assert.equal(plain.babel.status, 'skipped-or-ineligible');
-    assert.equal(plain.oxc.status, 'unchanged');
-    assert.deepEqual(plain.babel.findings, []);
-    assert.throws(() => analyzeSource('', 'not-source.json', engines), /Unsupported input extension/);
-});
-
-nodeTest('CLI emits deterministic JSON, reads without changing inputs, and reports missing files', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'memoization-test-'));
+test('CLI emits deterministic native-only JSON, preserves inputs, and reports errors', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'memoization-oxc-test-'));
     try {
-        const first = path.join(directory, 'a.ts');
-        const second = path.join(directory, 'b.jsx');
-        const text = `${imports}\nexport function useProbe(x) { ${crossing} }`;
-        fs.writeFileSync(first, text);
-        fs.writeFileSync(second, text);
+        const filename = path.join(directory, 'useProbe.ts');
+        const source = 'import {useEffect} from "react"; export function useProbe(x) { const a = []; useEffect(() => {}, []); a.push(x); return a; }';
+        fs.writeFileSync(filename, source);
         const cli = fileURLToPath(new URL('./report.mjs', import.meta.url));
-        const run = (...files) => spawnSync(process.execPath, [cli, '--app', app, '--json', '--', ...files], {encoding: 'utf8'});
-        const result = run(second, first, first);
-        assert.equal(result.status, 0, result.stderr);
-        const report = JSON.parse(result.stdout);
-        assert.equal(report.versions.babelCompiler, '1.0.0');
+        const run = input => spawnSync(process.execPath, [cli, '--app', app, '--json', '--', input], {encoding: 'utf8'});
+        const first = run(filename);
+        assert.equal(first.status, 0, first.stderr);
+        const report = JSON.parse(first.stdout);
         assert.equal(report.versions.oxc, engines.versions.oxc);
-        assert.deepEqual(report.files.map(file => file.filename), [first, second]);
-        assert.equal(result.stdout, run(first, second).stdout);
-        assert.equal(fs.readFileSync(first, 'utf8'), text);
-        assert.equal(fs.readFileSync(second, 'utf8'), text);
-        const failed = run(path.join(directory, 'missing.ts'));
-        assert.equal(failed.status, 1);
-        assert.match(JSON.parse(failed.stdout).files[0].failure, /ENOENT/);
+        assert.deepEqual(Object.keys(report.versions).sort(), ['node', 'oxc']);
+        assert.equal(report.files[0].filename, filename);
+        assert.equal(first.stdout, run(filename).stdout);
+        assert.equal(fs.readFileSync(filename, 'utf8'), source);
+        assert.equal(run(path.join(directory, 'missing.ts')).status, 1);
     } finally {
-        fs.rmSync(directory, {recursive: true, force: true});
+        fs.unlinkSync(path.join(directory, 'useProbe.ts'));
+        fs.rmdirSync(directory);
     }
 });

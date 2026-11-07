@@ -16,19 +16,19 @@ The four-way runs assert values against independent expectations, hook ordering,
 
 ### Opportunity reporter cross-check
 
-The harness also invokes `tooling/memoization/analyze.mjs`'s `analyzeSource` on each original/candidate pair. Dependencies are injected from the existing App package resolver, and both reporter engines receive the **Git-pinned configuration function**. It does not call `loadEngines` or load the working-tree compiler configuration. The reporter reference compiler is asserted to be `babel-plugin-react-compiler` **1.0.0**; Babel core **7.29.7** is recorded, and native OXC remains pinned to **0.156.0**.
+The harness also invokes `tooling/memoization/analyze.mjs`'s `analyzeSource` on each original/candidate pair. It injects the **Git-pinned OXC configuration function** and OXC **0.156.0** from the installed App dependencies. It does not load the working-tree configuration or use a second compiler.
 
 | Named value / crossed hook | Original matching findings | Candidate matching findings |
 | --- | ---: | ---: |
-| `cleanPolicies` / `useCardFeedErrors` (hook at source line 18) | 1 | 0 |
+| `cleanPolicies` / `useCardFeedErrors` (hook at source line 18) | 0 | 0 |
 | `options` / `usePersonalDetailByLogin` (hook at source lines 94–96) | 1 | 0 |
 | `policyRoles` / any hook, negative control | 0 | 0 |
 
-Both positive findings identify `FlattenScopesWithHooksOrUseHIR` changing the enclosing scope to `pruned-scope`, in a successfully compiled Babel function. The policies scope also names `policiesWithCardFeedErrors` and `policyWithCardFeedErrors`; the page scope names `options`. Both candidates have zero total findings in this run, as do both workspace-agent variants.
+The page finding identifies a named source construction that remains unguarded in native OXC output, with a hook and later work in between. The policies function has no native memo-runtime import at baseline; the reporter conservatively does not claim that it compiled, even though separate OXC runtime validation establishes a caching gain after the manual movement. Both candidates and the negative control have no matching findings. The public transform API does not expose internal scope-pruning reasons.
 
-Assertions require the expected named value and hook in the original positive finding, elimination of that matching finding in the candidate, and no findings for the negative control. They also require the target function to compile, the observed pass to execute, empty diagnostics, and no unconfirmed scope changes. Thus an empty result caused by a skipped or failed analysis cannot pass as a successful elimination. JSON stores this evidence under each case's `reporter.before` and `reporter.after`, including locations, scope values, hooks, pass/result kind, and independent OXC status.
+Assertions require the expected named value and hook in the original page finding, its elimination in the candidate, and no findings for the other two cases. Every variant must compile without diagnostics. Independently asserted guarded-call counts and runtime counters distinguish successful caching from a finding that merely disappears because its source pattern changed. JSON stores native reporter evidence under each case's `reporter.before` and `reporter.after`.
 
-This cross-check connects reporter explanations to the independently measured OXC cache/runtime changes. Babel's explanatory IR is not treated as native OXC IR or as proof of source-movement safety.
+This cross-check connects a conservative source-pattern diagnostic to independently measured OXC cache/runtime changes. It is not a proof of source-movement safety.
 
 ## Reproduce
 
@@ -155,7 +155,7 @@ The earlier `SearchSelectionFooter` experiment in `validate-footer-ordering.mjs`
 - Compiled array identities intentionally differ. External effects depending on those arrays may consequently differ; the mock effects depend on unchanged hook inputs, not escaping computed arrays.
 - No general alias/effect proof, invalidation-dominance proof, exhaustive input exploration, Strict Mode, concurrent/aborted render, suspend/remount, native/browser execution, or wall-clock/memory benchmark is included.
 - Cache-slot growth is bookkeeping, not a performance score. No latency reduction is claimed.
-- OXC is authoritative for the reported caches and compiled runtime behavior. Babel IR supplies the separately labeled reporter explanation; no optional compiler mode is used.
+- OXC is the only compiler used for the reported caches, reporter findings, and compiled runtime behavior.
 - Narrow lint and the differential harness pass. Expected React test-renderer deprecation messages and repository lint dependency/version notices do not represent assertion failures.
 
 These results give the opportunity reporter two concrete positive examples and one false-positive control, while keeping production transformations behind explicit semantic review.

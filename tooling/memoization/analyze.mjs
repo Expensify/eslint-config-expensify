@@ -1,334 +1,262 @@
-/* eslint-disable rulesdir/prefer-underscore-method -- Compiler IR uses native Maps and Sets. */
-/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators -- This offline tool requires Node 24. */
+/* eslint-disable rulesdir/prefer-underscore-method -- Offline AST analysis uses native collection methods. */
+/* eslint-disable es/no-optional-chaining -- This offline tool requires Node 24. */
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import parser from '@typescript-eslint/parser';
 
-const BEFORE_PASS = 'FlattenReactiveLoopsHIR';
-const TARGET_PASS = 'FlattenScopesWithHooksOrUseHIR';
 const SUPPORTED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx']);
-const CONSTRUCTION_KINDS = new Set(['ArrayExpression', 'ObjectExpression', 'NewExpression', 'CallExpression', 'MethodCall']);
-const CONTINUATION_KINDS = new Set(['CallExpression', 'MethodCall', 'PropertyStore', 'ComputedStore']);
+const WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion', 'ChainExpression']);
+const MUTATORS = new Set(['push', 'unshift', 'splice', 'sort', 'reverse', 'add', 'set']);
 
-function location(loc) {
-    if (!loc || typeof loc !== 'object' || !loc.start || !loc.end) {
-        return null;
+function unwrap(node) {
+    let value = node;
+    while (value && WRAPPERS.has(value.type)) {
+        value = value.expression;
     }
-    const point = ({line, column, index}) => ({line, column, ...(index === undefined ? {} : {index})});
-    return {start: point(loc.start), end: point(loc.end)};
+    return value;
 }
 
-function locationKey(loc) {
-    return loc ? `${loc.start.line}:${loc.start.column}-${loc.end.line}:${loc.end.column}` : 'unknown';
+function location(node) {
+    return {line: node.loc.start.line, column: node.loc.start.column};
 }
 
-function sourceText(source, loc) {
-    return Number.isInteger(loc?.start?.index) && Number.isInteger(loc?.end?.index)
-        ? source.slice(loc.start.index, loc.end.index)
-        : null;
-}
-
-// Stop at places and nested functions: neither identifier graphs nor nested bodies belong to this instruction.
-function visitPlaces(value, visit, seen = new Set()) {
-    if (!value || typeof value !== 'object' || seen.has(value)) {
+function visit(node, visitor, insideFunction = false) {
+    if (!node || typeof node !== 'object' || typeof node.type !== 'string') {
         return;
     }
-    seen.add(value);
-    if (value.identifier) {
-        visit(value.identifier);
+    if (insideFunction && /Function|ArrowFunctionExpression/.test(node.type)) {
         return;
     }
-    for (const [key, child] of Object.entries(value)) {
-        if (key === 'func' || key === 'loc') {
+    visitor(node);
+    for (const [key, value] of Object.entries(node)) {
+        if (key === 'parent' || key === 'loc' || key === 'range' || key === 'tokens') {
             continue;
         }
-        visitPlaces(child, visit, seen);
+        if (Array.isArray(value)) {
+            for (const child of value) {
+                visit(child, visitor, insideFunction);
+            }
+        } else {
+            visit(value, visitor, insideFunction);
+        }
     }
 }
 
-function getHook(fn, instruction, source) {
-    const {value} = instruction;
-    if (value.kind !== 'CallExpression' && value.kind !== 'MethodCall') {
-        return null;
+function callName(node) {
+    const callee = unwrap(node?.callee);
+    if (callee?.type === 'Identifier') {
+        return callee.name;
     }
-    const callee = value.kind === 'MethodCall' ? value.property : value.callee;
-    const {type} = callee.identifier;
-    if (type.kind !== 'Function') {
-        return null;
+    if (callee?.type === 'MemberExpression' && !callee.computed && callee.property.type === 'Identifier') {
+        return callee.property.name;
     }
-    const kind = type.shapeId === 'BuiltInUseOperator' ? 'use' : fn.env.getFunctionSignature(type)?.hookKind;
-    return kind ? {
-        name: sourceText(source, callee.loc) ?? kind, kind, location: location(instruction.loc), instructionId: instruction.id,
-    } : null;
+    return null;
 }
 
-function snapshot(fn, source, functionNames) {
-    const scopes = new Map();
-    for (const block of fn.body.blocks.values()) {
-        const {terminal} = block;
-        if (terminal.kind !== 'scope') {
+function hookIn(statement, importedHooks) {
+    const init = unwrap(statement.type === 'VariableDeclaration' ? statement.declarations[0]?.init : statement.expression);
+    if (init?.type !== 'CallExpression') {
+        return null;
+    }
+    const name = callName(init);
+    const callee = unwrap(init.callee);
+    if (callee.type !== 'Identifier' || !importedHooks.has(callee.name)) {
+        return null;
+    }
+    return name === 'use' || /^use[A-Z0-9]/.test(name || '') ? {name, location: location(init)} : null;
+}
+
+function construction(statement, importedHooks) {
+    if (statement.type !== 'VariableDeclaration' || statement.declarations.length !== 1) {
+        return null;
+    }
+    const {id, init} = statement.declarations[0];
+    const value = unwrap(init);
+    if (id.type !== 'Identifier' || !value || !['ArrayExpression', 'ObjectExpression', 'CallExpression', 'NewExpression'].includes(value.type)
+        || (value.type === 'CallExpression' && hookIn(statement, importedHooks))) {
+        return null;
+    }
+    return {
+        name: id.name, kind: value.type, location: location(statement), range: statement.range,
+    };
+}
+
+function continuation(statement, name) {
+    let found = null;
+    visit(statement, (node) => {
+        if (found || node.type !== 'CallExpression' || node.callee.type !== 'MemberExpression'
+            || node.callee.object.type !== 'Identifier' || node.callee.object.name !== name || node.callee.computed) {
+            return;
+        }
+        if (MUTATORS.has(node.callee.property.name) || node.callee.property.name === 'find' || node.callee.property.name === 'filter') {
+            found = {operation: node.callee.property.name, location: location(node)};
+        }
+    }, true);
+    return found;
+}
+
+function sourceCandidates(ast) {
+    const candidates = [];
+    const importedHooks = new Set();
+    for (const statement of ast.body) {
+        if (statement.type !== 'ImportDeclaration') {
             continue;
         }
-        scopes.set(terminal.scope.id, {
-            scopeId: terminal.scope.id,
-            blockId: block.id,
-            fallthrough: terminal.fallthrough,
-            location: location(terminal.scope.loc),
-            instructionRange: {...terminal.scope.range},
-            values: [],
-            hooks: [],
-            constructions: [],
-            continuations: [],
-            bindings: [],
-        });
+        const moduleName = statement.source.value;
+        for (const specifier of statement.specifiers) {
+            if ((moduleName === 'react' || /(?:^|\/)use[A-Z0-9]/.test(moduleName))
+                && (specifier.local.name === 'use' || /^use[A-Z0-9]/.test(specifier.local.name))) {
+                importedHooks.add(specifier.local.name);
+            }
+        }
     }
-    let active = [];
-    const hookResults = new Set();
-    for (const block of fn.body.blocks.values()) {
-        active = active.filter(scope => scope.fallthrough !== block.id);
-        for (const instruction of block.instructions) {
-            const hook = getHook(fn, instruction, source);
-            const {value} = instruction;
-            if (hook || (value.kind === 'LoadLocal' && hookResults.has(value.place.identifier.id))) {
-                hookResults.add(instruction.lvalue.identifier.id);
-            }
-            if (value.kind === 'StoreLocal') {
-                const identifier = value.lvalue.place.identifier;
-                if (hookResults.has(value.value.identifier.id)) {
-                    hookResults.add(identifier.id);
-                } else if (identifier.name?.kind === 'named') {
-                    scopes.get(identifier.scope?.id)?.bindings.push({name: identifier.name.value, instructionId: instruction.id});
-                }
-            }
-            const referencedScopes = new Set();
-            visitPlaces(instruction, (identifier) => {
-                const scope = scopes.get(identifier.scope?.id);
-                if (!scope) {
-                    return;
-                }
-                referencedScopes.add(scope);
-                if (identifier.name?.kind !== 'named' || scope.values.some(scopedValue => scopedValue.declarationId === identifier.declarationId)) {
-                    return;
-                }
-                scope.values.push({name: identifier.name.value, declarationId: identifier.declarationId, location: location(identifier.loc)});
-            });
-            if (hook) {
-                for (const scope of active) {
-                    scope.hooks.push(hook);
-                }
+    visit(ast, (node) => {
+        if (!['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type)
+            || !node.id || node.id.type !== 'Identifier' || node.body.type !== 'BlockStatement') {
+            return;
+        }
+        const statements = node.body.body;
+        for (let index = 0; index < statements.length; index++) {
+            const value = construction(statements[index], importedHooks);
+            if (!value) {
                 continue;
             }
-            const ownScope = scopes.get(instruction.lvalue?.identifier.scope?.id);
-            if (ownScope && CONSTRUCTION_KINDS.has(instruction.value.kind)) {
-                ownScope.constructions.push({instructionId: instruction.id, kind: instruction.value.kind, location: location(instruction.loc)});
-            }
-            if (CONTINUATION_KINDS.has(instruction.value.kind)) {
-                for (const scope of referencedScopes) {
-                    scope.continuations.push({instructionId: instruction.id, kind: instruction.value.kind, location: location(instruction.loc)});
+            for (let hookIndex = index + 1; hookIndex < statements.length; hookIndex++) {
+                const hook = hookIn(statements[hookIndex], importedHooks);
+                if (!hook) {
+                    continue;
                 }
+                for (let lastIndex = hookIndex + 1; lastIndex < statements.length; lastIndex++) {
+                    const work = continuation(statements[lastIndex], value.name);
+                    if (work) {
+                        candidates.push({
+                            function: node.id.name, value, hook, continuation: work,
+                        });
+                        break;
+                    }
+                }
+                break;
             }
         }
-        if (block.terminal.kind === 'scope') {
-            active.push(scopes.get(block.terminal.scope.id));
-        }
-    }
-    return {
-        function: {name: fn.id ?? fn.nameHint ?? functionNames.get(locationKey(fn.loc)) ?? '<anonymous>', location: location(fn.loc)},
-        scopes: [...scopes.values()],
-    };
-}
-
-// Require non-hook construction and subsequent scoped work on opposite sides of an enclosed hook.
-// Binding stores and destructuring hook returns alone are not construction continuations.
-function hasConstructionCrossing(scope) {
-    return scope.hooks.some(hook => scope.bindings.some(binding => binding.instructionId < hook.instructionId)
-        && scope.constructions.some(construction => construction.instructionId < hook.instructionId)
-        && scope.continuations.some(continuation => continuation.instructionId > hook.instructionId));
-}
-
-function parserPlugins(filename) {
-    const ext = path.extname(filename);
-    return [...(ext === '.ts' || ext === '.tsx' ? ['typescript'] : []), ...(ext === '.ts' ? [] : ['jsx'])];
-}
-
-function collectFunctionNames(ast, babel) {
-    const names = new Map();
-    babel.traverse(ast, {
-        Function(functionPath) {
-            let name = functionPath.node.id?.name;
-            let parent = functionPath.parentPath;
-            while (!name && parent && !parent.isFunction() && !parent.isStatement()) {
-                if (parent.isVariableDeclarator() && parent.node.id.type === 'Identifier') {
-                    name = parent.node.id.name;
-                }
-                parent = parent.parentPath;
-            }
-            if (name) {
-                names.set(locationKey(functionPath.node.loc), name);
-            }
-        },
     });
-    return names;
+    return candidates;
 }
 
-function analyzeBabel(source, filename, engines) {
-    const findings = [];
-    const diagnostics = [];
+function cacheGuard(node) {
+    let found = false;
+    visit(node.test, (part) => {
+        if (part.type !== 'MemberExpression' || part.object.type !== 'Identifier' || part.object.name !== '$'
+            || !part.computed || part.property.type !== 'Literal' || !Number.isInteger(part.property.value)) {
+            return;
+        }
+        found = true;
+    });
+    return found;
+}
+
+function emittedConstructions(ast, functionName, name) {
+    const matches = [];
     const functions = [];
-    const pending = new WeakMap();
-    const passed = new Set();
-    const succeeded = new Set();
-    let ignoredHookPrunedScopes = 0;
-    let failure = null;
-    try {
-        const options = {
-            filename, babelrc: false, configFile: false, parserOpts: {plugins: parserPlugins(filename)},
-        };
-        const ast = engines.babel.parseSync(source, options);
-        const functionNames = collectFunctionNames(ast, engines.babel);
-        engines.babel.transformFromAstSync(ast, source, {
-            ...options,
-            plugins: [[engines.babelCompiler, {
-                ...engines.config(),
-                logger: {
-                    logEvent(file, event) {
-                        if (event.kind === 'CompileSuccess') {
-                            succeeded.add(locationKey(event.fnLoc));
-                            functions.push({status: 'compiled', location: location(event.fnLoc), name: event.fnName ?? functionNames.get(locationKey(event.fnLoc)) ?? null});
-                            return;
-                        }
-                        const detail = event.detail;
-                        diagnostics.push({kind: event.kind, reason: detail?.reason ?? event.reason ?? event.data ?? null, location: location(detail?.loc ?? event.fnLoc)});
-                    },
-                    debugLogIRs(event) {
-                        if (event.kind !== 'hir') {
-                            return;
-                        }
-                        if (event.name === BEFORE_PASS) {
-                            pending.set(event.value, snapshot(event.value, source, functionNames));
-                            return;
-                        }
-                        if (event.name !== TARGET_PASS) {
-                            return;
-                        }
-                        const before = pending.get(event.value);
-                        if (!before) {
-                            throw new Error('Missing pre-pass HIR snapshot');
-                        }
-                        passed.add(locationKey(before.function.location));
-                        for (const scope of before.scopes) {
-                            const after = event.value.body.blocks.get(scope.blockId)?.terminal;
-                            if (after?.kind !== 'pruned-scope' && after?.kind !== 'label') {
-                                continue;
-                            }
-                            if (scope.hooks.length === 0) {
-                                throw new Error('Hook-flattened scope has no identified enclosed hook');
-                            }
-                            if (!hasConstructionCrossing(scope)) {
-                                ignoredHookPrunedScopes += 1;
-                                continue;
-                            }
-                            const {fallthrough, ...summary} = scope;
-                            findings.push({
-                                kind: 'babel-reference-hook-crossing', pass: TARGET_PASS, function: before.function, ...summary, afterKind: after.kind,
-                            });
-                        }
-                    },
-                },
-            }]],
-        });
-    } catch (error) {
-        failure = error.message;
-    }
-    for (const finding of findings) {
-        finding.functionCompilation = succeeded.has(locationKey(finding.function.location)) ? 'compiled' : 'not-confirmed';
-    }
-    let status = succeeded.size ? 'compiled' : 'skipped-or-ineligible';
-    if (diagnostics.some(event => event.kind === 'CompileError' || event.kind === 'CompileDiagnostic')) {
-        status = 'diagnostics';
-    }
-    if (failure || diagnostics.some(event => event.kind === 'PipelineError')) {
-        status = 'failed';
-    }
-    return {
-        status,
-        failure,
-        diagnostics,
-        functions,
-        functionsReachingTargetPass: passed.size,
-        ignoredHookPrunedScopes,
-        findings: findings.filter(finding => finding.functionCompilation === 'compiled'),
-        unconfirmedScopeChanges: findings.filter(finding => finding.functionCompilation !== 'compiled'),
-    };
-}
-
-function runtimeImports(code, filename, babel) {
-    const ast = babel.parseSync(code, {
-        filename, babelrc: false, configFile: false, parserOpts: {plugins: parserPlugins(filename)},
+    visit(ast, (node) => {
+        if (node.type !== 'FunctionDeclaration' || node.id?.name !== functionName) {
+            return;
+        }
+        functions.push(node);
     });
-    return ast.program.body.filter(node => node.type === 'ImportDeclaration' && node.source.value === 'react/compiler-runtime').length;
-}
-
-function analyzeOxc(source, filename, engines) {
-    try {
-        const ext = path.extname(filename);
-        const lang = {'.ts': 'ts', '.tsx': 'tsx'}[ext] ?? 'jsx';
-        const result = engines.oxc.transformSync(filename, source, {lang, reactCompiler: {...engines.config(), reportDiagnostics: true}});
-        const diagnostics = (result.errors ?? []).map(error => ({message: error.message, severity: error.severity, labels: error.labels ?? []}));
-        if (result.fatal) {
-            return {
-                status: 'failed', fatal: true, diagnostics, failure: null,
-            };
-        }
-        const plain = engines.oxc.transformSync(filename, source, {lang, reactCompiler: false});
-        if (plain.fatal || plain.errors?.length) {
-            throw new Error('OXC control transform failed');
-        }
-        const outputChanged = result.code !== plain.code;
-        let status = outputChanged ? 'compiled-output' : 'unchanged';
-        if (diagnostics.length) {
-            status = 'diagnostics';
-        }
-        return {
-            status,
-            fatal: false,
-            diagnostics,
-            failure: null,
-            outputChanged,
-            memoRuntimeImportAdded: runtimeImports(result.code, filename, engines.babel) > runtimeImports(plain.code, filename, engines.babel),
-        };
-    } catch (error) {
-        return {status: 'failed', failure: error.message, diagnostics: []};
+    if (functions.length !== 1) {
+        return matches;
     }
+    const hasNativeCache = functions[0].body.body.some(statement => statement.type === 'VariableDeclaration'
+        && statement.declarations.some(declaration => declaration.init?.type === 'CallExpression'
+            && declaration.init.callee.type === 'Identifier' && declaration.init.callee.name === '_c'));
+    if (!hasNativeCache) {
+        return matches;
+    }
+    function walk(node, guarded = false) {
+        if (!node || typeof node !== 'object' || !node.type) {
+            return;
+        }
+        if (node !== functions[0] && ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type)) {
+            return;
+        }
+        if (node.type === 'IfStatement' && cacheGuard(node)) {
+            walk(node.test, guarded);
+            walk(node.consequent, true);
+            walk(node.alternate, guarded);
+            return;
+        }
+        if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && node.id.name === name && node.init) {
+            matches.push({guarded, kind: unwrap(node.init).type});
+        }
+        for (const [key, value] of Object.entries(node)) {
+            if (key === 'loc' || key === 'range' || key === 'parent') {
+                continue;
+            }
+            for (const child of Array.isArray(value) ? value : [value]) {
+                walk(child, guarded);
+            }
+        }
+    }
+    walk(functions[0]);
+    return matches;
 }
 
 function loadEngines(appDirectory) {
     const app = path.resolve(appDirectory);
     const requireApp = createRequire(path.join(app, 'package.json'));
-    const versions = {
-        node: process.versions.node,
-        babel: requireApp('@babel/core/package.json').version,
-        babelCompiler: requireApp('babel-plugin-react-compiler/package.json').version,
-        oxc: requireApp('oxc-transform-react/package.json').version,
-    };
-    if (versions.babelCompiler !== '1.0.0') {
-        throw new Error(`Expected Babel reference compiler 1.0.0; found ${versions.babelCompiler}. The HIR adapter is version-specific.`);
-    }
     return {
-        versions,
+        versions: {node: process.versions.node, oxc: requireApp('oxc-transform-react/package.json').version},
         configPath: path.join(app, 'config/babel/oxcReactCompilerConfig.js'),
-        babel: requireApp('@babel/core'),
-        babelCompiler: requireApp('babel-plugin-react-compiler'),
         oxc: requireApp('oxc-transform-react'),
         config: requireApp(path.join(app, 'config/babel/oxcReactCompilerConfig.js')),
     };
 }
 
 function analyzeSource(source, filename, engines) {
-    if (!SUPPORTED_EXTENSIONS.has(path.extname(filename))) {
+    const ext = path.extname(filename);
+    if (!SUPPORTED_EXTENSIONS.has(ext)) {
         throw new Error(`Unsupported input extension: ${filename}`);
     }
-    return {filename, babel: analyzeBabel(source, filename, engines), oxc: analyzeOxc(source, filename, engines)};
+    try {
+        const lang = {
+            '.ts': 'ts', '.tsx': 'tsx', '.jsx': 'jsx', '.js': 'js',
+        }[ext];
+        const transformed = engines.oxc.transformSync(filename, source, {lang, reactCompiler: {...engines.config(), reportDiagnostics: true}});
+        const diagnostics = (transformed.errors || []).map(error => ({message: error.message, severity: error.severity, labels: error.labels || []}));
+        if (transformed.fatal) {
+            return {
+                filename, status: 'failed', diagnostics, findings: [],
+            };
+        }
+        const plain = engines.oxc.transformSync(filename, source, {lang, reactCompiler: false});
+        if (plain.fatal || plain.errors?.length) {
+            throw new Error('OXC control transform failed');
+        }
+        const compiled = !plain.code.includes('react/compiler-runtime') && transformed.code.includes('react/compiler-runtime');
+        let status = compiled ? 'compiled-output' : 'unchanged';
+        if (diagnostics.length) {
+            status = 'diagnostics';
+        }
+        const findings = [];
+        if (status === 'compiled-output') {
+            const original = parser.parse(source, {loc: true, range: true, jsx: ext !== '.ts'});
+            const emitted = parser.parse(transformed.code, {loc: true, range: true, jsx: true});
+            for (const candidate of sourceCandidates(original)) {
+                const matches = emittedConstructions(emitted, candidate.function, candidate.value.name);
+                if (matches.length === 1 && !matches[0].guarded && matches[0].kind === candidate.value.kind) {
+                    findings.push({kind: 'oxc-unguarded-hook-crossing-candidate', ...candidate});
+                }
+            }
+        }
+        return {
+            filename, status, diagnostics, findings,
+        };
+    } catch (error) {
+        return {
+            filename, status: 'failed', diagnostics: [], findings: [], failure: error.message,
+        };
+    }
 }
 
 function analyzeFiles(filenames, engines) {
@@ -336,7 +264,9 @@ function analyzeFiles(filenames, engines) {
         try {
             return analyzeSource(fs.readFileSync(filename, 'utf8'), filename, engines);
         } catch (error) {
-            return {filename, failure: error.message};
+            return {
+                filename, status: 'failed', diagnostics: [], findings: [], failure: error.message,
+            };
         }
     });
 }

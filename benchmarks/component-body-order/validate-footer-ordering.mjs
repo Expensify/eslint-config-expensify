@@ -27,7 +27,7 @@ function callName(node) {
 
 function collectCompiledCalls(code, parse, functionName) {
     const ast = parse(code, {sourceType: 'module'});
-    const component = ast.program.body.map(node => (node.type === 'ExportDefaultDeclaration' ? node.declaration : node))
+    const component = (ast.program || ast).body.map(node => (node.type === 'ExportDefaultDeclaration' ? node.declaration : node))
         .find(node => node.type === 'FunctionDeclaration' && node.id.name === functionName);
     assert.ok(component, `Compiled function not found: ${functionName}`);
     const calls = {};
@@ -67,7 +67,7 @@ function collectCompiledCalls(code, parse, functionName) {
 }
 
 function validateFooterOrdering({app, requireApp, compile}) {
-    const {parse} = requireApp('@babel/parser');
+    const parse = requireApp('@typescript-eslint/parser').parse;
     const source = execFileSync('git', ['show', `${base}:${filename}`], {cwd: app, encoding: 'utf8'});
     function move(sourceText, startMarker, endMarker, beforeMarker) {
         const start = sourceText.indexOf(startMarker);
