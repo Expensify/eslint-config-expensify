@@ -4,6 +4,8 @@ Tracks [App issue 105956](https://github.com/Expensify/App/issues/105956).
 
 ## Outcome
 
+**Targeted follow-up POC:** [Compiler-backed opportunity reporter and real App validation](./opportunity-poc.md).
+
 **Follow-up research:** [Static optimization investigation](./static-optimization-research.md) includes 190 fixture/engine combinations and a proposed dependency/effect-aware direction. It demonstrates that the category-order rule can recommend a memoization regression; intact construction regions, invalidation precision, and demand matter more than category rank.
 
 Ordering can improve compiler caching, but **not reliably as a general rule**. Runtime tests show an allocation/mutation chain improving from six executions to one, an already-cached control staying unchanged, and a normal handler/effect ordering change staying unchanged. Splitting the allocation/mutation chain has the inverse effect. The pinned real footer experiment adds two small call guards but does not cache its four totals reducers. See [validation-results.md](./validation-results.md) for evidence and limitations.
