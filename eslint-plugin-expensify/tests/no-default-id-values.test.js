@@ -1,4 +1,5 @@
 import {RuleTester} from 'eslint';
+import _ from 'underscore';
 import * as rule from '../no-default-id-values.js';
 
 const ruleTester = new RuleTester({
@@ -7,6 +8,18 @@ const ruleTester = new RuleTester({
         sourceType: 'module',
     },
 });
+
+const numberDefaults = [
+    'ID ?? -1', 'id ?? -1', 'ID ?? 0', 'id ?? 0',
+    'ID || -1', 'id || -1', 'ID || 0', 'id || 0',
+    'ID : -1', 'id : -1', 'ID : 0', 'id : 0',
+];
+const stringDefaults = [
+    " ?? '-1'", "ID ?? ''", "id ?? ''", "ID ?? '0'", "id ?? '0'",
+    " || '-1'", "ID || ''", "id || ''", "ID || '0'", "id || '0'",
+    " : '-1'", " : '0'", 'CONST.DEFAULT_NUMBER_ID}`',
+];
+const allDefaults = [...numberDefaults, ...stringDefaults];
 
 ruleTester.run('no-default-id-values', rule, {
     valid: [
@@ -63,6 +76,16 @@ ruleTester.run('no-default-id-values', rule, {
         },
     ],
     invalid: [
+        {
+            code: `/*\n${_.map(allDefaults, value => ` * ${value}`).join('\n')}\n */`,
+            errors: _.map(allDefaults, (value, index) => ({
+                messageId: index < numberDefaults.length ? 'disallowedNumberDefault' : 'disallowedStringDefault',
+                line: index + 2,
+                column: 4 + value.indexOf(' '),
+                endColumn: 4 + value.length,
+            })),
+        },
+
         // Number IDs
         {
             code: 'const accountID = report?.ownerAccountID ?? -1;',

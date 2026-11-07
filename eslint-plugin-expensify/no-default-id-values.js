@@ -1,6 +1,41 @@
+import _ from 'underscore';
+
 function createPatternRegex(pattern) {
     return new RegExp(pattern.replaceAll(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), 'g');
 }
+
+const disallowedNumberDefaults = [
+    'ID ?? -1',
+    'id ?? -1',
+    'ID ?? 0',
+    'id ?? 0',
+    'ID || -1',
+    'id || -1',
+    'ID || 0',
+    'id || 0',
+    'ID : -1',
+    'id : -1',
+    'ID : 0',
+    'id : 0',
+];
+
+const disallowedStringDefaults = [
+    " ?? '-1'",
+    "ID ?? ''",
+    "id ?? ''",
+    "ID ?? '0'",
+    "id ?? '0'",
+    " || '-1'",
+    "ID || ''",
+    "id || ''",
+    "ID || '0'",
+    "id || '0'",
+    " : '-1'",
+    " : '0'",
+    'CONST.DEFAULT_NUMBER_ID}`',
+];
+
+const anyDisallowedDefault = new RegExp(_.map([...disallowedNumberDefaults, ...disallowedStringDefaults], pattern => createPatternRegex(pattern).source).join('|'));
 
 function searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, messageId) {
     const regex = createPatternRegex(pattern);
@@ -43,36 +78,10 @@ function create(context) {
     const sourceCode = context.getSourceCode();
     const soureCodeStr = sourceCode.text; // This gets all the text in the file
 
-    const disallowedNumberDefaults = [
-        'ID ?? -1',
-        'id ?? -1',
-        'ID ?? 0',
-        'id ?? 0',
-        'ID || -1',
-        'id || -1',
-        'ID || 0',
-        'id || 0',
-        'ID : -1',
-        'id : -1',
-        'ID : 0',
-        'id : 0',
-    ];
-
-    const disallowedStringDefaults = [
-        " ?? '-1'",
-        "ID ?? ''",
-        "id ?? ''",
-        "ID ?? '0'",
-        "id ?? '0'",
-        " || '-1'",
-        "ID || ''",
-        "id || ''",
-        "ID || '0'",
-        "id || '0'",
-        " : '-1'",
-        " : '0'",
-        'CONST.DEFAULT_NUMBER_ID}`',
-    ];
+    // One scan skips the per-pattern searches in files without a match.
+    if (!anyDisallowedDefault.test(soureCodeStr)) {
+        return {};
+    }
 
     for (const pattern of disallowedNumberDefaults) {
         searchForPatternsAndReport(context, sourceCode, soureCodeStr, pattern, 'disallowedNumberDefault');
