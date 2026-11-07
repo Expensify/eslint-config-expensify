@@ -6,7 +6,7 @@ const message = CONST.MESSAGE.NO_USELESS_COMPOSE;
 
 const ruleTester = new RuleTester({
     languageOptions: {
-        ecmaVersion: 6,
+        ecmaVersion: 2020,
         sourceType: 'module',
     },
 });
@@ -16,6 +16,7 @@ ruleTester.run('no-useless-compose', rule, {
         {
             code: 'export default compose(withLocalize, withWindowDimensions);',
         },
+        {code: 'other.compose(withLocalize);'},
     ],
     invalid: [
         {
@@ -24,5 +25,6 @@ ruleTester.run('no-useless-compose', rule, {
                 message,
             }],
         },
+        {code: 'compose?.(withLocalize);', errors: [{message}]},
     ],
 });
