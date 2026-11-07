@@ -32,7 +32,7 @@ try {
     for (const [name, code] of fixtures) {
         fs.writeFileSync(path.join(temp, `${name}.tsx`), code);
     }
-    const result = spawnSync(process.execPath, [oxlint, '--config', config, '--disable-nested-config', '--threads', '1', '--format', 'json', '--fix', temp], {encoding: 'utf8'});
+    const result = spawnSync(process.execPath, [oxlint, '--config', config, '--disable-nested-config', '--threads', '1', '--format', 'json', temp], {encoding: 'utf8'});
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const summary = JSON.parse(result.stdout);
     assert.equal(summary.number_of_rules, 1);
@@ -42,9 +42,9 @@ try {
         const diagnostics = summary.diagnostics.filter(diagnostic => path.basename(diagnostic.filename) === filename);
         assert.equal(diagnostics.length, expected, `${name}: ${JSON.stringify(diagnostics)}`);
         assert(diagnostics.every(diagnostic => diagnostic.code === 'ordering-poc(component-body-order)'));
-        assert.equal(fs.readFileSync(path.join(temp, filename), 'utf8'), code, `${name}: --fix must not change source`);
+        assert.equal(fs.readFileSync(path.join(temp, filename), 'utf8'), code, `${name}: read-only lint must not change source`);
     }
-    console.log(`Oxlint integration passed: ${fixtures.length} fixtures, one rule, --fix leaves all sources unchanged.`);
+    console.log(`Oxlint integration passed: ${fixtures.length} fixtures, one rule, read-only diagnostics.`);
 } finally {
     for (const [name] of fixtures) {
         fs.unlinkSync(path.join(temp, `${name}.tsx`));

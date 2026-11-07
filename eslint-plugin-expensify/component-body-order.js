@@ -17,13 +17,22 @@ const HOOK_GROUPS = new Map([
     ['useInsertionEffect', 5],
     ['useImperativeHandle', 5],
 ]);
-const TRANSPARENT_EXPRESSIONS = new Set(['TSAsExpression', 'TSTypeAssertion', 'TSNonNullExpression', 'TSSatisfiesExpression', 'ChainExpression', 'ParenthesizedExpression']);
+const TRANSPARENT_EXPRESSIONS = new Set([
+    'TSAsExpression',
+    'TSTypeAssertion',
+    'TSNonNullExpression',
+    'TSSatisfiesExpression',
+    'TSInstantiationExpression',
+    'ChainExpression',
+    'ParenthesizedExpression',
+]);
 
 const meta = {
     type: 'suggestion',
     docs: {
-        description: 'Prefer dependency-aware component and hook body ordering (experimental; no automatic reordering)',
+        description: 'Prefer dependency-aware component and hook body ordering with conservative inert-declaration fixes',
     },
+    fixable: 'code',
     schema: [],
     messages: {
         order: 'Consider placing {{group}} before {{previous}}. Preserve hook order and review evaluation order; memoization gains are not guaranteed.',
@@ -184,6 +193,111 @@ function referencesStatement(variables, statement) {
     return variables.some(variable => variable.references.some(({identifier}) => identifier.range[0] >= start && identifier.range[1] <= end));
 }
 
+/**
+ * Primitive-only operations cannot invoke user coercion or throw on BigInt arithmetic.
+ * @param {Object} node
+ * @returns {Boolean}
+ */
+function isLiteralComputation(node) {
+    const expression = unwrap(node);
+    if (!expression) {
+        return false;
+    }
+    if (expression.type === 'Literal') {
+        return !expression.regex && !expression.bigint && (expression.value === null || ['string', 'number', 'boolean'].includes(typeof expression.value));
+    }
+    if (expression.type === 'UnaryExpression') {
+        return ['+', '-', '!', '~', 'void', 'typeof'].includes(expression.operator) && isLiteralComputation(expression.argument);
+    }
+    if (expression.type === 'BinaryExpression' || expression.type === 'LogicalExpression') {
+        return !['in', 'instanceof'].includes(expression.operator) && isLiteralComputation(expression.left) && isLiteralComputation(expression.right);
+    }
+    if (expression.type === 'ConditionalExpression') {
+        return isLiteralComputation(expression.test) && isLiteralComputation(expression.consequent) && isLiteralComputation(expression.alternate);
+    }
+    return expression.type === 'TemplateLiteral' && expression.expressions.every(isLiteralComputation);
+}
+
+/**
+ * Eval and dynamic scopes can observe bindings without scope-manager references, even through a nested closure.
+ * @param {Object} node
+ * @param {Object} visitorKeys
+ * @returns {Boolean}
+ */
+function hasDynamicReferences(node, visitorKeys) {
+    if (!node) {
+        return false;
+    }
+    if (node.type === 'WithStatement' || (node.type === 'CallExpression' && unwrap(node.callee).name === 'eval')) {
+        return true;
+    }
+    return (visitorKeys[node.type] || []).some((key) => {
+        const child = node[key];
+        return Array.isArray(child) ? child.some(item => hasDynamicReferences(item, visitorKeys)) : hasDynamicReferences(child, visitorKeys);
+    });
+}
+
+/**
+ * Direct calls do not expose the function object; returns and JSX props hand it off after its render-time construction.
+ * Property access, aliases, and call arguments can mutate or expose it to an unknown mutator.
+ * @param {Object} identifier
+ * @returns {Boolean}
+ */
+function isSafeFunctionUse(identifier) {
+    let expression = identifier;
+    while (TRANSPARENT_EXPRESSIONS.has(expression.parent.type)) {
+        expression = expression.parent;
+    }
+    if (expression.parent.type === 'CallExpression' && expression.parent.callee === expression) {
+        return true;
+    }
+    if (expression.parent.type === 'JSXExpressionContainer' && expression.parent.parent.type === 'JSXAttribute') {
+        return true;
+    }
+    while (expression.parent.type === 'ArrayExpression' || expression.parent.type === 'ObjectExpression'
+        || (expression.parent.type === 'Property' && expression.parent.value === expression
+            && !expression.parent.computed && expression.parent.kind === 'init')
+        || TRANSPARENT_EXPRESSIONS.has(expression.parent.type)) {
+        expression = expression.parent;
+    }
+    return expression.parent.type === 'ReturnStatement';
+}
+
+/**
+ * Only move a binding whose lifetime cannot be observed by an earlier access or an indirectly invoked closure.
+ * @param {Object} statement
+ * @param {Array<Object>} variables
+ * @param {Object} component
+ * @param {Object} sourceCode
+ * @returns {Boolean}
+ */
+function isInertDeclaration(statement, variables, component, sourceCode) {
+    if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const' || statement.declarations.length !== 1) {
+        return false;
+    }
+    const declaration = statement.declarations[0];
+    const init = unwrap(declaration.init);
+    const isFunction = init && ['ArrowFunctionExpression', 'FunctionExpression'].includes(init.type);
+    if (declaration.id.type !== 'Identifier' || !init
+        || (!isFunction && !isLiteralComputation(init))) {
+        return false;
+    }
+    if (init.type === 'FunctionExpression') {
+        const selfVariable = init.id && sourceCode.getDeclaredVariables(init)
+            .find(variable => variable.name === init.id.name && variable.scope.type === 'function-expression-name');
+        const argumentsVariable = sourceCode.getScope(init).set.get('arguments');
+        if ((init.id && (!selfVariable || selfVariable.references.length > 0)) || !argumentsVariable || argumentsVariable.references.length > 0) {
+            return false;
+        }
+    }
+    const variable = variables[0];
+    return variables.length === 1 && variable.scope.type === 'function' && variable.scope.block === component
+        && variable.references.every(reference => reference.resolved === variable && reference.from === variable.scope
+            && reference.identifier.range[0] >= statement.range[0]
+            && (!reference.isWrite() || reference.identifier === declaration.id)
+            && (!isFunction || reference.identifier === declaration.id || isSafeFunctionUse(reference.identifier)));
+}
+
 /** @param {Object} context @returns {Object} */
 function create(context) {
     const {sourceCode} = context;
@@ -226,33 +340,84 @@ function create(context) {
             return variables.get(statement);
         }
 
-        let previous = classify(statements[0], aliases, node.params);
-        for (let index = 1; index < statements.length; index++) {
-            const current = classify(statements[index], aliases, node.params);
-            const prior = previous;
-            previous = current;
-            if (!current) {
-                continue;
+        const canFix = !sourceCode.getAllComments().some(comment => /\beslint\b/.test(comment.value))
+            && !hasDynamicReferences(node, sourceCode.visitorKeys);
+        const entries = statements.map((statement) => {
+            const category = classify(statement, aliases, node.params);
+            return {
+                statement,
+                category,
+                hiddenHook: category && !category.hook && containsHook(statement, sourceCode.visitorKeys, aliases),
+                inert: canFix && isInertDeclaration(statement, declarations(statement), node, sourceCode),
+                comments: sourceCode.getCommentsBefore(statement).length > 0 || sourceCode.getCommentsAfter(statement).length > 0
+                    || sourceCode.getCommentsInside(statement).length > 0,
+            };
+        });
+        const ordered = [...entries];
+        let warning;
+        let fixReport;
+        let changed;
+        do {
+            changed = false;
+            for (let index = 1; index < ordered.length; index++) {
+                const prior = ordered[index - 1];
+                const current = ordered[index];
+                if (!current.category || !prior.category || prior.category.group <= current.category.group
+                    || (prior.category.hook && current.category.hook) || prior.hiddenHook || current.hiddenHook
+                    || referencesStatement(declarations(prior.statement), current.statement)
+                    || referencesStatement(declarations(current.statement), prior.statement)) {
+                    continue;
+                }
+                const report = {
+                    node: current.statement,
+                    messageId: 'order',
+                    data: {group: GROUPS[current.category.group], previous: GROUPS[prior.category.group]},
+                };
+                warning ||= report;
+                if (!canFix || prior.comments || current.comments
+                    || !(prior.inert || current.inert)
+                    || !(prior.inert || prior.category.hook) || !(current.inert || current.category.hook)) {
+                    continue;
+                }
+                fixReport ||= report;
+                ordered[index - 1] = current;
+                ordered[index] = prior;
+                changed = true;
             }
-            if (!prior || prior.group <= current.group || (prior.hook && current.hook)) {
-                continue;
+
+            // Each swap strictly decreases category inversions, including around interleaved fixed hook anchors.
+        } while (changed);
+        if (fixReport) {
+            const first = ordered.findIndex((entry, index) => entry !== entries[index]);
+            let last = ordered.length - 1;
+            while (ordered[last] === entries[last]) {
+                last--;
             }
-            if ((!current.hook && containsHook(statements[index], sourceCode.visitorKeys, aliases))
-                || (!prior.hook && containsHook(statements[index - 1], sourceCode.visitorKeys, aliases))) {
-                continue;
+            let start = statements[first].range[0];
+            let replacement = '';
+            if (first > 0 && ordered[first].statement.type === 'ExpressionStatement'
+                && sourceCode.getLastToken(statements[first - 1]).value !== ';') {
+                start = statements[first - 1].range[1];
+                replacement = `;${sourceCode.text.slice(start, statements[first].range[0])}`;
             }
-            if (referencesStatement(declarations(statements[index - 1]), statements[index])
-                || referencesStatement(declarations(statements[index]), statements[index - 1])) {
-                continue;
+            for (let index = first; index <= last; index++) {
+                const {statement} = ordered[index];
+                const next = ordered[index + 1];
+                const changesFollowingBoundary = next && next !== entries[index + 1] && next.statement.type === 'ExpressionStatement';
+                replacement += sourceCode.getText(statement);
+                if ((ordered[index] !== entries[index] || changesFollowingBoundary) && sourceCode.getLastToken(statement).value !== ';') {
+                    replacement += ';';
+                }
+                if (index < last) {
+                    replacement += sourceCode.text.slice(statements[index].range[1], statements[index + 1].range[0]);
+                }
             }
             context.report({
-                node: statements[index],
-                messageId: 'order',
-                data: {group: GROUPS[current.group], previous: GROUPS[prior.group]},
+                ...fixReport,
+                fix: fixer => fixer.replaceTextRange([start, statements[last].range[1]], replacement),
             });
-
-            // One adjacent movement at a time avoids incompatible advice around interleaved hook anchors.
-            return;
+        } else if (warning) {
+            context.report(warning);
         }
     }
 
