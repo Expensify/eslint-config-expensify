@@ -1,6 +1,7 @@
 /* eslint-disable no-console, rulesdir/prefer-underscore-method */
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import os from 'node:os';
@@ -15,6 +16,7 @@ const {values} = parseArgs({
         target: {type: 'string'},
         samples: {type: 'string', default: '7'},
         output: {type: 'string'},
+        'compare-ref': {type: 'string'},
     },
 });
 assert(values.app, 'Pass --app /absolute/path/to/App to use its installed Oxlint');
@@ -33,7 +35,7 @@ fs.writeFileSync(noop, `export default {
     meta: {name: 'ordering-poc'},
     rules: {'component-body-order': {
         meta: {schema: []},
-        create() { return {FunctionDeclaration() {}, FunctionExpression() {}, ArrowFunctionExpression() {}}; },
+        create() { return {Program() {}, FunctionDeclaration() {}, FunctionExpression() {}, ArrowFunctionExpression() {}}; },
     }},
 };`);
 const configurations = {
@@ -49,6 +51,18 @@ const timings = {};
 const summaries = {};
 
 try {
+    if (values['compare-ref']) {
+        const historical = spawnSync('git', ['show', `${values['compare-ref']}:eslint-plugin-expensify/component-body-order.js`], {
+            cwd: path.resolve(directory, '../..'), encoding: 'utf8',
+        });
+        assert.equal(historical.status, 0, historical.stderr);
+        fs.writeFileSync(path.join(temp, 'historical-rule.mjs'), historical.stdout);
+        fs.writeFileSync(path.join(temp, 'historical-plugin.mjs'), `import * as rule from './historical-rule.mjs';
+export default {meta: {name: 'ordering-poc'}, rules: {'component-body-order': rule}};`);
+        configurations.historical = {
+            ...configurations.rule, jsPlugins: [path.join(temp, 'historical-plugin.mjs')],
+        };
+    }
     for (const [label, configuration] of Object.entries(configurations)) {
         fs.writeFileSync(path.join(temp, `${label}.json`), JSON.stringify(configuration));
         timings[label] = [];
@@ -70,11 +84,20 @@ try {
             assert.equal(summary.number_of_rules, label === 'parseOnly' ? 0 : 1);
             assert(summary.number_of_files > 0, 'Benchmark must lint files');
             assert(summary.diagnostics.every(item => item.code === 'ordering-poc(component-body-order)'), 'Unexpected diagnostics');
-            summaries[label] = {files: summary.number_of_files, rules: summary.number_of_rules, diagnostics: summary.diagnostics.length};
+            const diagnosticHash = createHash('sha256').update(summary.diagnostics.map(item => JSON.stringify(item)).sort().join('\n')).digest('hex');
+            if (summaries[label]) {
+                assert.equal(diagnosticHash, summaries[label].diagnosticHash, 'Diagnostics must be deterministic');
+            }
+            summaries[label] = {
+                files: summary.number_of_files, rules: summary.number_of_rules, diagnostics: summary.diagnostics.length, diagnosticHash,
+            };
             if (iteration >= 0) {
                 timings[label].push(elapsed);
             }
         }
+    }
+    if (summaries.historical) {
+        assert.equal(summaries.rule.diagnosticHash, summaries.historical.diagnosticHash, 'Optimization must preserve exact diagnostics');
     }
     const results = {};
     for (const [label, runs] of Object.entries(timings)) {
@@ -95,6 +118,10 @@ try {
         results,
         ruleOverBridgeMs: results.rule.medianMs - results.bridgeOnly.medianMs,
     };
+    if (results.historical) {
+        report.compareRef = values['compare-ref'];
+        report.historicalMinusRuleMs = results.historical.medianMs - results.rule.medianMs;
+    }
     const json = `${JSON.stringify(report, null, 4)}\n`;
     if (values.output) {
         fs.writeFileSync(values.output, json);

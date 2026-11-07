@@ -80,7 +80,7 @@ function isHookCall(node, aliases) {
  * @returns {Boolean}
  */
 function isCandidate(node, aliases) {
-    if (node.body.type !== 'BlockStatement' || node.async || node.generator) {
+    if (node.async || node.generator) {
         return false;
     }
     let parent = node.parent;
@@ -90,12 +90,15 @@ function isCandidate(node, aliases) {
         parent = parent.parent;
     }
     const id = (parent.type === 'VariableDeclarator' ? parent.id : null) || node.id;
-    if (!id && parent.type === 'ExportDefaultDeclaration'
+    if (!id && parent.type === 'ExportDefaultDeclaration' && node.body.type === 'BlockStatement'
         && node.body.body.some(statement => statement.type === 'ReturnStatement' && statement.argument
             && ['JSXElement', 'JSXFragment'].includes(statement.argument.type))) {
         return true;
     }
     if (!id || id.type !== 'Identifier' || !/^(?:[A-Z]|use[A-Z0-9])/.test(id.name)) {
+        return false;
+    }
+    if (node.body.type !== 'BlockStatement') {
         return false;
     }
     for (let ancestor = parent; ancestor; ancestor = ancestor.parent) {
@@ -109,10 +112,10 @@ function isCandidate(node, aliases) {
 /**
  * @param {Object} statement
  * @param {Object} aliases
- * @param {Set<String>} inputs
+ * @param {Array<Object>} params
  * @returns {Object|null}
  */
-function classify(statement, aliases, inputs) {
+function classify(statement, aliases, params) {
     if (statement.type === 'ReturnStatement') {
         return null;
     }
@@ -138,7 +141,7 @@ function classify(statement, aliases, inputs) {
     if (init.type === 'JSXElement' || init.type === 'JSXFragment') {
         return {group: 6, hook: false};
     }
-    return {group: init.type === 'Identifier' && inputs.has(init.name) ? 0 : 3, hook: false};
+    return {group: init.type === 'Identifier' && params.some(param => param.type === 'Identifier' && param.name === init.name) ? 0 : 3, hook: false};
 }
 
 /**
@@ -177,7 +180,8 @@ function containsHook(node, visitorKeys, aliases) {
  * @returns {Boolean}
  */
 function referencesStatement(variables, statement) {
-    return variables.some(variable => variable.references.some(({identifier}) => identifier.range[0] >= statement.range[0] && identifier.range[1] <= statement.range[1]));
+    const [start, end] = statement.range;
+    return variables.some(variable => variable.references.some(({identifier}) => identifier.range[0] >= start && identifier.range[1] <= end));
 }
 
 /** @param {Object} context @returns {Object} */
@@ -208,27 +212,33 @@ function create(context) {
             return;
         }
         const statements = node.body.body;
-        const inputs = new Set(node.params.filter(param => param.type === 'Identifier').map(param => param.name));
-        const classified = statements.map(statement => classify(statement, aliases, inputs));
-        const variables = new Map();
+        if (statements.length < 2) {
+            return;
+        }
+        let variables;
         function declarations(statement) {
+            if (!variables) {
+                variables = new Map();
+            }
             if (!variables.has(statement)) {
                 variables.set(statement, sourceCode.getDeclaredVariables(statement));
             }
             return variables.get(statement);
         }
 
+        let previous = classify(statements[0], aliases, node.params);
         for (let index = 1; index < statements.length; index++) {
-            const current = classified[index];
+            const current = classify(statements[index], aliases, node.params);
+            const prior = previous;
+            previous = current;
             if (!current) {
                 continue;
             }
-            const previous = classified[index - 1];
-            if (!previous || previous.group <= current.group || (previous.hook && current.hook)) {
+            if (!prior || prior.group <= current.group || (prior.hook && current.hook)) {
                 continue;
             }
             if ((!current.hook && containsHook(statements[index], sourceCode.visitorKeys, aliases))
-                || (!previous.hook && containsHook(statements[index - 1], sourceCode.visitorKeys, aliases))) {
+                || (!prior.hook && containsHook(statements[index - 1], sourceCode.visitorKeys, aliases))) {
                 continue;
             }
             if (referencesStatement(declarations(statements[index - 1]), statements[index])
@@ -238,7 +248,7 @@ function create(context) {
             context.report({
                 node: statements[index],
                 messageId: 'order',
-                data: {group: GROUPS[current.group], previous: GROUPS[previous.group]},
+                data: {group: GROUPS[current.group], previous: GROUPS[prior.group]},
             });
 
             // One adjacent movement at a time avoids incompatible advice around interleaved hook anchors.
@@ -257,7 +267,8 @@ function create(context) {
                         continue;
                     }
                     const imported = specifier.imported.name;
-                    if (imported === 'use' || /^use[A-Z0-9]/.test(imported) || imported === 'memo' || imported === 'forwardRef') {
+                    if (specifier.local.name !== imported
+                        && (imported === 'use' || /^use[A-Z0-9]/.test(imported) || imported === 'memo' || imported === 'forwardRef')) {
                         importedNames.set(specifier.local.name, imported);
                     }
                 }

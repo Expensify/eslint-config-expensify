@@ -51,6 +51,10 @@ export default defineConfig([
 ]);
 ```
 
+## Experimental component ordering
+
+The opt-in `rulesdir/component-body-order` POC lives in this package. See [its documentation](./benchmarks/component-body-order/README.md) for limitations, isolated Oxlint benchmarks, and runtime/compiler memoization experiments. It is not enabled by default and does not autofix code.
+
 ## Style Guide
 
 Feel free to also check out our [Javascript style guide](https://github.com/Expensify/Style-Guides/blob/main/javascript.md), our [general language-agnostic coding standards](https://github.com/Expensify/Style-Guides/blob/main/general.md), and the [ESlint config docs](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information.
