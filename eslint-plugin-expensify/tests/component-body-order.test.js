@@ -61,6 +61,8 @@ ruleTester.run(rule.name, rule, {
         'function Component() { useEffect(effect, []); const state = React[`useState`](0); return state; }',
         'function Component() { useEffect(effect, []); const state = React[hookName](0); return state; }',
         'function Component() { useEffect(effect, []); const state = readState(0); return state; } import {useState as readState} from "react";',
+        'function Component() { useEffect(effect, []); if (!ready) { return null; } const value = derive(); return value; }',
+        'function Component() { return null; const value = derive(); }',
     ],
     invalid: [
         {

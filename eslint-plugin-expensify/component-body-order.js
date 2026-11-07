@@ -114,7 +114,7 @@ function isCandidate(node, aliases) {
  */
 function classify(statement, aliases, inputs) {
     if (statement.type === 'ReturnStatement') {
-        return {group: 6, hook: false};
+        return null;
     }
     if (statement.type === 'FunctionDeclaration') {
         return {group: 4, hook: false};
