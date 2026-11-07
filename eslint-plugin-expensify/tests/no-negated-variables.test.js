@@ -174,5 +174,13 @@ ruleTester.run('no-negated-variables', rule, {
                 message,
             }],
         },
+        {
+            code: 'const cantProceed = true;',
+            errors: [{message}],
+        },
+        {
+            code: 'const dontNotify = true;',
+            errors: [{message}],
+        },
     ],
 });
