@@ -5,6 +5,9 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {parseArgs} from 'node:util';
 import {runInThisContext} from 'node:vm';
+import {Linter} from 'eslint';
+import tsParser from '@typescript-eslint/parser';
+import * as rule from '../../eslint-plugin-expensify/component-body-order.js';
 import {collectCompiledCalls} from './validate-footer-ordering.mjs';
 
 const {values} = parseArgs({
@@ -276,6 +279,26 @@ const report = {
     updateLabels: updates.map(update => update.label),
     engines: {},
 };
+const linter = new Linter();
+function lintSchedule(order) {
+    const diagnostics = linter.verify(source([...order].map(token => statements[token]).join('\n')), [{
+        files: ['**/*.ts'],
+        languageOptions: {parser: tsParser},
+        plugins: {poc: {rules: {[rule.name]: rule}}},
+        rules: {[`poc/${rule.name}`]: 'warn'},
+    }], {filename: 'useSchedulingProbe.ts'});
+    assert(diagnostics.every(diagnostic => diagnostic.ruleId === `poc/${rule.name}` && diagnostic.messageId === 'order'));
+    return diagnostics.map(({message}) => message);
+}
+report.ruleCounterexample = {
+    beforeSchedule: 'EAaBb',
+    afterSchedule: 'AEaBb',
+    beforeDiagnostics: lintSchedule('EAaBb'),
+    afterDiagnostics: lintSchedule('AEaBb'),
+};
+assert.equal(report.ruleCounterexample.beforeDiagnostics.length, 1);
+assert(report.ruleCounterexample.beforeDiagnostics[0].includes('derived values before effects'));
+assert.deepEqual(report.ruleCounterexample.afterDiagnostics, []);
 
 for (const engine of ['uncompiled', 'oxc', 'forest', 'babel', 'babel-reorder']) {
     const results = {};
@@ -361,6 +384,11 @@ const summary = {
     updateLabels: report.updateLabels,
     measurements: measurements.length,
     renders: measurements.reduce((sum, measurement) => sum + measurement.samples.length, 0),
+    ruleCounterexample: {
+        ...report.ruleCounterexample,
+        beforeBuildACalls: report.engines.oxc.schedules.EAaBb.samples.at(-1).calls.buildA,
+        afterBuildACalls: report.engines.oxc.schedules.AEaBb.samples.at(-1).calls.buildA,
+    },
     engines: Object.fromEntries(Object.entries(report.engines).map(([engine, result]) => [engine, {
         schedules: Object.keys(result.schedules).length,
         compilerOptions: result.compilerOptions,

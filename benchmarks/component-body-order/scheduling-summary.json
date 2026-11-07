@@ -29,6 +29,16 @@
     ],
     "measurements": 190,
     "renders": 1720,
+    "ruleCounterexample": {
+        "beforeSchedule": "EAaBb",
+        "afterSchedule": "AEaBb",
+        "beforeDiagnostics": [
+            "Consider placing derived values before effects. Preserve hook order and review evaluation order; memoization gains are not guaranteed."
+        ],
+        "afterDiagnostics": [],
+        "beforeBuildACalls": 3,
+        "afterBuildACalls": 9
+    },
     "engines": {
         "uncompiled": {
             "schedules": 30,
