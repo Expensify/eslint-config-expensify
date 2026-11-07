@@ -53,7 +53,7 @@ export default defineConfig([
 
 ## Experimental component ordering
 
-The opt-in `rulesdir/component-body-order` POC lives in this package. See [its documentation](./benchmarks/component-body-order/README.md) for limitations, isolated Oxlint benchmarks, and runtime/compiler memoization experiments. It is not enabled by default and does not autofix code.
+The opt-in `rulesdir/component-body-order` POC lives in this package. See [its documentation](./benchmarks/component-body-order/README.md) for conservative autofix eligibility, isolated Oxlint benchmarks, and runtime/compiler memoization experiments. It is not enabled by default. The [App autofix showcase](./benchmarks/component-body-order/autofix-showcase.md) includes before/after examples and measured compiler tradeoffs.
 
 ## Style Guide
 
