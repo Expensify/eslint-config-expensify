@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get.js';
 import CONST from './CONST.js';
 
 const message = CONST.MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
@@ -6,7 +5,7 @@ const message = CONST.MESSAGE.NO_API_SIDE_EFFECTS_METHOD;
 function create(context) {
     return {
         CallExpression(node) {
-            const name = lodashGet(node, 'callee.property.name');
+            const name = node.callee && node.callee.property && node.callee.property.name;
             if (!name) {
                 return;
             }
