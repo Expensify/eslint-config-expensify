@@ -5,13 +5,13 @@ import CONST from './CONST.js';
 const message = CONST.MESSAGE.NO_ONYX_CONNECT;
 
 function create(context) {
+    if (isInTestFile(context.getFilename())) {
+        return {};
+    }
+
     return {
         MemberExpression(node) {
             if (!isOnyxMethodCall(node)) {
-                return;
-            }
-
-            if (isInTestFile(context.getFilename())) {
                 return;
             }
 

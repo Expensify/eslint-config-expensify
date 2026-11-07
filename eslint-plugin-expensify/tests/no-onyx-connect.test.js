@@ -35,6 +35,11 @@ ruleTester.run('no-onyx-connect', rule, {
     invalid: [
         {
             code: 'Onyx.connect({key: "test"});',
+            filename: './src/libs/actions/Foo.js',
+            errors: [{message: 'Onyx.connect() is deprecated. Use useOnyx() hook instead and pass the data as parameters to a pure function.'}],
+        },
+        {
+            code: 'Onyx.connect({key: "test"});',
             errors: [
                 {
                     message: 'Onyx.connect() is deprecated. Use useOnyx() hook instead and pass the data as parameters to a pure function.',
