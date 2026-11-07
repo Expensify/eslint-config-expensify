@@ -13,20 +13,19 @@ function isInLibs(filename) {
 }
 
 function create(context) {
+    const filename = context.getFilename();
+    if (isInTestFile(filename) || isInLibs(filename)) {
+        return {};
+    }
+
     return {
         MemberExpression(node) {
-            const filename = context.getFilename();
-
             if (!isOnyxMethodCall(node)) {
                 return;
             }
 
-            if (isInTestFile(context.getFilename())) {
-                return;
-            }
-
             const methodName = lodashGet(node, 'property.name');
-            if (methodName !== 'connect' || isInLibs(filename)) {
+            if (methodName !== 'connect') {
                 return;
             }
 
