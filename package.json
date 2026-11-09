@@ -13,7 +13,9 @@
     "./react": "./configs/public/react.js",
     "./react-formatting": "./configs/public/react-formatting.js",
     "./scripts": "./configs/public/scripts.js",
-    "./typescript": "./configs/public/typescript.js"
+    "./typescript": "./configs/public/typescript.js",
+    "./oxlint": "./oxlint/index.mjs",
+    "./oxlint/*": "./oxlint/*"
   },
   "repository": {
     "type": "git",
@@ -21,7 +23,9 @@
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:oxlint": "node scripts/build-oxlint.mjs",
+    "test:oxlint": "node --test \"tests/oxlint/*.test.mjs\""
   },
   "type": "module",
   "devEngines": {
@@ -38,10 +42,12 @@
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.28.4",
+    "@oxlint/migrate": "1.90.0",
     "@typescript-eslint/parser": "^8.44.1",
     "@typescript-eslint/utils": "^8.44.1",
     "confusing-browser-globals": "^1.0.11",
     "eslint": "^9.36.0",
+    "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-es": "^4.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jest": "^29.0.1",
@@ -59,7 +65,8 @@
   "files": [
     "configs",
     "eslint-plugin-expensify",
-    "index.js"
+    "index.js",
+    "oxlint"
   ],
   "keywords": [
     "eslint",
@@ -77,6 +84,16 @@
   "homepage": "https://github.com/Expensify/eslint-config-expensify#readme",
   "devDependencies": {
     "@typescript-eslint/rule-tester": "^8.44.1",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "oxlint": "1.90.0",
+    "oxlint-tsgolint": "7.0.2005"
+  },
+  "peerDependencies": {
+    "oxlint": "1.90.x"
+  },
+  "peerDependenciesMeta": {
+    "oxlint": {
+      "optional": true
+    }
   }
 }
