@@ -22,6 +22,9 @@ export type BuildOxlintConfigOptions = {
     /** Also convert the rules oxlint keeps in its nursery category. False by default. */
     withNursery?: boolean;
 
+    /** ESLint rule IDs from `alwaysHostedRuleIDs` that run with oxlint's own version instead of the hosted copy. */
+    nativeRules?: string[];
+
     /** Rule names, or prefixes ending in `/`, that `overrides` may use and this package does not know. */
     extraRunningNames?: string[];
 

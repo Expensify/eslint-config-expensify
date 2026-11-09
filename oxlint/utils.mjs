@@ -7,9 +7,13 @@ import {withEslintDirectiveIDs, withEslintDirectiveIDsFor} from './eslintDirecti
 import {hostRule} from './hosting.mjs';
 import {reactCompilerRuleNames} from './reactCompilerRules.mjs';
 import {toEslintRuleID} from './ruleNames.mjs';
-import {ESLINT_RULE_RENAMES} from './tables.mjs';
+import {ALWAYS_HOSTED, ESLINT_RULE_RENAMES} from './tables.mjs';
+
+// An array, so callers can list it and use it in JSON.
+const alwaysHostedRuleIDs = [...ALWAYS_HOSTED];
 
 export {
+    alwaysHostedRuleIDs,
     coreRuleNames,
     ESLINT_RULE_RENAMES as eslintRuleRenames,
     hostedRuleIDs,

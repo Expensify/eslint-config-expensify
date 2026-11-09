@@ -23,7 +23,11 @@ const SNAPSHOT_CASES = {
         transformRule: dropReactCompilerRules,
         reactVersion: '19.0.0',
     },
-    onyx: {presets: ['browser', 'react', 'typescript', {preset: 'jest', files: ONYX_JEST_FILES}, 'scripts', 'prettier'], reactVersion: '19.0.0'},
+    onyx: {
+        presets: ['browser', 'react', 'typescript', {preset: 'jest', files: ONYX_JEST_FILES}, 'scripts', 'prettier'],
+        nativeRules: ['react-hooks/exhaustive-deps'],
+        reactVersion: '19.0.0',
+    },
 };
 
 /**

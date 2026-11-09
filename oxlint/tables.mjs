@@ -26,7 +26,7 @@ const ALWAYS_HOSTED = new Set([
 
     // An `eslint-disable` comment for the native version also hides every React Compiler error in that component
     // (https://github.com/oxc-project/oxc/issues/26277). The hosted copy also lets a repo gate its useCallback and
-    // useMemo reports by ESLint's message wording.
+    // useMemo reports by ESLint's message wording. A repo can still pick the native version with `nativeRules`.
     'react-hooks/exhaustive-deps',
 ]);
 

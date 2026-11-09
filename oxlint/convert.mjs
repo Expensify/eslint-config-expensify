@@ -270,9 +270,10 @@ function replaySkippedRules(blocks, replayedRuleIDs) {
  * Renames and fixes the rules of one block @oxlint/migrate produced, so oxlint accepts them and they behave as in ESLint.
  * @param {Record<string, unknown>} rules
  * @param {boolean} isTypeScriptBlock whether the block applies to TypeScript files
+ * @param {Set<string>} alwaysHosted the ESLint rule IDs that run as `hosted/` and so are skipped here
  * @returns {Record<string, unknown>}
  */
-function translateRules(rules = {}, isTypeScriptBlock = false) {
+function translateRules(rules = {}, isTypeScriptBlock = false, alwaysHosted = ALWAYS_HOSTED) {
     const out = {};
     for (const [ruleID, entry] of Object.entries(rules)) {
         const {prefix, name} = splitRuleID(ruleID);
@@ -281,7 +282,7 @@ function translateRules(rules = {}, isTypeScriptBlock = false) {
         const hooksRuleID = prefix === 'react' && CLASSIC_REACT_HOOKS_RULES.has(name) ? `react-hooks/${name}` : undefined;
 
         // ALWAYS_HOSTED rules come back as `hosted/` through replaySkippedRules, and DROPPED_RULES do not run at all.
-        if (ALWAYS_HOSTED.has(ruleID) || ALWAYS_HOSTED.has(hooksRuleID) || DROPPED_RULES[ruleID] || DROPPED_RULES[hooksRuleID]) {
+        if (alwaysHosted.has(ruleID) || alwaysHosted.has(hooksRuleID) || DROPPED_RULES[ruleID] || DROPPED_RULES[hooksRuleID]) {
             continue;
         }
         if (STAND_INS[ruleID]) {
@@ -346,7 +347,8 @@ function getJsPluginName(jsPlugin) {
 /**
  * Converts ESLint flat config blocks to oxlint config.
  * @param {Array<Record<string, any>>} presetBlocks the blocks of the presets, in order
- * @param {{transformRule?: TransformRule, withNursery?: boolean}} [options] `withNursery` also converts rules in oxlint's nursery category
+ * @param {{transformRule?: TransformRule, withNursery?: boolean, nativeRules?: string[]}} [options] `withNursery` also converts
+ * rules in oxlint's nursery category; `nativeRules` are ALWAYS_HOSTED rule IDs that keep oxlint's own version
  * @returns {Promise<{
  *   config: import('oxlint').OxlintConfig,
  *   replayedRuleIDs: Map<string, string>,
@@ -354,7 +356,8 @@ function getJsPluginName(jsPlugin) {
  * }>} the config without the repo's own parts, the rule each replayed ESLint rule runs as, and the `core/` and `hosted/`
  * rules some block turns on
  */
-async function convertPresets(presetBlocks, {transformRule, withNursery = false} = {}) {
+async function convertPresets(presetBlocks, {transformRule, withNursery = false, nativeRules = []} = {}) {
+    const alwaysHosted = new Set([...ALWAYS_HOSTED].filter(ruleID => !nativeRules.includes(ruleID)));
     for (const block of presetBlocks) {
         if (block.files?.some(pattern => typeof pattern !== 'string')) {
             throw new Error('A preset block uses `files` that are not plain globs, which oxlint cannot express');
@@ -368,7 +371,7 @@ async function convertPresets(presetBlocks, {transformRule, withNursery = false}
     const isTypeScriptBlock = files => typeScriptFiles.has(JSON.stringify([...files].sort())) || files.some(file => TYPESCRIPT_GLOB.test(file));
 
     const replayedRuleIDs = new Map(
-        [...skipped, ...ALWAYS_HOSTED].flatMap((ruleID) => {
+        [...skipped, ...alwaysHosted].flatMap((ruleID) => {
             const target = getReplayTarget(ruleID, withNursery);
             return target ? [[ruleID, target]] : [];
         }),
@@ -395,7 +398,7 @@ async function convertPresets(presetBlocks, {transformRule, withNursery = false}
         env: migrated.env,
         globals: migrated.globals,
         settings: {...migrated.settings, ...getImportSettings(blocks)},
-        rules: {...translateRules(migrated.rules), ...dropUnneededRules(replayed.rules), ...renamed.rules},
+        rules: {...translateRules(migrated.rules, false, alwaysHosted), ...dropUnneededRules(replayed.rules), ...renamed.rules},
         overrides: [
             // jsPlugins are left out here; they are listed once at the root.
             ...(migrated.overrides ?? []).map(({
@@ -410,6 +413,7 @@ async function convertPresets(presetBlocks, {transformRule, withNursery = false}
                         rules: translateRules(
                             rules,
                             isTypeScriptBlock(files),
+                            alwaysHosted,
                         ),
                     }
                     : {}),

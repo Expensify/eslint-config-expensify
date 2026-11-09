@@ -19,7 +19,8 @@ for (const name of Object.keys(SNAPSHOT_CASES)) {
 
             // Then the config loads, and rules from oxlint, core, hosted and rulesdir all report
             assert.ok(codes.length > 0, `oxlint did not load the config: ${stderr}`);
-            for (const expected of ['eslint(eqeqeq)', 'typescript(dot-notation)', 'hosted(exhaustive-deps)', 'hosted(prefer-default-export)']) {
+            const exhaustiveDeps = SNAPSHOT_CASES[name].nativeRules ? 'react-hooks(exhaustive-deps)' : 'hosted(exhaustive-deps)';
+            for (const expected of ['eslint(eqeqeq)', 'typescript(dot-notation)', exhaustiveDeps, 'hosted(prefer-default-export)']) {
                 assert.ok(codes.includes(expected), `expected ${expected} in ${[...new Set(codes)].join(', ')}`);
             }
             if (name === 'app') {

@@ -3,6 +3,9 @@ import type {Rule} from 'eslint';
 /** ESLint rule IDs that run as `core/<name>` in oxlint: the names of ESLint core rules, as generated/rules.json lists them. */
 export const coreRuleNames: string[];
 
+/** ESLint rule IDs that run as `hosted/<name>` by default even though oxlint has its own version. `buildOxlintConfig` takes any of them in `nativeRules`. */
+export const alwaysHostedRuleIDs: string[];
+
 /** ESLint rule IDs, like `react/jsx-no-bind`, that run as `hosted/<name>`. */
 export const hostedRuleIDs: string[];
 

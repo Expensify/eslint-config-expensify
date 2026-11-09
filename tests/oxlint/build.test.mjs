@@ -23,6 +23,28 @@ test('React Compiler rules are kept as @oxlint/migrate writes them by default, a
     assert.ok(hasRule(config, 'hosted/exhaustive-deps'));
 });
 
+test('nativeRules runs an always-hosted rule with oxlint\'s version, and rejects other IDs', async () => {
+    // Given the react preset, whose exhaustive-deps options are the ones both versions must get
+    const presets = ['react'];
+    const reactVersion = '19.0.0';
+    const optionsOf = (config, name) => rulesOf(config).map(rules => rules?.[name]).find(Boolean);
+
+    // When the config is built with and without nativeRules
+    const hosted = await buildOxlintConfig({presets, reactVersion});
+    const native = await buildOxlintConfig({presets, reactVersion, nativeRules: ['react-hooks/exhaustive-deps']});
+
+    // Then the default hosts it, and the opt-in runs the native rule with the same options and no hosted copy
+    assert.ok(hasRule(hosted, 'hosted/exhaustive-deps') && !hasRule(hosted, 'react/exhaustive-deps'));
+    assert.ok(hasRule(native, 'react/exhaustive-deps') && !hasRule(native, 'hosted/exhaustive-deps'));
+    assert.deepEqual(optionsOf(native, 'react/exhaustive-deps'), optionsOf(hosted, 'hosted/exhaustive-deps'));
+
+    // And an overrides entry may use the native name, while an ID that is not always hosted throws
+    await buildOxlintConfig({
+        presets, reactVersion, nativeRules: ['react-hooks/exhaustive-deps'], overrides: [{files: ['**/*.js'], rules: {'react/exhaustive-deps': 'off'}}],
+    });
+    await assert.rejects(buildOxlintConfig({presets, reactVersion, nativeRules: ['no-console']}), /nativeRules has no-console/);
+});
+
 test('transformRule can rename or drop a rule', async () => {
     // Given a transformRule that sends compiler rules to `rc/` and drops no-console
     const transformRule = (ruleID, entry) => {

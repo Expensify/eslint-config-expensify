@@ -24,7 +24,7 @@ const OWN_PLUGIN_SPECIFIERS = {
 };
 
 const OPTION_NAMES = new Set([
-    'presets', 'plugins', 'transformRule', 'withNursery', 'extraRunningNames', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides',
+    'presets', 'plugins', 'transformRule', 'withNursery', 'nativeRules', 'extraRunningNames', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides',
 ]);
 
 /**
@@ -70,9 +70,10 @@ async function loadConversion() {
 /**
  * Returns the name a rule runs under when it runs as hosted/ or core/ instead of oxlint's built-in version.
  * @param {string} rule a rule name as written in the repo's overrides
+ * @param {string[]} nativeRules ALWAYS_HOSTED rule IDs the repo runs with oxlint's version
  * @returns {string | undefined} undefined when the rule runs under the name given
  */
-function getRunningName(rule) {
+function getRunningName(rule, nativeRules) {
     const {prefix, name} = splitRuleID(rule);
     const eslintPrefix = prefix in ESLINT_PREFIX_OF ? ESLINT_PREFIX_OF[prefix] : prefix;
     const eslintID = eslintPrefix ? `${eslintPrefix}/${name}` : name;
@@ -81,7 +82,8 @@ function getRunningName(rule) {
     }
 
     // @oxlint/migrate and oxlint write react-hooks rules under `react/`.
-    if (hostedRuleIDs.includes(eslintID) || ALWAYS_HOSTED.has(eslintID) || (eslintPrefix === 'react' && ALWAYS_HOSTED.has(`react-hooks/${name}`))) {
+    const isHosted = id => ALWAYS_HOSTED.has(id) && !nativeRules.includes(id);
+    if (hostedRuleIDs.includes(eslintID) || isHosted(eslintID) || (eslintPrefix === 'react' && isHosted(`react-hooks/${name}`))) {
         return `hosted/${name}`;
     }
     return undefined;
@@ -93,12 +95,13 @@ function getRunningName(rule) {
  * rule that no plugin has, since oxlint reports that only when the config loads.
  * @param {string} rule
  * @param {string[]} extraRunningNames
+ * @param {string[]} nativeRules
  */
-function checkRuleName(rule, extraRunningNames) {
+function checkRuleName(rule, extraRunningNames, nativeRules) {
     if (extraRunningNames.some(name => (name.endsWith('/') ? rule.startsWith(name) : rule === name))) {
         return;
     }
-    const runningName = getRunningName(rule);
+    const runningName = getRunningName(rule, nativeRules);
     if (runningName) {
         throw new Error(`The config sets "${rule}", but this rule runs as "${runningName}". Use that name instead.`);
     }
@@ -141,6 +144,8 @@ function checkRulesJson(config) {
  * here to run them another way.
  * @param {string[]} [options.extraRunningNames] rule names (or prefixes ending in `/`) the repo's overrides may use that
  * this package does not know, like `hosted/require-jsdoc` from the repo's own hosted plugin or `rc/`
+ * @param {string[]} [options.nativeRules] ESLint rule IDs from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) that
+ * run with oxlint's own version instead of the hosted copy. Throws for an ID that is not in that list.
  * @param {boolean} [options.withNursery] also convert rules oxlint keeps in its nursery category (false by default)
  * @param {string} [options.reactVersion] the React version for oxlint's react rules; found from the working directory by
  * default, and required (it throws when it cannot be found) if a `react` preset is used
@@ -158,6 +163,7 @@ async function buildOxlintConfig({
     plugins = {},
     transformRule,
     withNursery = false,
+    nativeRules = [],
     extraRunningNames = [],
     reactVersion,
     ignorePatterns = [],
@@ -174,14 +180,18 @@ async function buildOxlintConfig({
     if (!Array.isArray(presets) || !presets.length) {
         throw new Error('buildOxlintConfig needs a non-empty `presets` list.');
     }
+    const unknownRules = nativeRules.filter(ruleID => !ALWAYS_HOSTED.has(ruleID));
+    if (unknownRules.length) {
+        throw new Error(`nativeRules has ${unknownRules.join(', ')}, which does not run as a hosted rule by default. Choose from: ${[...ALWAYS_HOSTED].join(', ')}.`);
+    }
     for (const override of overrides) {
         for (const rule of Object.keys(override.rules ?? {})) {
-            checkRuleName(rule, extraRunningNames);
+            checkRuleName(rule, extraRunningNames, nativeRules);
         }
     }
 
     const [{convertPresets, mergeSettings}, {loadPresetBlocks}] = await loadConversion();
-    const {config} = await convertPresets(await loadPresetBlocks(presets), {transformRule, withNursery});
+    const {config} = await convertPresets(await loadPresetBlocks(presets), {transformRule, withNursery, nativeRules});
     checkRulesJson(config);
 
     const allRules = [config.rules, ...config.overrides.map(override => override.rules), ...overrides.map(override => override.rules)];
