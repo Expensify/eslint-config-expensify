@@ -7,13 +7,13 @@
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 
-import {convertPresets, mergeSettings, reactCompilerRuleNames} from './convert.mjs';
-import {toEslintRuleID} from './ruleNames.mjs';
 import {coreRuleNames, hostedRuleIDs} from './generatedRules.mjs';
-import {hostRule, splitRuleID} from './hosting.mjs';
-import {loadPresetBlocks} from './presets.mjs';
-import {ALWAYS_HOSTED, ESLINT_PREFIX_OF, ESLINT_RULE_RENAMES} from './tables.mjs';
-import {withEslintDirectiveIDs, withEslintDirectiveIDsFor} from './eslintDirectives.mjs';
+import {splitRuleID} from './hosting.mjs';
+import {ALWAYS_HOSTED, ESLINT_PREFIX_OF} from './tables.mjs';
+
+// convert.mjs and presets.mjs are loaded by buildOxlintConfig, not here, so importing this file does not load
+// @oxlint/migrate, which only repos that build a config need. See ./utils.mjs for the light entry.
+export * from './utils.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -23,7 +23,9 @@ const OWN_PLUGIN_SPECIFIERS = {
     rulesdir: fileURLToPath(new URL('./plugins/rulesdir.mjs', import.meta.url)),
 };
 
-const OPTION_NAMES = new Set(['presets', 'plugins', 'transformRule', 'extraRunningNames', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides']);
+const OPTION_NAMES = new Set([
+    'presets', 'plugins', 'transformRule', 'withNursery', 'extraRunningNames', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides',
+]);
 
 /**
  * @typedef {import('./presets.mjs').PresetEntry} PresetEntry
@@ -33,7 +35,7 @@ const OPTION_NAMES = new Set(['presets', 'plugins', 'transformRule', 'extraRunni
 
 /**
  * @param {string | undefined} reactVersion
- * @returns {string | undefined} the version oxlint's react rules need, since ESLint finds it itself and oxlint does not
+ * @returns {string} the version oxlint's react rules need, since ESLint finds it itself and oxlint does not
  */
 function getReactVersion(reactVersion) {
     if (reactVersion) {
@@ -42,7 +44,26 @@ function getReactVersion(reactVersion) {
     try {
         return require(require.resolve('react/package.json', {paths: [process.cwd()]})).version;
     } catch {
-        return undefined;
+        throw new Error('The react preset needs the React version, and `react` cannot be resolved from the working directory. Install react, or pass `reactVersion`.');
+    }
+}
+
+/**
+ * Loads the conversion (and its dependency @oxlint/migrate), which is an optional peer dependency.
+ * @returns {Promise<[typeof import('./convert.mjs'), typeof import('./presets.mjs')]>}
+ */
+async function loadConversion() {
+    try {
+        return await Promise.all([import('./convert.mjs'), import('./presets.mjs')]);
+    } catch (error) {
+        if (error?.code === 'ERR_MODULE_NOT_FOUND' && String(error.message).includes('@oxlint/migrate')) {
+            const {peerDependencies} = require('../package.json');
+            throw new Error(
+                `buildOxlintConfig needs @oxlint/migrate, which is not installed. Install @oxlint/migrate ${peerDependencies['@oxlint/migrate']} as a dev dependency.`,
+                {cause: error},
+            );
+        }
+        throw error;
     }
 }
 
@@ -116,10 +137,13 @@ function checkRulesJson(config) {
  * `rulesdir` plugins. They must keep the plugin name. Use absolute paths or package names.
  * @param {TransformRule} [options.transformRule] called for each preset rule with its ESLint rule ID, before conversion.
  * Return `[newRuleID, entry]` to write the rule under another name, `null` to drop it, `undefined` for the default.
- * React Compiler rules (see `reactCompilerRuleNames`) are dropped by default.
+ * React Compiler rules (see `reactCompilerRuleNames`) are kept as @oxlint/migrate writes them, `react/<name>`; map them
+ * here to run them another way.
  * @param {string[]} [options.extraRunningNames] rule names (or prefixes ending in `/`) the repo's overrides may use that
  * this package does not know, like `hosted/require-jsdoc` from the repo's own hosted plugin or `rc/`
- * @param {string} [options.reactVersion] the React version for oxlint's react rules; found from the working directory by default
+ * @param {boolean} [options.withNursery] also convert rules oxlint keeps in its nursery category (false by default)
+ * @param {string} [options.reactVersion] the React version for oxlint's react rules; found from the working directory by
+ * default, and required (it throws when it cannot be found) if a `react` preset is used
  * @param {RepoConfig['ignorePatterns']} [options.ignorePatterns] added after the presets' patterns
  * @param {RepoConfig['env']} [options.env] merged over the presets' env
  * @param {RepoConfig['globals']} [options.globals] merged over the presets' globals
@@ -133,6 +157,7 @@ async function buildOxlintConfig({
     presets,
     plugins = {},
     transformRule,
+    withNursery = false,
     extraRunningNames = [],
     reactVersion,
     ignorePatterns = [],
@@ -155,12 +180,14 @@ async function buildOxlintConfig({
         }
     }
 
-    const {config} = await convertPresets(await loadPresetBlocks(presets), {transformRule});
+    const [{convertPresets, mergeSettings}, {loadPresetBlocks}] = await loadConversion();
+    const {config} = await convertPresets(await loadPresetBlocks(presets), {transformRule, withNursery});
     checkRulesJson(config);
 
     const allRules = [config.rules, ...config.overrides.map(override => override.rules), ...overrides.map(override => override.rules)];
     const rulesdirIsUsed = allRules.some(rules => Object.keys(rules ?? {}).some(rule => rule.startsWith('rulesdir/')));
-    const version = getReactVersion(reactVersion);
+    const usesReact = presets.some(entry => (typeof entry === 'string' ? entry : entry.preset) === 'react');
+    const version = usesReact ? getReactVersion(reactVersion) : reactVersion;
     return {
         ...config,
 
@@ -180,14 +207,4 @@ async function buildOxlintConfig({
     };
 }
 
-export {
-    buildOxlintConfig,
-    coreRuleNames,
-    ESLINT_RULE_RENAMES as eslintRuleRenames,
-    hostedRuleIDs,
-    hostRule,
-    reactCompilerRuleNames,
-    toEslintRuleID,
-    withEslintDirectiveIDs,
-    withEslintDirectiveIDsFor,
-};
+export {buildOxlintConfig};

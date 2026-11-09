@@ -8,11 +8,14 @@ import migrate from '@oxlint/migrate';
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 
 import {getPluginRules, resolvePackage, splitRuleID} from './hosting.mjs';
+import {CLASSIC_REACT_HOOKS_RULES, reactCompilerRuleNames} from './reactCompilerRules.mjs';
+import {SOURCE_PRESET} from './presets.mjs';
 import {
     ALWAYS_HOSTED,
     DEFAULT_SETTINGS,
     DROPPED_RULES,
     DROPPED_SETTINGS_WARNINGS,
+    DROPPED_WITHOUT_NURSERY,
     DROP_OPTIONS,
     ESLINT_RULE_RENAMES,
     EXPECTED_WARNINGS,
@@ -21,11 +24,6 @@ import {
     STUBBED_PARSER_SERVICES,
 } from './tables.mjs';
 
-// The React Compiler rules of eslint-plugin-react-hooks (v7): every rule of the plugin except the two classic ones. The
-// plugin builds its rule list from the compiler's own error categories, so a new compiler rule shows up here after a
-// plugin upgrade, and `convertPresets` fails on one it does not know instead of silently running it.
-const CLASSIC_REACT_HOOKS_RULES = new Set(['rules-of-hooks', 'exhaustive-deps']);
-const reactCompilerRuleNames = Object.keys(getPluginRules('react-hooks')).filter(name => !CLASSIC_REACT_HOOKS_RULES.has(name));
 const REACT_COMPILER_RULES = new Set(reactCompilerRuleNames);
 
 const TYPESCRIPT_GLOB = /\.(\{[^}]*\b)?[cm]?tsx?\b/;
@@ -63,35 +61,88 @@ function mergeSettings(base, extra) {
 }
 
 /**
- * Applies `transformRule` to every preset rule, and handles the React Compiler rules of eslint-plugin-react-hooks.
- * Rules the hook renames come back in `extraBlocks`, to be added to the converted config as they are.
+ * Collects rules that are written under a new name (rules `@oxlint/migrate` skipped, or renamed by `transformRule`), on
+ * the same files as in the preset. Blocks are added in preset order, because order decides the result in oxlint as in
+ * ESLint: a later block that sets only a severity keeps the options of an earlier one, and an unscoped block after a
+ * scoped one for the same rule is refused, since oxlint would apply the two in a different order.
+ * @returns {{
+ *   add: (block: Record<string, any>, hits: Array<[string, unknown]>) => void,
+ *   result: () => {rules: Record<string, unknown>, overrides: Array<{files: string[], rules: Record<string, unknown>}>},
+ * }}
+ */
+function createRuleCollector() {
+    const rules = {};
+    const overrides = [];
+    const scopedRules = new Set();
+    const lastOptions = new Map();
+    const toFilesKey = files => JSON.stringify(files ? [...files].sort() : null);
+    const withEarlierOptions = (block, target, entry) => {
+        const [severity, ...options] = Array.isArray(entry) ? entry : [entry];
+        if (options.length) {
+            lastOptions.set(target, {files: toFilesKey(block.files), options});
+            return entry;
+        }
+        const earlier = lastOptions.get(target);
+        if (!earlier || isOff(severity)) {
+            return entry;
+        }
+        if (earlier.files !== toFilesKey(null) && earlier.files !== toFilesKey(block.files)) {
+            throw new Error(`${target} gets options for some files and a bare severity for others; oxlint cannot express ESLint's merge`);
+        }
+        return [severity, ...earlier.options];
+    };
+    return {
+        add(block, hits) {
+            const merged = hits.map(([target, entry]) => [target, withEarlierOptions(block, target, entry)]);
+            if (!merged.length) {
+                return;
+            }
+            if (block.ignores) {
+                throw new Error('A preset block has both rules and ignores; replaying it is not supported');
+            }
+            if (!block.files) {
+                const clash = merged.filter(([rule]) => scopedRules.has(rule)).map(([rule]) => rule);
+                if (clash.length) {
+                    throw new Error(`An unscoped preset block after a scoped one sets ${clash.join(', ')}; oxlint would apply them in a different order`);
+                }
+                Object.assign(rules, Object.fromEntries(merged));
+                return;
+            }
+            for (const [rule] of merged) {
+                scopedRules.add(rule);
+            }
+            overrides.push({files: block.files, rules: Object.fromEntries(merged)});
+        },
+        result: () => ({rules, overrides}),
+    };
+}
+
+/**
+ * Applies `transformRule` to every preset rule, and checks the React Compiler rules of eslint-plugin-react-hooks.
+ * Rules the hook renames come back in `renamed`, collected like the replayed rules, to be added to the converted config.
  * @param {Array<Record<string, any>>} blocks ESLint flat config blocks
  * @param {TransformRule | undefined} transformRule
- * @returns {{blocks: Array<Record<string, any>>, extraBlocks: Array<{files?: string[], rules: Record<string, unknown>}>}}
+ * @returns {{blocks: Array<Record<string, any>>, renamed: ReturnType<ReturnType<typeof createRuleCollector>['result']>}}
  */
 function applyTransformRule(blocks, transformRule) {
-    const extraBlocks = [];
+    const collector = createRuleCollector();
     const prepared = blocks.map((block) => {
         if (!block.rules) {
             return block;
         }
         const rules = {};
-        const extraRules = {};
+        const hits = [];
         for (const [ruleID, entry] of Object.entries(block.rules)) {
             const result = transformRule?.(ruleID, entry);
             if (result === null) {
                 continue;
             }
             if (Array.isArray(result)) {
-                extraRules[result[0]] = result[1];
+                hits.push([result[0], result[1]]);
                 continue;
             }
             const {prefix, name} = splitRuleID(ruleID);
-            if (prefix === 'react-hooks' && !CLASSIC_REACT_HOOKS_RULES.has(name)) {
-                if (REACT_COMPILER_RULES.has(name)) {
-                    // oxlint has no React Compiler rules the presets can use, so they are dropped unless transformRule maps them.
-                    continue;
-                }
+            if (prefix === 'react-hooks' && !CLASSIC_REACT_HOOKS_RULES.has(name) && !REACT_COMPILER_RULES.has(name)) {
                 throw new Error(
                     `${ruleID} is not a known React Compiler rule of eslint-plugin-react-hooks. Handle it in transformRule, `
                     + 'or update eslint-config-expensify so its list of compiler rules matches the plugin.',
@@ -99,12 +150,10 @@ function applyTransformRule(blocks, transformRule) {
             }
             rules[ruleID] = entry;
         }
-        if (Object.keys(extraRules).length) {
-            extraBlocks.push({files: block.files, rules: extraRules});
-        }
+        collector.add(block, hits);
         return {...block, rules};
     });
-    return {blocks: prepared, extraBlocks};
+    return {blocks: prepared, renamed: collector.result()};
 }
 
 /**
@@ -133,10 +182,11 @@ function isExpectedWarning(warning, blocks) {
  * versions, which the presets turn off on JS files. The run without type information finds those core rules so they
  * still run on JS files.
  * @param {Array<Record<string, any>>} blocks
+ * @param {boolean} withNursery whether @oxlint/migrate also converts rules oxlint still keeps in its nursery category
  * @returns {Promise<{config: Record<string, any>, skipped: Set<string>}>} the converted config, and the ESLint IDs of the
  * preset rules it could not convert
  */
-async function runMigrate(blocks) {
+async function runMigrate(blocks, withNursery) {
     const skipped = new Set();
     const run = async (typeAware) => {
         const skippedHere = new Map();
@@ -153,7 +203,7 @@ async function runMigrate(blocks) {
             getSkippedRulesByCategory: () => ({}),
         };
         const config = await migrate(blocks, undefined, {
-            reporter, typeAware, jsPlugins: true, withNursery: true,
+            reporter, typeAware, jsPlugins: true, withNursery,
         });
         for (const rule of skippedHere.values()) {
             if (typeAware || builtinRules.has(rule)) {
@@ -171,10 +221,11 @@ async function runMigrate(blocks) {
  * Returns the rule that runs a preset rule @oxlint/migrate skipped, or an ALWAYS_HOSTED one: `core/<name>`,
  * `hosted/<name>`, or oxlint's name for a renamed core rule.
  * @param {string} ruleID an ESLint rule ID
+ * @param {boolean} withNursery
  * @returns {string | undefined} undefined for rules in DROPPED_RULES or STAND_INS
  */
-function getReplayTarget(ruleID) {
-    if (DROPPED_RULES[ruleID] || STAND_INS[ruleID]) {
+function getReplayTarget(ruleID, withNursery) {
+    if (DROPPED_RULES[ruleID] || STAND_INS[ruleID] || (!withNursery && DROPPED_WITHOUT_NURSERY[ruleID])) {
         return undefined;
     }
     const {prefix, name} = splitRuleID(ruleID);
@@ -200,57 +251,19 @@ function getReplayTarget(ruleID) {
 
 /**
  * Adds back the preset rules @oxlint/migrate skipped, and the ALWAYS_HOSTED ones, on the same files as in the preset.
- * When a later block sets only a severity, the earlier options are kept, as ESLint does.
  * @param {Array<Record<string, any>>} blocks
  * @param {Map<string, string>} replayedRuleIDs ESLint rule ID to the rule that runs it
- * @returns {{rules: Record<string, unknown>, overrides: Array<{files: string[], rules: Record<string, unknown>}>}}
+ * @returns {ReturnType<ReturnType<typeof createRuleCollector>['result']>}
  */
 function replaySkippedRules(blocks, replayedRuleIDs) {
-    const rules = {};
-    const overrides = [];
-    const scopedRules = new Set();
-    const lastOptions = new Map();
-    const toFilesKey = files => JSON.stringify(files ? [...files].sort() : null);
-    const withEarlierOptions = (block, target, entry) => {
-        const [severity, ...options] = Array.isArray(entry) ? entry : [entry];
-        if (options.length) {
-            lastOptions.set(target, {files: toFilesKey(block.files), options});
-            return entry;
-        }
-        const earlier = lastOptions.get(target);
-        if (!earlier || isOff(severity)) {
-            return entry;
-        }
-        if (earlier.files !== toFilesKey(null) && earlier.files !== toFilesKey(block.files)) {
-            throw new Error(`${target} gets options for some files and a bare severity for others; oxlint cannot express ESLint's merge`);
-        }
-        return [severity, ...earlier.options];
-    };
+    const collector = createRuleCollector();
     for (const block of blocks) {
-        const hits = Object.entries(block.rules ?? {}).flatMap(([ruleID, entry]) => {
+        collector.add(block, Object.entries(block.rules ?? {}).flatMap(([ruleID, entry]) => {
             const target = replayedRuleIDs.get(ruleID);
-            return target ? [[target, withEarlierOptions(block, target, entry)]] : [];
-        });
-        if (!hits.length) {
-            continue;
-        }
-        if (block.ignores) {
-            throw new Error('A preset block has both rules and ignores; replaying it is not supported');
-        }
-        if (!block.files) {
-            const clash = hits.filter(([rule]) => scopedRules.has(rule)).map(([rule]) => rule);
-            if (clash.length) {
-                throw new Error(`An unscoped preset block after a scoped one sets ${clash.join(', ')}; oxlint would apply them in a different order`);
-            }
-            Object.assign(rules, Object.fromEntries(hits));
-            continue;
-        }
-        for (const [rule] of hits) {
-            scopedRules.add(rule);
-        }
-        overrides.push({files: block.files, rules: Object.fromEntries(hits)});
+            return target ? [[target, entry]] : [];
+        }));
     }
-    return {rules, overrides};
+    return collector.result();
 }
 
 /**
@@ -333,7 +346,7 @@ function getJsPluginName(jsPlugin) {
 /**
  * Converts ESLint flat config blocks to oxlint config.
  * @param {Array<Record<string, any>>} presetBlocks the blocks of the presets, in order
- * @param {{transformRule?: TransformRule}} [options]
+ * @param {{transformRule?: TransformRule, withNursery?: boolean}} [options] `withNursery` also converts rules in oxlint's nursery category
  * @returns {Promise<{
  *   config: import('oxlint').OxlintConfig,
  *   replayedRuleIDs: Map<string, string>,
@@ -341,18 +354,22 @@ function getJsPluginName(jsPlugin) {
  * }>} the config without the repo's own parts, the rule each replayed ESLint rule runs as, and the `core/` and `hosted/`
  * rules some block turns on
  */
-async function convertPresets(presetBlocks, {transformRule} = {}) {
+async function convertPresets(presetBlocks, {transformRule, withNursery = false} = {}) {
     for (const block of presetBlocks) {
         if (block.files?.some(pattern => typeof pattern !== 'string')) {
             throw new Error('A preset block uses `files` that are not plain globs, which oxlint cannot express');
         }
     }
-    const {blocks, extraBlocks} = applyTransformRule(presetBlocks, transformRule);
-    const {config: migrated, skipped} = await runMigrate(blocks);
+    const {blocks, renamed} = applyTransformRule(presetBlocks, transformRule);
+    const {config: migrated, skipped} = await runMigrate(blocks, withNursery);
+
+    // The files of the TypeScript preset's blocks, which stay TypeScript blocks when a repo re-scopes the preset.
+    const typeScriptFiles = new Set(presetBlocks.filter(block => block[SOURCE_PRESET] === 'typescript' && block.files).map(block => JSON.stringify([...block.files].sort())));
+    const isTypeScriptBlock = files => typeScriptFiles.has(JSON.stringify([...files].sort())) || files.some(file => TYPESCRIPT_GLOB.test(file));
 
     const replayedRuleIDs = new Map(
         [...skipped, ...ALWAYS_HOSTED].flatMap((ruleID) => {
-            const target = getReplayTarget(ruleID);
+            const target = getReplayTarget(ruleID, withNursery);
             return target ? [[ruleID, target]] : [];
         }),
     );
@@ -362,7 +379,6 @@ async function convertPresets(presetBlocks, {transformRule} = {}) {
     const enabledReplayTargets = new Set([replayed.rules, ...replayed.overrides.map(override => override.rules)].flatMap(rules => Object.keys(rules).filter(rule => !isOff(rules[rule]))));
     const dropUnneededRules = rules => Object.fromEntries(Object.entries(rules).filter(([rule]) => !/^(core|hosted)\//.test(rule) || enabledReplayTargets.has(rule)));
 
-    const extraRootRules = Object.assign({}, ...extraBlocks.filter(block => !block.files).map(block => block.rules));
     const specifiers = new Set([migrated, ...(migrated.overrides ?? [])].flatMap(block => block.jsPlugins ?? []));
     // eslint-plugin-rulesdir is replaced by plugins/rulesdir.mjs.
     specifiers.delete('eslint-plugin-rulesdir');
@@ -379,7 +395,7 @@ async function convertPresets(presetBlocks, {transformRule} = {}) {
         env: migrated.env,
         globals: migrated.globals,
         settings: {...migrated.settings, ...getImportSettings(blocks)},
-        rules: {...translateRules(migrated.rules), ...dropUnneededRules(replayed.rules), ...extraRootRules},
+        rules: {...translateRules(migrated.rules), ...dropUnneededRules(replayed.rules), ...renamed.rules},
         overrides: [
             // jsPlugins are left out here; they are listed once at the root.
             ...(migrated.overrides ?? []).map(({
@@ -393,18 +409,18 @@ async function convertPresets(presetBlocks, {transformRule} = {}) {
                     ? {
                         rules: translateRules(
                             rules,
-                            files.some(file => TYPESCRIPT_GLOB.test(file)),
+                            isTypeScriptBlock(files),
                         ),
                     }
                     : {}),
             })),
             ...replayed.overrides.map(({files, rules}) => ({files, rules: dropUnneededRules(rules)})),
-            ...extraBlocks.filter(block => block.files).map(({files, rules}) => ({files, rules})),
+            ...renamed.overrides,
         ],
     };
     return {config, replayedRuleIDs, enabledReplayTargets};
 }
 
 export {
-    convertPresets, getJsPluginName, mergeSettings, reactCompilerRuleNames,
+    convertPresets, getJsPluginName, mergeSettings,
 };

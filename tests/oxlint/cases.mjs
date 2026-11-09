@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import {fileURLToPath} from 'node:url';
 
-import {buildOxlintConfig} from '../../oxlint/index.mjs';
+import {buildOxlintConfig, reactCompilerRuleNames} from '../../oxlint/index.mjs';
 
 const packageDirectory = fileURLToPath(new URL('../../', import.meta.url));
 const snapshotDirectory = fileURLToPath(new URL('./__snapshots__/', import.meta.url));
@@ -12,9 +12,17 @@ const snapshotDirectory = fileURLToPath(new URL('./__snapshots__/', import.meta.
 // The jest preset applies to react-native-onyx's test and mock files only.
 const ONYX_JEST_FILES = ['tests/**', 'lib/**/__mocks__/**', 'jestSetup.js', 'jest-sequencer.js', 'jest-test-environment.ts'];
 
+// The App runs the React Compiler rules from its own plugin, so its case drops the preset's.
+const dropReactCompilerRules = ruleID => (ruleID.startsWith('react-hooks/') && reactCompilerRuleNames.includes(ruleID.slice('react-hooks/'.length)) ? null : undefined);
+
 // `reactVersion` is set so the snapshot does not depend on the react version installed here.
 const SNAPSHOT_CASES = {
-    app: {presets: ['browser', 'react', 'expensify', 'typescript', 'scripts', 'jest', 'prettier'], reactVersion: '19.0.0'},
+    app: {
+        presets: ['browser', 'react', 'expensify', 'typescript', 'scripts', 'jest', 'prettier'],
+        withNursery: true,
+        transformRule: dropReactCompilerRules,
+        reactVersion: '19.0.0',
+    },
     onyx: {presets: ['browser', 'react', 'typescript', {preset: 'jest', files: ONYX_JEST_FILES}, 'scripts', 'prettier'], reactVersion: '19.0.0'},
 };
 

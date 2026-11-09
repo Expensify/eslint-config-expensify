@@ -25,12 +25,16 @@ function getOxlintEnvironment(projectDirectory = packageDirectory) {
  * Creates a temp project that holds a copy of the fixtures and the config as JSON, like a repo that writes the built
  * config to its own folder.
  * @param {string} configJSON
+ * @param {Record<string, string>} [extraFiles] more files for the project, by name
  * @returns {string} the directory
  */
-function createFixtureProject(configJSON) {
+function createFixtureProject(configJSON, extraFiles = {}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-oxlint-'));
     fs.cpSync(fixtureDirectory, directory, {recursive: true});
     fs.writeFileSync(path.join(directory, 'oxlintrc.json'), configJSON);
+    for (const [name, content] of Object.entries(extraFiles)) {
+        fs.writeFileSync(path.join(directory, name), content);
+    }
     return directory;
 }
 
@@ -39,19 +43,22 @@ function createFixtureProject(configJSON) {
  * @param {string} directory a project from createFixtureProject
  * @param {string} oxlintBinary
  * @param {Record<string, string>} env
- * @returns {{status: number | null, stderr: string, codes: string[]}} the codes of the diagnostics, like `eslint(eqeqeq)`
+ * @returns {{status: number | null, stderr: string, codes: string[], diagnostics: Array<{code: string, filename: string}>}} the diagnostics, and
+ * their codes, like `eslint(eqeqeq)`
  */
 function runOxlint(directory, oxlintBinary, env) {
     const result = spawnSync(oxlintBinary, ['-c', 'oxlintrc.json', '--format=json', '.'], {
         cwd: directory, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
     });
-    let codes = [];
+    let diagnostics = [];
     try {
-        codes = JSON.parse(result.stdout).diagnostics.map(diagnostic => diagnostic.code);
+        diagnostics = JSON.parse(result.stdout).diagnostics.map(({code, filename}) => ({code, filename}));
     } catch {
         // A config error prints no JSON. The caller reports stderr.
     }
-    return {status: result.status, stderr: `${result.stderr}${result.stdout}`.slice(0, 2000), codes};
+    return {
+        status: result.status, stderr: `${result.stderr}${result.stdout}`.slice(0, 2000), codes: diagnostics.map(diagnostic => diagnostic.code), diagnostics,
+    };
 }
 
 export {

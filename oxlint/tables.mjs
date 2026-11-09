@@ -35,7 +35,16 @@ const DROPPED_RULES = {
     'no-invalid-this': 'calls sourceCode.getJSDocComment, which oxlint JS plugins do not support, and the error drops every JS plugin report in the file',
     'react/jsx-uses-react': 'only marks variables as used; oxlint no-unused-vars handles JSX itself (checked: same reports with and without it)',
     'react/jsx-uses-vars': 'only marks variables as used; oxlint no-unused-vars handles JSX itself (checked: same reports with and without it)',
+    'react-hooks/component-hook-factories': 'React Compiler check that oxlint does not implement',
+    'react-hooks/config': 'React Compiler check that oxlint does not implement',
+    'react-hooks/gating': 'React Compiler check that oxlint does not implement',
     'rulesdir/boolean-conditional-rendering': 'needs the type of the `&&` left operand, and JS plugins get no type information',
+};
+
+// Preset rules that do not run unless the repo sets `withNursery`, because oxlint keeps its version in the nursery
+// category and the ESLint version needs type information.
+const DROPPED_WITHOUT_NURSERY = {
+    '@typescript-eslint/prefer-optional-chain': 'needs type information, and the native rule is still in nursery',
 };
 
 // oxlint rules used instead of preset rules that need type information. unicorn/prefer-at keeps its default options;
@@ -74,6 +83,7 @@ export {
     DEFAULT_SETTINGS,
     DROPPED_RULES,
     DROPPED_SETTINGS_WARNINGS,
+    DROPPED_WITHOUT_NURSERY,
     DROP_OPTIONS,
     ESLINT_PREFIX_OF,
     ESLINT_RULE_RENAMES,

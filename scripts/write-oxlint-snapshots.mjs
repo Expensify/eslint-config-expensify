@@ -5,7 +5,9 @@ import fs from 'node:fs';
 
 import {SNAPSHOT_CASES, buildSnapshot, snapshotPath} from '../tests/oxlint/cases.mjs';
 
-for (const name of Object.keys(SNAPSHOT_CASES)) {
-    fs.writeFileSync(snapshotPath(name), await buildSnapshot(name));
-    process.stdout.write(`wrote ${snapshotPath(name)}\n`);
-}
+await Promise.all(
+    Object.keys(SNAPSHOT_CASES).map(async (name) => {
+        fs.writeFileSync(snapshotPath(name), await buildSnapshot(name));
+        process.stdout.write(`wrote ${snapshotPath(name)}\n`);
+    }),
+);

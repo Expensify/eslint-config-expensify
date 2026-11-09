@@ -1,20 +1,24 @@
 import assert from 'node:assert/strict';
+import os from 'node:os';
 import {test} from 'node:test';
 
-import {convertPresets, reactCompilerRuleNames} from '../../oxlint/convert.mjs';
-import {buildOxlintConfig, toEslintRuleID} from '../../oxlint/index.mjs';
+import {convertPresets} from '../../oxlint/convert.mjs';
+import {
+    buildOxlintConfig, hostRule, reactCompilerRuleNames, toEslintRuleID,
+} from '../../oxlint/index.mjs';
 
 const rulesOf = config => [config.rules, ...config.overrides.map(override => override.rules)];
 const hasRule = (config, name) => rulesOf(config).some(rules => rules && name in rules);
 
-test('React Compiler rules are dropped by default, and rules-of-hooks stays', async () => {
+test('React Compiler rules are kept as @oxlint/migrate writes them by default, and rules-of-hooks stays', async () => {
     // Given the react preset, which turns on React Compiler rules
     // When the config is built without a transformRule
     const config = await buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0'});
 
-    // Then no compiler rule is left, but the classic hooks rules run
+    // Then the compiler rules are there under the native `react/` name, except the checks oxlint does not implement
     assert.ok(reactCompilerRuleNames.length > 10);
-    assert.ok(reactCompilerRuleNames.every(name => !hasRule(config, `react/${name}`) && !hasRule(config, `react-hooks/${name}`)));
+    assert.ok(hasRule(config, 'react/immutability') && hasRule(config, 'react/purity'));
+    assert.ok(!hasRule(config, 'hosted/gating') && !hasRule(config, 'react/gating') && !hasRule(config, 'react/config'));
     assert.ok(hasRule(config, 'react/rules-of-hooks'));
     assert.ok(hasRule(config, 'hosted/exhaustive-deps'));
 });
@@ -69,6 +73,79 @@ test('overrides that use the wrong name for a hosted or core rule are rejected',
     // And the repo's own rules pass when they are named in extraRunningNames
     await build('hosted/not-a-rule', ['hosted/not-a-rule']);
     await build('rc/immutability', ['rc/']);
+});
+
+test('buildOxlintConfig needs a React version when the react preset is used and react cannot be resolved', async () => {
+    // Given a working directory without react in it
+    const cwd = process.cwd();
+    process.chdir(os.tmpdir());
+    try {
+        // When the react preset is built without reactVersion, then it fails clearly
+        await assert.rejects(buildOxlintConfig({presets: ['react']}), /pass `reactVersion`/);
+
+        // And presets without react do not need one
+        await buildOxlintConfig({presets: ['expensify']});
+    } finally {
+        process.chdir(cwd);
+    }
+});
+
+test('withNursery is an option, off by default', async () => {
+    // Given the same presets
+    // When they are built with and without nursery rules
+    const without = await buildOxlintConfig({presets: ['browser'], reactVersion: '19.0.0'});
+    const withNursery = await buildOxlintConfig({presets: ['browser'], withNursery: true, reactVersion: '19.0.0'});
+
+    // Then a nursery rule runs as core/ from ESLint's code by default, and natively with the option
+    assert.ok(hasRule(without, 'core/no-undef') && !hasRule(without, 'no-undef'));
+    assert.ok(hasRule(withNursery, 'no-undef') && !hasRule(withNursery, 'core/no-undef'));
+});
+
+test('a re-scoped typescript preset still gets the TypeScript no-unused-vars option', async () => {
+    // Given the typescript preset limited to a folder, which no TypeScript glob matches
+    // When the config is built
+    const config = await buildOxlintConfig({presets: [{preset: 'typescript', files: ['src/**']}], reactVersion: '19.0.0'});
+
+    // Then no-unused-vars reports variables only used as types, as typescript-eslint's rule does
+    const rule = config.overrides.map(override => override.rules?.['no-unused-vars']).find(Boolean);
+    assert.equal(rule?.[1]?.reportVarsOnlyUsedAsTypes, true, JSON.stringify(rule));
+});
+
+test('rules renamed by transformRule keep the order checks of other rules', async () => {
+    // Given a preset where a rule is set for TypeScript files, then for all files
+    const rename = (ruleID, entry) => (ruleID === 'react-hooks/immutability' ? ['rc/immutability', entry] : undefined);
+    const scopedThenUnscoped = [
+        {files: ['**/*.ts'], rules: {'react-hooks/immutability': 'error'}},
+        {rules: {'react-hooks/immutability': 'off'}},
+    ];
+
+    // When it is converted, then the clash is refused as for any other rule
+    await assert.rejects(convertPresets(scopedThenUnscoped, {transformRule: rename}), /unscoped preset block after a scoped one sets rc\/immutability/);
+
+    // Given a preset that sets options for all files, then only a severity for some
+    const optionsThenSeverity = [
+        {rules: {'react-hooks/immutability': ['error', {strict: true}]}},
+        {files: ['**/*.ts'], rules: {'react-hooks/immutability': 'warn'}},
+    ];
+
+    // When it is converted
+    const {config} = await convertPresets(optionsThenSeverity, {transformRule: rename});
+
+    // Then the later block keeps the options of the earlier one, as in ESLint
+    assert.deepEqual(config.rules['rc/immutability'], ['error', {strict: true}]);
+    assert.deepEqual(config.overrides.find(override => override.rules['rc/immutability']).rules['rc/immutability'], ['warn', {strict: true}]);
+});
+
+test('hostRule hosts a rule of a plugin the package does not list, from the rules object it is given', async () => {
+    // Given a plugin the package does not list
+    const rule = {meta: {}, create: () => ({})};
+
+    // When one of its rules is hosted
+    const hosted = hostRule('storybook/default-exports', {'default-exports': rule});
+
+    // Then the ESLint ID wrapper is applied, and a missing rule fails clearly
+    assert.equal(typeof hosted.create, 'function');
+    assert.throws(() => hostRule('storybook/missing', {'default-exports': rule}), /no rule named "missing"/);
 });
 
 test('buildOxlintConfig rejects unknown options and unknown presets', async () => {

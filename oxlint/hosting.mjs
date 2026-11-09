@@ -88,11 +88,14 @@ function withStubbedParserServices(rule) {
  * Loads one ESLint plugin rule as a hosted rule. `eslint-disable` comments that use its ESLint ID apply to it. A repo
  * that wraps or adds hosted rules builds its own `hosted` plugin from this.
  * @param {string} ruleID the ESLint rule ID, like `react/jsx-no-bind`
+ * @param {Record<string, import('eslint').Rule.RuleModule>} [pluginRules] the `rules` of a plugin this package does not
+ * list (like eslint-plugin-storybook), which the repo imports itself. By default the rule comes from the plugins this
+ * package lists.
  * @returns {import('eslint').Rule.RuleModule}
  */
-function hostRule(ruleID) {
+function hostRule(ruleID, pluginRules) {
     const {prefix, name} = splitRuleID(ruleID);
-    const rule = getPluginRules(prefix)[name];
+    const rule = (pluginRules ?? getPluginRules(prefix))[name];
     if (!rule) {
         throw new Error(`The "${prefix}" plugin has no rule named "${name}".`);
     }

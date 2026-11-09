@@ -30,3 +30,34 @@ for (const name of Object.keys(SNAPSHOT_CASES)) {
         }
     });
 }
+
+test('eslint-disable comments with ESLint rule IDs silence hosted and core rules', async () => {
+    // Given the same code twice: with disable comments that use ESLint's IDs, and without them. `react-hooks/exhaustive-deps`
+    // runs as hosted/exhaustive-deps, and `dot-notation` runs as core/dot-notation (see the converted config).
+    const code = comment => `import {useEffect} from 'react';
+const value = {};
+export function f() {
+    ${comment('react-hooks/exhaustive-deps')}
+    useEffect(() => { console.log(value.a); }, [value.b]);
+    ${comment('dot-notation')}
+    return value['a'];
+}
+`;
+    const directory = createFixtureProject(await readRealConfig('app'), {
+        'silenced.js': code(rule => `// eslint-disable-next-line ${rule}`),
+        'loud.js': code(() => '// no directive'),
+    });
+    try {
+        // When oxlint lints both files
+        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
+        const codesIn = name => diagnostics.filter(diagnostic => diagnostic.filename.endsWith(name)).map(diagnostic => diagnostic.code);
+
+        // Then the file without comments reports both rules, so the test can fail, and the one with comments reports neither
+        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
+        assert.ok(codesIn('loud.js').includes('hosted(exhaustive-deps)'), codesIn('loud.js').join(', '));
+        assert.ok(codesIn('loud.js').includes('core(dot-notation)'), codesIn('loud.js').join(', '));
+        assert.deepEqual(codesIn('silenced.js').filter(silencedCode => /exhaustive-deps|dot-notation/.test(silencedCode)), []);
+    } finally {
+        fs.rmSync(directory, {recursive: true, force: true});
+    }
+});

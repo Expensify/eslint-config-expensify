@@ -55,4 +55,6 @@ function toEslintRuleID(code, {hostedRules = {}, pluginPrefixes = {}} = {}) {
     return `${pluginPrefixes[plugin] ?? plugin}/${rule}`;
 }
 
+// A named export, like every export of the public entry (utils.mjs and index.mjs re-export it).
+// eslint-disable-next-line import/prefer-default-export
 export {toEslintRuleID};

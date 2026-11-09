@@ -3,6 +3,9 @@
  */
 import prettierConfig from 'eslint-config-prettier';
 
+// Marks a block with the preset it comes from, so convert.mjs still knows a re-scoped `typescript` preset is TypeScript.
+const SOURCE_PRESET = Symbol.for('eslint-config-expensify.sourcePreset');
+
 // The names of this package's own exports (see "exports" in package.json) that hold ESLint config.
 const PRESET_NAMES = ['browser', 'expensify', 'formatting', 'jest', 'node', 'react', 'react-formatting', 'scripts', 'typescript'];
 
@@ -45,11 +48,13 @@ async function loadPresetBlocks(presets) {
     const lists = await Promise.all(
         presets.map(async (entry) => {
             const {preset, files} = typeof entry === 'string' ? {preset: entry, files: undefined} : entry;
-            const blocks = await loadPreset(preset);
+            const blocks = (await loadPreset(preset)).map(block => ({...block, [SOURCE_PRESET]: preset}));
             return files ? blocks.map(block => ({...block, files})) : blocks;
         }),
     );
     return lists.flat();
 }
 
-export {PRESET_NAMES, RULE_SOURCE_LISTS, loadPresetBlocks};
+export {
+    PRESET_NAMES, RULE_SOURCE_LISTS, SOURCE_PRESET, loadPresetBlocks,
+};

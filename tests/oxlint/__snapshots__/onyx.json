@@ -1435,12 +1435,6 @@
     "no-sparse-arrays": "error",
     "no-template-curly-in-string": "error",
     "no-unreachable": "error",
-    "no-unreachable-loop": [
-      "error",
-      {
-        "ignore": []
-      }
-    ],
     "no-unsafe-finally": "error",
     "no-unsafe-negation": "error",
     "no-unsafe-optional-chaining": [
@@ -1468,15 +1462,6 @@
     "no-class-assign": "error",
     "no-const-assign": "error",
     "no-dupe-class-members": "error",
-    "no-restricted-exports": [
-      "error",
-      {
-        "restrictedNamedExports": [
-          "default",
-          "then"
-        ]
-      }
-    ],
     "no-this-before-super": "error",
     "no-useless-computed-key": "error",
     "no-useless-constructor": "error",
@@ -1517,7 +1502,6 @@
     "prefer-template": "error",
     "require-yield": "error",
     "symbol-description": "error",
-    "import/export": "error",
     "import/no-named-as-default": "error",
     "import/no-named-as-default-member": "error",
     "import/no-mutable-exports": "error",
@@ -1700,7 +1684,6 @@
       "error",
       "always"
     ],
-    "react/require-render-return": "error",
     "react/self-closing-comp": "error",
     "react/jsx-no-target-blank": [
       "error",
@@ -1976,6 +1959,18 @@
     "jsx-a11y/scope": "error",
     "jsx-a11y/tabindex-no-positive": "error",
     "react/rules-of-hooks": "error",
+    "react/static-components": "error",
+    "react/use-memo": "error",
+    "react/preserve-manual-memoization": "error",
+    "react/incompatible-library": "error",
+    "react/immutability": "error",
+    "react/globals": "error",
+    "react/refs": "error",
+    "react/set-state-in-effect": "error",
+    "react/error-boundaries": "error",
+    "react/purity": "error",
+    "react/set-state-in-render": "error",
+    "react/unsupported-syntax": "error",
     "typescript/dot-notation": [
       "error",
       {
@@ -1992,7 +1987,22 @@
     "core/no-octal-escape": "error",
     "core/no-return-await": "error",
     "core/no-dupe-args": "error",
+    "core/no-unreachable-loop": [
+      "error",
+      {
+        "ignore": []
+      }
+    ],
     "no-new-native-nonconstructor": "error",
+    "core/no-restricted-exports": [
+      "error",
+      {
+        "restrictedNamedExports": [
+          "default",
+          "then"
+        ]
+      }
+    ],
     "core/no-restricted-syntax": [
       "error",
       {
@@ -2008,6 +2018,7 @@
         "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
       }
     ],
+    "hosted/export": "error",
     "hosted/no-extraneous-dependencies": "off",
     "hosted/order": [
       "error",
@@ -2080,6 +2091,7 @@
         "skipUndeclared": false
       }
     ],
+    "hosted/require-render-return": "error",
     "hosted/sort-comp": [
       "error",
       {
@@ -2186,21 +2198,9 @@
         "no-redeclare": "error",
         "es/no-nullish-coalescing-operators": "error",
         "es/no-optional-chaining": "error",
-        "import/named": "error",
         "jsdoc/require-param": "error",
         "jsdoc/require-param-type": "error",
         "jsdoc/check-tag-names": "error"
-      }
-    },
-    {
-      "files": [
-        "**/*.js",
-        "**/*.jsx",
-        "**/*.mjs",
-        "**/*.cjs"
-      ],
-      "rules": {
-        "no-undef": "error"
       }
     },
     {
@@ -2224,7 +2224,6 @@
         "no-redeclare": "off",
         "no-setter-return": "off",
         "no-this-before-super": "off",
-        "no-undef": "off",
         "no-unreachable": "off",
         "no-unsafe-negation": "off",
         "no-with": "off",
@@ -2313,7 +2312,6 @@
         "no-redeclare": "off",
         "no-setter-return": "off",
         "no-this-before-super": "off",
-        "no-undef": "off",
         "no-unreachable": "off",
         "no-unsafe-negation": "off",
         "no-with": "off",
@@ -2368,7 +2366,6 @@
             "ignoreTernaryTests": true
           }
         ],
-        "typescript/prefer-optional-chain": "off",
         "typescript/prefer-regexp-exec": "off",
         "typescript/prefer-string-starts-ends-with": "error",
         "no-dupe-class-members": "error",
@@ -2421,11 +2418,9 @@
         "no-obj-calls": "off",
         "no-setter-return": "off",
         "no-this-before-super": "off",
-        "no-undef": "off",
         "no-unreachable": "off",
         "no-unsafe-negation": "off",
         "valid-typeof": "off",
-        "import/named": "off",
         "import/no-named-as-default-member": "off",
         "no-throw-literal": "error",
         "prefer-promise-reject-errors": [
@@ -2520,7 +2515,6 @@
         "typescript/no-mixed-enums": "off",
         "typescript/no-redundant-type-constituents": "off",
         "typescript/no-unnecessary-boolean-literal-compare": "off",
-        "typescript/no-unnecessary-condition": "off",
         "typescript/no-unnecessary-qualifier": "off",
         "typescript/no-unnecessary-template-expression": "off",
         "typescript/no-unnecessary-type-arguments": "off",
@@ -2541,7 +2535,6 @@
         "typescript/prefer-find": "off",
         "typescript/prefer-includes": "off",
         "typescript/prefer-nullish-coalescing": "off",
-        "typescript/prefer-optional-chain": "off",
         "typescript/prefer-promise-reject-errors": "off",
         "typescript/prefer-readonly": "off",
         "typescript/prefer-readonly-parameter-types": "off",
@@ -2609,6 +2602,17 @@
         "**/*.cjs"
       ],
       "rules": {
+        "hosted/named": "error"
+      }
+    },
+    {
+      "files": [
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.mjs",
+        "**/*.cjs"
+      ],
+      "rules": {
         "hosted/check-param-names": "error",
         "hosted/check-types": [
           "error",
@@ -2645,14 +2649,13 @@
     },
     {
       "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.mjs",
+        "**/*.cjs"
       ],
       "rules": {
-        "core/no-dupe-args": "off",
-        "no-new-native-nonconstructor": "off"
+        "core/no-undef": "error"
       }
     },
     {
@@ -2664,7 +2667,21 @@
       ],
       "rules": {
         "core/no-dupe-args": "off",
-        "no-new-native-nonconstructor": "off"
+        "no-new-native-nonconstructor": "off",
+        "core/no-undef": "off"
+      }
+    },
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts"
+      ],
+      "rules": {
+        "core/no-dupe-args": "off",
+        "no-new-native-nonconstructor": "off",
+        "core/no-undef": "off"
       }
     },
     {
@@ -2744,6 +2761,8 @@
           }
         ],
         "no-new-native-nonconstructor": "off",
+        "core/no-undef": "off",
+        "hosted/named": "off",
         "hosted/naming-convention": [
           "error",
           {

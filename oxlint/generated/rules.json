@@ -42,12 +42,15 @@
     "no-octal",
     "no-octal-escape",
     "no-path-concat",
+    "no-restricted-exports",
     "no-restricted-syntax",
     "no-return-await",
     "no-spaced-func",
     "no-tabs",
     "no-trailing-spaces",
+    "no-undef",
     "no-undef-init",
+    "no-unreachable-loop",
     "no-whitespace-before-property",
     "nonblock-statement-body-position",
     "object-curly-newline",
@@ -77,6 +80,8 @@
   ],
   "hostedRuleIDs": [
     "@typescript-eslint/naming-convention",
+    "import/export",
+    "import/named",
     "import/no-extraneous-dependencies",
     "import/no-import-module-exports",
     "import/no-relative-packages",
@@ -116,6 +121,7 @@
     "react/prefer-stateless-function",
     "react/prop-types",
     "react/require-default-props",
+    "react/require-render-return",
     "react/sort-comp",
     "react/static-property-placement"
   ]

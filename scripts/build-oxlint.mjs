@@ -21,8 +21,10 @@ const rulesPath = fileURLToPath(new URL('../oxlint/generated/rules.json', import
  */
 async function buildRulesJson() {
     const replayedRuleIDs = new Map();
-    for (const presets of RULE_SOURCE_LISTS) {
-        const converted = await convertPresets(await loadPresetBlocks(presets));
+
+    // With and without nursery rules: a rule oxlint keeps in nursery runs as `core/` or `hosted/` unless a repo opts in.
+    const runs = RULE_SOURCE_LISTS.flatMap(presets => [false, true].map(async withNursery => convertPresets(await loadPresetBlocks(presets), {withNursery})));
+    for (const converted of await Promise.all(runs)) {
         for (const [ruleID, target] of converted.replayedRuleIDs) {
             replayedRuleIDs.set(ruleID, target);
         }
