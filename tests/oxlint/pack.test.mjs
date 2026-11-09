@@ -39,11 +39,12 @@ fs.writeFileSync(process.argv[2], JSON.stringify(config));
         const configFile = path.join(project, 'built.json');
 
         // And without @oxlint/migrate, an optional peer dependency, the build fails and says what to install
-        assert.throws(() => execFileSync(process.execPath, ['build-config.mjs', configFile], {cwd: project, stdio: 'pipe'}), error => /Install @oxlint\/migrate 1\.90\.x as a dev dependency/.test(String(error.stderr)));
+        const build = () => execFileSync(process.execPath, ['build-config.mjs', configFile], {cwd: project, stdio: 'pipe'});
+        assert.throws(build, error => /Install @oxlint\/migrate 1\.90\.x as a dev dependency/.test(String(error.stderr)));
 
         // And with it installed, as the README says, the build works
         install([`@oxlint/migrate@${devDependencies['@oxlint/migrate']}`]);
-        execFileSync(process.execPath, ['build-config.mjs', configFile], {cwd: project, stdio: 'pipe'});
+        build();
         const fixtures = createFixtureProject(fs.readFileSync(configFile, 'utf8'));
         try {
             const {codes, stderr} = runOxlint(fixtures, path.join(project, 'node_modules/.bin/oxlint'), getOxlintEnvironment(project));
