@@ -21,8 +21,8 @@ test('the packed package builds a config that oxlint loads, from a project that 
         const [{filename}] = JSON.parse(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', packDirectory], {cwd: packageDirectory, encoding: 'utf8'}));
         const devDependencies = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8')).devDependencies;
         fs.writeFileSync(path.join(project, 'package.json'), JSON.stringify({name: 'consumer', private: true, type: 'module'}));
-        const toInstall = [path.join(packDirectory, filename), `oxlint@${devDependencies.oxlint}`, `oxlint-tsgolint@${devDependencies['oxlint-tsgolint']}`];
-        execFileSync('npm', ['install', '--no-audit', '--no-fund', ...toInstall], {cwd: project, stdio: 'pipe'});
+        const install = packages => execFileSync('npm', ['install', '--no-audit', '--no-fund', ...packages], {cwd: project, stdio: 'pipe'});
+        install([path.join(packDirectory, filename), `oxlint@${devDependencies.oxlint}`, `oxlint-tsgolint@${devDependencies['oxlint-tsgolint']}`]);
 
         // When the consumer builds the config, with the plugin paths the package exports, and oxlint runs it
         fs.writeFileSync(
@@ -37,6 +37,12 @@ fs.writeFileSync(process.argv[2], JSON.stringify(config));
 `,
         );
         const configFile = path.join(project, 'built.json');
+
+        // And without @oxlint/migrate, an optional peer dependency, the build fails and says what to install
+        assert.throws(() => execFileSync(process.execPath, ['build-config.mjs', configFile], {cwd: project, stdio: 'pipe'}), error => /Install @oxlint\/migrate 1\.90\.x as a dev dependency/.test(String(error.stderr)));
+
+        // And with it installed, as the README says, the build works
+        install([`@oxlint/migrate@${devDependencies['@oxlint/migrate']}`]);
         execFileSync(process.execPath, ['build-config.mjs', configFile], {cwd: project, stdio: 'pipe'});
         const fixtures = createFixtureProject(fs.readFileSync(configFile, 'utf8'));
         try {
