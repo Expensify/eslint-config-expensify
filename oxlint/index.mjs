@@ -1,0 +1,193 @@
+/**
+ * oxlint config for repos that use eslint-config-expensify. `buildOxlintConfig` converts the presets you pick (the same
+ * ones you would list in an ESLint config) with @oxlint/migrate and adds your own settings. Rules oxlint cannot run
+ * itself run from ESLint's code through the `core` and `hosted` plugins in ./plugins; generated/rules.json lists them, so
+ * the plugins load fast. If the list is out of date, `npm run build:oxlint` rebuilds it.
+ */
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+
+import {convertPresets, mergeSettings, reactCompilerRuleNames} from './convert.mjs';
+import {toEslintRuleID} from './ruleNames.mjs';
+import {coreRuleNames, hostedRuleIDs} from './generatedRules.mjs';
+import {hostRule, splitRuleID} from './hosting.mjs';
+import {loadPresetBlocks} from './presets.mjs';
+import {ALWAYS_HOSTED, ESLINT_PREFIX_OF, ESLINT_RULE_RENAMES} from './tables.mjs';
+import {withEslintDirectiveIDs, withEslintDirectiveIDsFor} from './eslintDirectives.mjs';
+
+const require = createRequire(import.meta.url);
+
+const OWN_PLUGIN_SPECIFIERS = {
+    core: fileURLToPath(new URL('./plugins/core.mjs', import.meta.url)),
+    hosted: fileURLToPath(new URL('./plugins/hosted.mjs', import.meta.url)),
+    rulesdir: fileURLToPath(new URL('./plugins/rulesdir.mjs', import.meta.url)),
+};
+
+const OPTION_NAMES = new Set(['presets', 'plugins', 'transformRule', 'extraRunningNames', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides']);
+
+/**
+ * @typedef {import('./presets.mjs').PresetEntry} PresetEntry
+ * @typedef {import('./convert.mjs').TransformRule} TransformRule
+ * @typedef {Pick<import('oxlint').OxlintConfig, 'ignorePatterns' | 'env' | 'globals' | 'settings' | 'jsPlugins' | 'overrides'>} RepoConfig
+ */
+
+/**
+ * @param {string | undefined} reactVersion
+ * @returns {string | undefined} the version oxlint's react rules need, since ESLint finds it itself and oxlint does not
+ */
+function getReactVersion(reactVersion) {
+    if (reactVersion) {
+        return reactVersion;
+    }
+    try {
+        return require(require.resolve('react/package.json', {paths: [process.cwd()]})).version;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Returns the name a rule runs under when it runs as hosted/ or core/ instead of oxlint's built-in version.
+ * @param {string} rule a rule name as written in the repo's overrides
+ * @returns {string | undefined} undefined when the rule runs under the name given
+ */
+function getRunningName(rule) {
+    const {prefix, name} = splitRuleID(rule);
+    const eslintPrefix = prefix in ESLINT_PREFIX_OF ? ESLINT_PREFIX_OF[prefix] : prefix;
+    const eslintID = eslintPrefix ? `${eslintPrefix}/${name}` : name;
+    if (!eslintPrefix && coreRuleNames.includes(name)) {
+        return `core/${name}`;
+    }
+
+    // @oxlint/migrate and oxlint write react-hooks rules under `react/`.
+    if (hostedRuleIDs.includes(eslintID) || ALWAYS_HOSTED.has(eslintID) || (eslintPrefix === 'react' && ALWAYS_HOSTED.has(`react-hooks/${name}`))) {
+        return `hosted/${name}`;
+    }
+    return undefined;
+}
+
+/**
+ * Throws when the repo sets a rule by its built-in name while it runs as hosted/ or core/ (like
+ * `import/prefer-default-export`), which would do nothing or run a second copy. Also throws for a `core/` or `hosted/`
+ * rule that no plugin has, since oxlint reports that only when the config loads.
+ * @param {string} rule
+ * @param {string[]} extraRunningNames
+ */
+function checkRuleName(rule, extraRunningNames) {
+    if (extraRunningNames.some(name => (name.endsWith('/') ? rule.startsWith(name) : rule === name))) {
+        return;
+    }
+    const runningName = getRunningName(rule);
+    if (runningName) {
+        throw new Error(`The config sets "${rule}", but this rule runs as "${runningName}". Use that name instead.`);
+    }
+    const {prefix, name} = splitRuleID(rule);
+    const isUnknownCore = prefix === 'core' && !coreRuleNames.includes(name);
+    const isUnknownHosted = prefix === 'hosted' && !hostedRuleIDs.some(ruleID => splitRuleID(ruleID).name === name);
+    if (isUnknownCore || isUnknownHosted) {
+        throw new Error(
+            `The config sets "${rule}", but ${prefix === 'core' ? 'ESLint core rules' : 'hosted rules'} in generated/rules.json do not include it. `
+            + 'Run npm run build:oxlint, or pass it in extraRunningNames if your own plugin provides it.',
+        );
+    }
+}
+
+/**
+ * Throws when the converted config needs a `core/` or `hosted/` rule that generated/rules.json does not list, which
+ * means the file is out of date.
+ * @param {import('oxlint').OxlintConfig} config
+ */
+function checkRulesJson(config) {
+    const hostedNames = new Set(hostedRuleIDs.map(ruleID => splitRuleID(ruleID).name));
+    const allRules = [config.rules, ...(config.overrides ?? []).map(override => override.rules)].flatMap(rules => Object.keys(rules ?? {}));
+    const missing = allRules.filter(rule => (rule.startsWith('core/') && !coreRuleNames.includes(rule.slice(5))) || (rule.startsWith('hosted/') && !hostedNames.has(rule.slice(7))));
+    if (missing.length) {
+        throw new Error(`The conversion needs ${[...new Set(missing)].join(', ')}, which generated/rules.json does not list. Run npm run build:oxlint in eslint-config-expensify.`);
+    }
+}
+
+/**
+ * Builds one flat oxlint config (no `extends`) from eslint-config-expensify presets plus the repo's own settings.
+ * @param {object} options
+ * @param {PresetEntry[]} options.presets the presets to convert, in order, like the ESLint config list: names of this
+ * package's exports (`browser`, `react`, `typescript`, `jest`, `scripts`, ...) and `'prettier'` for
+ * eslint-config-prettier. `{preset: 'jest', files: [...]}` re-scopes every block of that preset to `files`.
+ * @param {{hosted?: string, rulesdir?: string}} [options.plugins] plugin files that replace this package's `hosted` and
+ * `rulesdir` plugins. They must keep the plugin name. Use absolute paths or package names.
+ * @param {TransformRule} [options.transformRule] called for each preset rule with its ESLint rule ID, before conversion.
+ * Return `[newRuleID, entry]` to write the rule under another name, `null` to drop it, `undefined` for the default.
+ * React Compiler rules (see `reactCompilerRuleNames`) are dropped by default.
+ * @param {string[]} [options.extraRunningNames] rule names (or prefixes ending in `/`) the repo's overrides may use that
+ * this package does not know, like `hosted/require-jsdoc` from the repo's own hosted plugin or `rc/`
+ * @param {string} [options.reactVersion] the React version for oxlint's react rules; found from the working directory by default
+ * @param {RepoConfig['ignorePatterns']} [options.ignorePatterns] added after the presets' patterns
+ * @param {RepoConfig['env']} [options.env] merged over the presets' env
+ * @param {RepoConfig['globals']} [options.globals] merged over the presets' globals
+ * @param {RepoConfig['settings']} [options.settings] merged into the presets' settings, key by key
+ * @param {RepoConfig['jsPlugins']} [options.jsPlugins] added after the plugins of the presets
+ * @param {RepoConfig['overrides']} [options.overrides] added after the presets' overrides, so they win. A rule that runs as
+ * hosted/ or core/ must be written with that name
+ * @returns {Promise<import('oxlint').OxlintConfig>}
+ */
+async function buildOxlintConfig({
+    presets,
+    plugins = {},
+    transformRule,
+    extraRunningNames = [],
+    reactVersion,
+    ignorePatterns = [],
+    env = {},
+    globals = {},
+    settings = {},
+    jsPlugins = [],
+    overrides = [],
+    ...unknown
+}) {
+    if (Object.keys(unknown).length) {
+        throw new Error(`buildOxlintConfig does not know the option ${Object.keys(unknown).join(', ')}. Known options: ${[...OPTION_NAMES].join(', ')}.`);
+    }
+    if (!Array.isArray(presets) || !presets.length) {
+        throw new Error('buildOxlintConfig needs a non-empty `presets` list.');
+    }
+    for (const override of overrides) {
+        for (const rule of Object.keys(override.rules ?? {})) {
+            checkRuleName(rule, extraRunningNames);
+        }
+    }
+
+    const {config} = await convertPresets(await loadPresetBlocks(presets), {transformRule});
+    checkRulesJson(config);
+
+    const allRules = [config.rules, ...config.overrides.map(override => override.rules), ...overrides.map(override => override.rules)];
+    const rulesdirIsUsed = allRules.some(rules => Object.keys(rules ?? {}).some(rule => rule.startsWith('rulesdir/')));
+    const version = getReactVersion(reactVersion);
+    return {
+        ...config,
+
+        // oxlint reserves its own plugin names, so these use other names.
+        jsPlugins: [
+            ...(rulesdirIsUsed ? [{name: 'rulesdir', specifier: plugins.rulesdir ?? OWN_PLUGIN_SPECIFIERS.rulesdir}] : []),
+            {name: 'core', specifier: OWN_PLUGIN_SPECIFIERS.core},
+            {name: 'hosted', specifier: plugins.hosted ?? OWN_PLUGIN_SPECIFIERS.hosted},
+            ...(config.jsPlugins ?? []),
+            ...jsPlugins,
+        ],
+        env: {...config.env, ...env},
+        globals: {...config.globals, ...globals},
+        settings: mergeSettings(config.settings, mergeSettings(version ? {react: {...config.settings?.react, version}} : {}, settings)),
+        ignorePatterns: [...(config.ignorePatterns ?? []), ...ignorePatterns],
+        overrides: [...config.overrides, ...overrides],
+    };
+}
+
+export {
+    buildOxlintConfig,
+    coreRuleNames,
+    ESLINT_RULE_RENAMES as eslintRuleRenames,
+    hostedRuleIDs,
+    hostRule,
+    reactCompilerRuleNames,
+    toEslintRuleID,
+    withEslintDirectiveIDs,
+    withEslintDirectiveIDsFor,
+};
