@@ -22,6 +22,13 @@ const config = defineConfig([
         },
     },
     {
+        // Declaration files export each name where they declare it, so no-inline-named-export does not fit them.
+        files: ['oxlint/**/*.d.ts'],
+        rules: {
+            'rulesdir/no-inline-named-export': 'off',
+        },
+    },
+    {
         files: ['eslint-plugin-expensify/fixtures/**/*'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
