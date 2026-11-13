@@ -2,7 +2,7 @@
 /**
  * Helpers for the oxlint tests: build a temp project from a config and files, and run an oxlint binary on it.
  */
-import {spawnSync} from 'node:child_process';
+import {execFile, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import os from 'node:os';
@@ -47,25 +47,21 @@ function createFixtureProject(configJSON, files = {}) {
     return directory;
 }
 
+const OXLINT_ARGUMENTS = ['-c', 'oxlintrc.json', '--format=json', '.'];
+const MAX_BUFFER = 64 * 1024 * 1024;
+
 /**
- * Runs oxlint on the files of a project with the config in it.
- * @param {string} directory a project from createFixtureProject
- * @param {string} oxlintBinary
- * @param {Record<string, string>} env
+ * @param {number | null} status
+ * @param {string} stdout
+ * @param {string} stderr
  * @returns {{status: number | null, loaded: boolean, stderr: string, codes: string[], diagnostics: Array<{code: string, filename: string, message: string, line?: number}>}}
  * the diagnostics, and their codes, like `eslint(eqeqeq)`. `loaded` is false when oxlint rejected the config, which prints no JSON
  */
-function runOxlint(directory, oxlintBinary, env) {
-    const result = spawnSync(oxlintBinary, ['-c', 'oxlintrc.json', '--format=json', '.'], {
-        cwd: directory, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
-    });
-    if (result.error) {
-        throw new Error(`Could not run oxlint at ${oxlintBinary}: ${result.error.message}`, {cause: result.error});
-    }
+function parseOxlintOutput(status, stdout, stderr) {
     let diagnostics = [];
     let loaded = false;
     try {
-        diagnostics = JSON.parse(result.stdout).diagnostics.map(({
+        diagnostics = JSON.parse(stdout).diagnostics.map(({
             code, filename, message, labels,
         }) => ({
             code, filename, message, line: labels?.[0]?.span?.line,
@@ -75,10 +71,47 @@ function runOxlint(directory, oxlintBinary, env) {
         // A config error prints no JSON. The caller reports stderr.
     }
     return {
-        status: result.status, loaded, stderr: `${result.stderr}${result.stdout}`.slice(0, 2000), codes: diagnostics.map(diagnostic => diagnostic.code), diagnostics,
+        status, loaded, stderr: `${stderr}${stdout}`.slice(0, 2000), codes: diagnostics.map(diagnostic => diagnostic.code), diagnostics,
     };
 }
 
+/**
+ * Runs oxlint on the files of a project with the config in it.
+ * @param {string} directory a project from createFixtureProject
+ * @param {string} oxlintBinary
+ * @param {Record<string, string>} env
+ * @returns {ReturnType<typeof parseOxlintOutput>}
+ */
+function runOxlint(directory, oxlintBinary, env) {
+    const result = spawnSync(oxlintBinary, OXLINT_ARGUMENTS, {
+        cwd: directory, env, encoding: 'utf8', maxBuffer: MAX_BUFFER,
+    });
+    if (result.error) {
+        throw new Error(`Could not run oxlint at ${oxlintBinary}: ${result.error.message}`, {cause: result.error});
+    }
+    return parseOxlintOutput(result.status, result.stdout, result.stderr);
+}
+
+/**
+ * Like runOxlint, without blocking, so several projects can be linted at once.
+ * @param {string} directory
+ * @param {string} oxlintBinary
+ * @param {Record<string, string>} env
+ * @returns {Promise<ReturnType<typeof parseOxlintOutput>>}
+ */
+function runOxlintAsync(directory, oxlintBinary, env) {
+    return new Promise((resolve, reject) => {
+        execFile(oxlintBinary, OXLINT_ARGUMENTS, {cwd: directory, env, maxBuffer: MAX_BUFFER}, (error, stdout, stderr) => {
+            // A number is the exit code (1 when oxlint reports), anything else means oxlint did not start
+            if (error && typeof error.code !== 'number') {
+                reject(new Error(`Could not run oxlint at ${oxlintBinary}: ${error.message}`, {cause: error}));
+                return;
+            }
+            resolve(parseOxlintOutput(error ? error.code : 0, stdout, stderr));
+        });
+    });
+}
+
 export {
-    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint, runOxlintAsync,
 };
