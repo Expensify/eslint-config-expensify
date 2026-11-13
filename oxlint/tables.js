@@ -32,6 +32,10 @@ const ALWAYS_HOSTED = new Set([
 // these rules off the hosted path, which would need a parser for the modules they read.
 const NURSERY_RULES_RUN_NATIVE = new Set(['import/export', 'import/named']);
 
+// Hosted rules a repo can switch on itself though no preset enables them in the lists rules.json is built from. oxlint has no
+// import resolution rule of its own, and TypeScript repos turn this one on for their TypeScript files.
+const HOSTED_RULES_FOR_REPOS = ['import/no-unresolved'];
+
 // Preset rules that do not run at all, and why.
 const DROPPED_RULES = {
     'no-invalid-this': 'calls sourceCode.getJSDocComment, which oxlint JS plugins do not support, and the error drops every other JS plugin report in the file',
@@ -103,6 +107,7 @@ export {
     ESLINT_PREFIX_OF,
     EXPECTED_WARNINGS,
     HOSTED_PLUGIN_PACKAGES,
+    HOSTED_RULES_FOR_REPOS,
     MERGED_IMPORT_SETTINGS,
     NURSERY_RULES_RUN_NATIVE,
     isCopiedImportSetting,

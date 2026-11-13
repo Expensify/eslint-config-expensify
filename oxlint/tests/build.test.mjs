@@ -90,6 +90,16 @@ test('plugins replaces the plugin file of this package\'s hosted plugin', async 
     assert.deepEqual(config.jsPlugins.filter(plugin => plugin.name === 'hosted'), [{name: 'hosted', specifier: '/repo/hosted.js'}]);
 });
 
+test('a repo can switch on hosted/no-unresolved, which no preset enables', async () => {
+    const config = await buildOxlintConfig({
+        presets: ['browser', 'typescript'],
+        reactVersion: '19.0.0',
+        overrides: [{files: ['**/*.ts'], rules: {'hosted/no-unresolved': 'error'}}],
+    });
+
+    assert.ok(config.jsPlugins.some(plugin => plugin.name === 'hosted'));
+});
+
 test('the React version comes from reactVersion or settings.react.version, and `detect` counts as none', async () => {
     // oxlint refuses the 'detect' that ESLint allows as react.version
     const settings = {react: {version: 'detect', pragma: 'React'}};
@@ -104,48 +114,31 @@ test('the React version comes from reactVersion or settings.react.version, and `
     assert.equal(JSON.stringify((await buildOxlintConfig({presets: ['browser'], settings})).settings).includes('detect'), false);
 });
 
-test('{preset, files} runs the preset on the files only, by file type, in oxlint', async () => {
-    // 'lib/**.ts' has ** inside a name, which ESLint and oxlint both match like *, and 'tools/*.{js,ts}' has braces
-    const config = await buildOxlintConfig({
-        presets: [{preset: 'browser', files: ['src/**']}, {preset: 'typescript', files: ['src/**', 'lib/**.ts', 'tools/*.{js,ts}']}],
-        reactVersion: '19.0.0',
-    });
+test('{preset, files} runs a preset for locations on those files only, in oxlint', async () => {
+    const config = await buildOxlintConfig({presets: ['browser', {preset: 'jest', files: ['unit/**']}], reactVersion: '19.0.0'});
 
-    // Code that breaks one rule of each: a console call, `any`, and a variable only used as a type
-    const tsCode = 'const value = 1;\nexport type Value = typeof value;\nexport const anything: any = 1;\nconsole.log(anything);\n';
-    const directory = createFixtureProject(JSON.stringify(config), Object.fromEntries(
-        ['src/in.ts', 'src/in.js', 'lib/in.ts', 'lib/in.js', 'tools/in.ts', 'other/out.ts', 'other/out.js'].map(file => [file, file.endsWith('.ts') ? tsCode : 'console.log(1);\n']),
-    ));
+    // The jest preset turns no-console off, and the browser preset turns it on. A *.test.js outside the folder is not a jest file anymore.
+    const code = 'console.log(1);\n';
+    const directory = createFixtureProject(JSON.stringify(config), {'unit/in.js': code, 'other/out.js': code, 'other/out.test.js': code});
     try {
         const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
         const found = diagnostics
-            .filter(diagnostic => /\((no-console|no-explicit-any|no-unused-vars)\)$/.test(diagnostic.code))
+            .filter(diagnostic => diagnostic.code === 'eslint(no-console)')
             .map(diagnostic => `${diagnostic.filename} ${diagnostic.code}`)
             .sort();
 
         assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        assert.deepEqual(found, [
-            'lib/in.ts eslint(no-unused-vars)',
-            'lib/in.ts typescript(no-explicit-any)',
-            'src/in.js eslint(no-console)',
-            'src/in.ts eslint(no-console)',
-            'src/in.ts eslint(no-unused-vars)',
-            'src/in.ts typescript(no-explicit-any)',
-            'tools/in.ts eslint(no-unused-vars)',
-            'tools/in.ts typescript(no-explicit-any)',
-        ]);
+        assert.deepEqual(found, ['other/out.js eslint(no-console)', 'other/out.test.js eslint(no-console)']);
     } finally {
         fs.rmSync(directory, {recursive: true, force: true});
     }
 });
 
-test('{preset, files} refuses what it cannot scope to files', async () => {
+test('{preset, files} refuses a preset for file types, and react whose settings oxlint cannot scope', async () => {
     const build = preset => buildOxlintConfig({presets: [preset], reactVersion: '19.0.0'});
 
-    // A file type it cannot tell, the react preset whose settings oxlint cannot scope, and files that leave the preset nothing to lint
-    await assert.rejects(build({preset: 'typescript', files: ['src/*']}), /Got src\/\*\./);
+    await assert.rejects(build({preset: 'typescript', files: ['src/**']}), /"typescript" preset is for file types \(\*\*\/\*\.ts\), so it cannot be limited to files/);
     await assert.rejects(build({preset: 'react', files: ['src/**']}), /oxlint has no per-file settings/);
-    await assert.rejects(build({preset: 'typescript', files: ['README.md']}), /"typescript" preset applies to none of README\.md/);
 });
 
 test('repo options are merged after the presets', async () => {
@@ -171,11 +164,9 @@ test('repo options are merged after the presets', async () => {
     assert.deepEqual(config.overrides, [...base.overrides, override]);
 });
 
-test('a mistyped option, a core/ name in extraRunningNames or an unusable preset entry is rejected', async () => {
+test('a mistyped option, a core/ name in extraRunningNames or an unknown preset is rejected', async () => {
     await assert.rejects(buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0', ignorePattern: []}), /does not know the option ignorePattern/);
     await assert.rejects(buildOxlintConfig({presets: ['browser'], extraRunningNames: ['core/my-rule']}), /extraRunningNames has core\/my-rule/);
-    await assert.rejects(buildOxlintConfig({presets: [{name: 'jest'}]}), /name or \{preset, files\}/);
-    await assert.rejects(buildOxlintConfig({presets: [{preset: 'jest', files: []}]}), /non-empty array of strings/);
     await assert.rejects(buildOxlintConfig({presets: ['reakt']}), /Unknown preset "reakt"/);
 });
 

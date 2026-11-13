@@ -20,8 +20,8 @@ const RULE_SOURCE_LISTS = [
     ['node', 'react', 'typescript', 'scripts', 'jest', 'prettier'],
 
     // Re-scoped to `files`, which moves some rules from the root into overrides, and changes which ones oxlint skips.
-    // `react` is left out: its settings cannot be scoped to files, so re-scoping it is not supported.
-    ...PRESET_NAMES.filter(preset => preset !== 'react').map(preset => [{preset, files: ['src/**']}]),
+    // `react` and the presets for file types are left out, since they cannot be limited to files.
+    ...PRESET_NAMES.filter(preset => !['browser', 'node', 'react', 'typescript'].includes(preset)).map(preset => [{preset, files: ['src/**']}]),
 ];
 
 /**
@@ -30,58 +30,6 @@ const RULE_SOURCE_LISTS = [
 
 // `files` that only pick file types, like the typescript preset's `**/*.ts` and `**/*.js` blocks.
 const FILE_TYPE_GLOB = /^\*\*\/\*\.[\w.]+$/;
-const GLOB_SYNTAX = /[*?{}[\]!]/;
-
-/**
- * Returns the parts of a glob of `files` that match only files of the given types: `src/**` gives `src/**\/*.ts` for `.ts`,
- * `src/foo-*.d.ts` is kept for `.ts`, and `setup.js` gives nothing. A wildcard name must end with a plain extension, like `foo-*.ts`.
- * @param {string} glob
- * @param {string[]} extensions like `.ts`
- * @returns {string[] | undefined} undefined when the last part of the glob can match files of any type, like `src/*` or `src/index.*`
- */
-function narrowToExtensions(glob, extensions) {
-    const directory = glob.slice(0, glob.lastIndexOf('/') + 1);
-    const name = glob.slice(directory.length);
-    if (name === '**') {
-        return extensions.map(extension => `${glob}/*${extension}`);
-    }
-    const braces = /^([^{}]*)\{([^{}]+)\}([^{}]*)$/.exec(name);
-    const names = braces ? braces[2].split(',').map(option => `${braces[1]}${option}${braces[3]}`) : [name];
-
-    // The text after the last dot must have no wildcard. A name without a dot is all extension, so `foo*` is refused too.
-    // `**` inside a name matches like `*` in both ESLint and oxlint, so `src/**.ts` is read as `src/*.ts`.
-    const hasUnknownType = option => GLOB_SYNTAX.test(option) && GLOB_SYNTAX.test(option.slice(option.lastIndexOf('.') + 1));
-    if (names.some(hasUnknownType)) {
-        return undefined;
-    }
-    return names.filter(option => extensions.some(extension => option.endsWith(extension))).map(option => `${directory}${option}`);
-}
-
-/**
- * Runs a preset block on `files` only. A block for some file types (`**\/*.ts`) keeps them inside `files` (`src/**` gives
- * `src/**\/*.ts`), and any other block gets `files` instead of its own.
- * @param {Record<string, any>} block
- * @param {string[]} files
- * @param {string} preset
- * @returns {Record<string, any> | undefined} undefined when no file of `files` has the block's types
- */
-function limitBlock(block, files, preset) {
-    if (!block.files?.every(glob => FILE_TYPE_GLOB.test(glob))) {
-        return {...block, files};
-    }
-    const extensions = block.files.map(glob => glob.slice('**/*'.length));
-    const limited = files.flatMap((glob) => {
-        const narrowed = narrowToExtensions(glob, extensions);
-        if (!narrowed) {
-            throw new Error(
-                `The "${preset}" preset has blocks for ${block.files.join(', ')}, so each of its files must name a file type `
-                + `(like \`dir/**/*.ts\` or \`setup.js\`) or be a folder (\`dir/**\`). Got ${glob}.`,
-            );
-        }
-        return narrowed;
-    });
-    return limited.length ? {...block, files: limited} : undefined;
-}
 
 /**
  * Throws when a preset block for some files only sets an `import/*` setting that convert.js would apply to every file, unless
@@ -129,29 +77,12 @@ async function loadPreset(name) {
 const getPresetName = entry => (typeof entry === 'string' ? entry : entry.preset);
 
 /**
- * @param {unknown} entry
- */
-function checkPresetEntry(entry) {
-    if (typeof entry === 'string') {
-        return;
-    }
-    if (typeof entry?.preset !== 'string') {
-        throw new Error(`A preset entry is a name or {preset, files}, but got ${JSON.stringify(entry)}. Valid presets: ${VALID_PRESETS}.`);
-    }
-    if (entry.files !== undefined && !(Array.isArray(entry.files) && entry.files.length && entry.files.every(file => typeof file === 'string'))) {
-        throw new Error(`The files of the "${entry.preset}" preset must be a non-empty array of strings, but got ${JSON.stringify(entry.files)}.`);
-    }
-}
-
-/**
- * Loads the ESLint config blocks of the presets, in order.
+ * Loads the ESLint config blocks of the presets, in order. `{preset, files}` runs the preset on `files` only: they replace the
+ * `files` of each block, like `{...block, files}`. That does not work for a preset for file types, nor for one with settings for all files.
  * @param {PresetEntry[]} presets
  * @returns {Promise<Array<Record<string, any>>>}
  */
 async function loadPresetBlocks(presets) {
-    for (const entry of presets) {
-        checkPresetEntry(entry);
-    }
     const lists = await Promise.all(
         presets.map(async (entry) => {
             const preset = getPresetName(entry);
@@ -161,15 +92,17 @@ async function loadPresetBlocks(presets) {
             if (!files) {
                 return blocks;
             }
-            const settingKeys = blocks.flatMap(block => (block.files ? [] : Object.keys(block.settings ?? {}))).filter(key => !key.startsWith('import/'));
+            const fileTypeBlock = blocks.find(block => block.files?.every(glob => FILE_TYPE_GLOB.test(glob)));
+            if (fileTypeBlock) {
+                throw new Error(
+                    `The "${preset}" preset is for file types (${fileTypeBlock.files[0]}), so it cannot be limited to files. Limit presets whose blocks target locations, like "jest".`,
+                );
+            }
+            const settingKeys = blocks.flatMap(block => (block.files ? [] : Object.keys(block.settings ?? {})));
             if (settingKeys.length) {
                 throw new Error(`The "${preset}" preset sets ${[...new Set(settingKeys)].join(', ')} for all files, so it cannot be limited to files: oxlint has no per-file settings.`);
             }
-            const limited = blocks.map(block => limitBlock(block, files, preset)).filter(Boolean);
-            if (!limited.some(block => block.rules)) {
-                throw new Error(`The "${preset}" preset applies to none of ${files.join(', ')}, since its rules are for other file types.`);
-            }
-            return limited;
+            return blocks.map(block => ({...block, files}));
         }),
     );
     return lists.flat();

@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 /**
  * Loads rules of the ESLint plugins in HOSTED_PLUGIN_PACKAGES so oxlint can run them as JS plugin rules (`hostRule`), plus the
- * small helpers around that, like `definePlugin`, `splitRuleID` and `getInstallCommand`. Nothing loads until a rule is asked for.
+ * small helpers around that, like `definePlugin` and `splitRuleID`. Nothing loads until a rule is asked for.
  */
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -10,15 +10,6 @@ import {withEslintDirectiveIDs} from './eslint-directives.js';
 import {HOSTED_PLUGIN_PACKAGES, STUBBED_PARSER_SERVICES} from './tables.js';
 
 const require = createRequire(import.meta.url);
-
-/**
- * @param {string} name an optional peer dependency of this package
- * @returns {string} the command that installs it in a version this package accepts
- */
-function getInstallCommand(name) {
-    const {peerDependencies} = require('../package.json');
-    return `npm install --save-dev "${name}@${peerDependencies[name]}"`;
-}
 
 /**
  * Resolves a package one of the presets uses. They are dependencies of this package. `@typescript-eslint/eslint-plugin`
@@ -134,5 +125,5 @@ function hostRule(ruleID, pluginRules) {
 }
 
 export {
-    definePlugin, getInstallCommand, getPluginRules, hostRule, resolvePackage, splitRuleID, toOxlintReactHooksID, withReactHooksID,
+    definePlugin, getPluginRules, hostRule, resolvePackage, splitRuleID, toOxlintReactHooksID, withReactHooksID,
 };

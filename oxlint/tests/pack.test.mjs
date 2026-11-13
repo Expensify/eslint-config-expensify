@@ -36,12 +36,10 @@ test('the packed package ships what its exports need and no tests, and imports o
         const undeclared = imported.filter(name => !isBuiltin(name) && !declared.some(dependency => name === dependency || name.startsWith(`${dependency}/`)));
         assert.deepEqual([...new Set(undeclared)], [], 'shipped code imports packages that are not dependencies');
 
-        // @oxlint/migrate is an optional peer dependency, so it is linked only after the build has said what to install
         const modules = path.join(unpacked, 'node_modules');
-        const link = name => fs.symlinkSync(path.join(packageDirectory, 'node_modules', name), path.join(modules, name));
         fs.mkdirSync(modules);
-        for (const name of fs.readdirSync(path.join(packageDirectory, 'node_modules')).filter(entry => !['.bin', '@oxlint', 'react'].includes(entry))) {
-            link(name);
+        for (const name of fs.readdirSync(path.join(packageDirectory, 'node_modules')).filter(entry => !['.bin', 'react'].includes(entry))) {
+            fs.symlinkSync(path.join(packageDirectory, 'node_modules', name), path.join(modules, name));
         }
 
         // The react of the working directory must not win over the one where the package is installed
@@ -61,11 +59,8 @@ const config = await buildOxlintConfig({presets: ['browser', 'react', 'expensify
 process.stdout.write(config.settings.react.version);
 `,
         );
-        const run = () => execFileSync(process.execPath, [path.join(unpacked, 'check.mjs')], {cwd: work, stdio: 'pipe', encoding: 'utf8'});
 
-        assert.throws(run, error => /npm install --save-dev "@oxlint\/migrate@>=1\.90\.0 <2"/.test(String(error.stderr)));
-        link('@oxlint');
-        assert.equal(run(), '19.0.0');
+        assert.equal(execFileSync(process.execPath, [path.join(unpacked, 'check.mjs')], {cwd: work, stdio: 'pipe', encoding: 'utf8'}), '19.0.0');
     } finally {
         fs.rmSync(work, {recursive: true, force: true});
     }

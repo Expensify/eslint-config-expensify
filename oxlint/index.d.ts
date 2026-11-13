@@ -3,9 +3,9 @@ import type {OxlintConfig} from 'oxlint';
 export * from './utils.js';
 
 /**
- * A preset name of this package (or `'prettier'`), or `{preset, files}` to run the preset on `files` only. Blocks for file types
- * (typescript, browser, node) keep them inside `files`, like ESLint's `defineConfig({files, extends})`, and other blocks get `files`
- * instead of their own, like `{...block, files}`. `react` cannot be limited to `files`, because oxlint cannot scope its settings.
+ * A preset name of this package (or `'prettier'`), or `{preset, files}` to run the preset on `files` only. `files` replaces the `files`
+ * of each block, like `{...block, files}`, so it fits presets whose blocks target locations, like `jest`. Presets for file types
+ * (typescript, browser, node) and `react`, whose settings oxlint cannot scope, cannot be limited and throw.
  */
 export type PresetEntry = string | {preset: string; files: string[]};
 

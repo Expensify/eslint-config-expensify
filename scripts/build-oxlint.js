@@ -9,6 +9,7 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 import {convertPresets} from '../oxlint/convert.js';
 import {splitRuleID} from '../oxlint/hosting.js';
 import {RULE_SOURCE_LISTS, loadPresetBlocks} from '../oxlint/presets.js';
+import {HOSTED_RULES_FOR_REPOS} from '../oxlint/tables.js';
 
 const rulesPath = fileURLToPath(new URL('../oxlint/generated/rules.json', import.meta.url));
 
@@ -24,6 +25,9 @@ async function buildRulesJson() {
         for (const [ruleID, target] of converted.replayedRuleIDs) {
             replayedRuleIDs.set(ruleID, target);
         }
+    }
+    for (const ruleID of HOSTED_RULES_FOR_REPOS) {
+        replayedRuleIDs.set(ruleID, `hosted/${splitRuleID(ruleID).name}`);
     }
     const targets = [...replayedRuleIDs];
     const coreRuleNames = targets.filter(([, target]) => target.startsWith('core/')).map(([, target]) => splitRuleID(target).name);

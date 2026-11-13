@@ -8,9 +8,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 
 import {REBUILD_RULES_JSON, coreRuleNames, hostedRuleIDsByName} from './generated-rules.js';
-import {
-    getInstallCommand, splitRuleID, toOxlintReactHooksID, withReactHooksID,
-} from './hosting.js';
+import {splitRuleID, toOxlintReactHooksID, withReactHooksID} from './hosting.js';
 import {
     REPLAYED_RULE_NAME, isOff, mergeRuleEntries, ruleMapsOf,
 } from './rule-entry.js';
@@ -60,22 +58,11 @@ function getReactVersion(reactVersion) {
 }
 
 /**
- * Imports convert.js and presets.js only when a config is built, so importing this file never loads @oxlint/migrate.
- * It is an optional peer dependency, so a missing install gets an install hint.
+ * Imports convert.js and presets.js only when a config is built, so importing this file never loads @oxlint/migrate, an optional peer dependency.
  * @returns {Promise<[typeof import('./convert.js'), typeof import('./presets.js')]>}
  */
-async function loadConversion() {
-    try {
-        return await Promise.all([import('./convert.js'), import('./presets.js')]);
-    } catch (error) {
-        if (error?.code === 'ERR_MODULE_NOT_FOUND' && String(error.message).includes('@oxlint/migrate')) {
-            throw new Error(
-                `buildOxlintConfig needs @oxlint/migrate, which is not installed. Install it as a dev dependency: ${getInstallCommand('@oxlint/migrate')}`,
-                {cause: error},
-            );
-        }
-        throw error;
-    }
+function loadConversion() {
+    return Promise.all([import('./convert.js'), import('./presets.js')]);
 }
 
 /**

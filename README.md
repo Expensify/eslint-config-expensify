@@ -75,9 +75,8 @@ export default await buildOxlintConfig({
 Options:
 
 - `presets`: this package's exports (`browser`, `react`, `typescript`, `jest`, `scripts`, ...) plus `'prettier'` to turn off formatting rules. `{preset, files}` runs a preset on `files` only:
-    - Blocks without file types (`jest`, `scripts`, most blocks of the others): `files` replaces the block's own `files`, like `{...block, files}`. For example `{preset: 'jest', files: ['tests/**']}`.
-    - Blocks for file types (`typescript`, some blocks of `browser` and `node`): each keeps its file types inside `files`, like ESLint's `defineConfig({files, extends: [preset]})`. `files` must be folders or name a file type, so `src/*` and `src/index.*` are refused.
-    - `react` cannot be limited to files, and the build throws.
+    - Presets whose blocks target locations or no files (`jest`, `scripts`, `formatting`, ...): `files` replaces the `files` of each block, like `{...block, files}`. For example `{preset: 'jest', files: ['tests/**']}`.
+    - Presets for file types (`typescript`, `browser`, `node`: their blocks are for `**/*.ts`, `**/*.js` and the like) and `react` (oxlint has no per-file settings) cannot be limited to files, and the build throws.
 - `ignorePatterns`, `env`, `globals`, `settings`, `jsPlugins`, `overrides`: the repo's own config, added after the presets. In `overrides`, write a rule that runs as `core/` or `hosted/` with that prefix.
 - `plugins: {hosted, rulesdir}`: a repo's own plugin file in place of ours, to add rules or wrap one. Build it from the `rules` of `eslint-config-expensify/oxlint/plugins/hosted` or `.../rulesdir` and `hostRule()` from `eslint-config-expensify/oxlint/utils`.
 - `transformRule(ruleID, entry)`: rename (`[newID, entry]`) or drop (`null`) a preset rule before it is converted.
