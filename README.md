@@ -77,11 +77,10 @@ Options:
 - `presets`: this package's exports (`browser`, `react`, `typescript`, `jest`, `scripts`, ...) plus `'prettier'` to turn off formatting rules. `{preset, files}` runs a preset on `files` only:
     - Presets whose blocks target locations or no files (`jest`, `scripts`, `formatting`, ...): `files` replaces the `files` of each block, like `{...block, files}`. For example `{preset: 'jest', files: ['tests/**']}`.
     - Presets for file types (`typescript`, `browser`, `node`: their blocks are for `**/*.ts`, `**/*.js` and the like) and `react` (oxlint has no per-file settings) cannot be limited to files, and the build throws.
-- `ignorePatterns`, `env`, `globals`, `settings`, `jsPlugins`, `overrides`: the repo's own config, added after the presets. In `overrides`, write a rule that runs as `core/` or `hosted/` with that prefix.
+- `ignorePatterns`, `env`, `globals`, `settings`, `jsPlugins`, `overrides`: the repo's own config, added after the presets. In `overrides`, write a rule that runs as `core/` or `hosted/` with that prefix. A rule named as ESLint spells it (like `react-hooks/exhaustive-deps`) fails with the name to use, and any other wrong name fails with oxlint's own error.
 - `plugins: {hosted, rulesdir}`: a repo's own plugin file in place of ours, to add rules or wrap one. Build it from the `rules` of `eslint-config-expensify/oxlint/plugins/hosted` or `.../rulesdir` and `hostRule()` from `eslint-config-expensify/oxlint/utils`.
 - `transformRule(ruleID, entry)`: rename (`[newID, entry]`) or drop (`null`) a preset rule before it is converted.
 - `nativeRules`: rules from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) to run with oxlint's own version instead of ESLint's.
-- `extraRunningNames`: rule names or prefixes ending in `/` (like `rc/`) that the repo's own plugins add.
 - `withNursery`: also use oxlint's experimental (nursery) rules where it has them. `import/export` and `import/named` always use oxlint's version.
 - `reactVersion`: only needed when `react` cannot be found from the repo.
 

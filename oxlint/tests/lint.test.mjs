@@ -91,6 +91,21 @@ test('a repo override can turn off a typescript/ rule, or a React Compiler rule 
     }
 });
 
+test('an override naming a rule its plugin lacks is left to oxlint, which rejects the config', async () => {
+    const config = await buildOxlintConfig({
+        presets: ['browser'], reactVersion: '19.0.0', overrides: [{files: ['**/*.js'], rules: {'hosted/no-such-rule': 'error'}}],
+    });
+    const directory = createFixtureProject(JSON.stringify(config), {'index.js': 'export default 1;\n'});
+    try {
+        const {loaded, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
+
+        assert.equal(loaded, false);
+        assert.match(stderr, /Rule 'no-such-rule' not found in plugin 'hosted'/);
+    } finally {
+        fs.rmSync(directory, {recursive: true, force: true});
+    }
+});
+
 // Modules with a name that `export *` and a named re-export both give (import/export), a missing named import (import/named),
 // and a valid import, in JS and in TS. Both rules have to read the imported modules to report them.
 const IMPORT_GRAPH_FILES = {

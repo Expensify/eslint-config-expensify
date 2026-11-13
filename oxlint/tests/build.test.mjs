@@ -47,32 +47,31 @@ function renameCompilerRules(ruleID, entry) {
     return prefix === 'react-hooks' && reactCompilerRuleNames.includes(name) ? [`rc/${name}`, entry] : undefined;
 }
 
-test('an override that names a rule differently from how it runs is refused', async () => {
+test('an override is refused when oxlint would load its rule name and it would do nothing', async () => {
     const build = (rule, options) => buildOxlintConfig({
-        presets: ['react'], reactVersion: '19.0.0', overrides: [{files: ['**/*.js'], rules: {[rule]: 'off'}}], ...options,
+        presets: ['browser', 'react', 'typescript'], reactVersion: '19.0.0', overrides: [{files: ['**/*.js'], rules: {[rule]: 'off'}}], ...options,
     });
-    const rename = {transformRule: renameCompilerRules, extraRunningNames: ['rc/']};
+    const rename = {transformRule: renameCompilerRules};
+    const renameTypeScript = {transformRule: ruleID => (ruleID === '@typescript-eslint/no-explicit-any' ? ['rc/no-explicit-any', 'error'] : undefined)};
     const nativeRules = ['react-hooks/exhaustive-deps'];
 
-    // A replayed hosted rule, a rule transformRule renamed, and rules that only rules.json lists (hosted, then core) are refused by their ESLint name
+    // A rule that runs as core/ or hosted/, named as ESLint does, or with another prefix oxlint accepts
+    await assert.rejects(build('dot-notation'), /runs as "core\/dot-notation"/);
+    await assert.rejects(build('eslint/no-undef'), /runs as "core\/no-undef"/);
     await assert.rejects(build('react/exhaustive-deps'), /runs as "hosted\/exhaustive-deps"/);
+    await assert.rejects(build('import-x/prefer-default-export'), /runs as "hosted\/prefer-default-export"/);
+
+    // A rule transformRule renamed
     await assert.rejects(build('react-hooks/set-state-in-effect', rename), /runs as "rc\/set-state-in-effect"/);
-    await assert.rejects(build('jsdoc/check-types'), /runs as "hosted\/check-types"/);
-    await assert.rejects(build('no-restricted-syntax'), /runs as "core\/no-restricted-syntax"/);
+    await assert.rejects(build('typescript/no-explicit-any', renameTypeScript), /runs as "rc\/no-explicit-any"/);
 
-    // Rules oxlint runs itself keep oxlint's name: those in nativeRules, import/export, and the nursery rules with withNursery
-    await build('react/exhaustive-deps', {nativeRules});
+    // A hosted/ name of a rule that runs with oxlint's version because of nativeRules
     await assert.rejects(build('hosted/exhaustive-deps', {nativeRules}), /runs as "react\/exhaustive-deps"/);
-    await assert.rejects(build('hosted/export'), /runs as "import\/export"/);
-    await build('no-undef', {presets: ['browser'], withNursery: true});
 
-    // A hosted rule that rules.json lacks is refused, unless extraRunningNames lets the repo's own plugin provide it
-    await assert.rejects(build('hosted/not-a-rule'), /npm run build:oxlint/);
-    await build('hosted/not-a-rule', {extraRunningNames: ['hosted/']});
-
-    // oxlint would refuse to load a config that sets a rule the conversion drops or replaces
-    await assert.rejects(build('no-invalid-this'), /this rule is dropped/);
-    await assert.rejects(build('rulesdir/prefer-at'), /runs as "unicorn\/prefer-at"/);
+    // The names the rules run under are not refused
+    await build('hosted/exhaustive-deps');
+    await build('react/exhaustive-deps', {nativeRules});
+    await build('rc/set-state-in-effect', rename);
 });
 
 test('transformRule can rename or drop a rule', async () => {
@@ -164,9 +163,8 @@ test('repo options are merged after the presets', async () => {
     assert.deepEqual(config.overrides, [...base.overrides, override]);
 });
 
-test('a mistyped option, a core/ name in extraRunningNames or an unknown preset is rejected', async () => {
+test('a mistyped option or an unknown preset is rejected', async () => {
     await assert.rejects(buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0', ignorePattern: []}), /does not know the option ignorePattern/);
-    await assert.rejects(buildOxlintConfig({presets: ['browser'], extraRunningNames: ['core/my-rule']}), /extraRunningNames has core\/my-rule/);
     await assert.rejects(buildOxlintConfig({presets: ['reakt']}), /Unknown preset "reakt"/);
 });
 

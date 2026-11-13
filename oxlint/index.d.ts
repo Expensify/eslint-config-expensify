@@ -35,9 +35,6 @@ export type BuildOxlintConfigOptions = {
     /** ESLint rule IDs from `alwaysHostedRuleIDs` that run with oxlint's own version instead of the hosted copy. */
     nativeRules?: string[];
 
-    /** Rule names, or prefixes ending in `/`, that `overrides` may use and this package does not know. */
-    extraRunningNames?: string[];
-
     /**
      * The React version for oxlint's react rules. By default it is read from the `react` installed next to this package,
      * then from the working directory. Required if the `react` preset is used and neither has it.
