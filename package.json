@@ -13,7 +13,23 @@
     "./react": "./configs/public/react.js",
     "./react-formatting": "./configs/public/react-formatting.js",
     "./scripts": "./configs/public/scripts.js",
-    "./typescript": "./configs/public/typescript.js"
+    "./typescript": "./configs/public/typescript.js",
+    "./oxlint": {
+      "types": "./oxlint/index.d.ts",
+      "default": "./oxlint/index.js"
+    },
+    "./oxlint/utils": {
+      "types": "./oxlint/utils.d.ts",
+      "default": "./oxlint/utils.js"
+    },
+    "./oxlint/plugins/hosted": {
+      "types": "./oxlint/plugins/hosted.d.ts",
+      "default": "./oxlint/plugins/hosted.js"
+    },
+    "./oxlint/plugins/rulesdir": {
+      "types": "./oxlint/plugins/rulesdir.d.ts",
+      "default": "./oxlint/plugins/rulesdir.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -21,7 +37,9 @@
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:oxlint": "node scripts/build-oxlint.js",
+    "test:oxlint": "node --test \"oxlint/tests/*.test.mjs\""
   },
   "type": "module",
   "devEngines": {
@@ -42,6 +60,7 @@
     "@typescript-eslint/utils": "^8.44.1",
     "confusing-browser-globals": "^1.0.11",
     "eslint": "^9.36.0",
+    "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-es": "^4.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jest": "^29.0.1",
@@ -59,7 +78,10 @@
   "files": [
     "configs",
     "eslint-plugin-expensify",
-    "index.js"
+    "index.js",
+    "NOTICE.md",
+    "oxlint",
+    "!oxlint/tests"
   ],
   "keywords": [
     "eslint",
@@ -76,7 +98,26 @@
   },
   "homepage": "https://github.com/Expensify/eslint-config-expensify#readme",
   "devDependencies": {
+    "@oxlint/migrate": "1.92.0",
     "@typescript-eslint/rule-tester": "^8.44.1",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "oxlint": "1.92.0",
+    "oxlint-tsgolint": "7.0.2005"
+  },
+  "peerDependencies": {
+    "@oxlint/migrate": ">=1.90.0 <2",
+    "oxlint": ">=1.90.0 <2",
+    "oxlint-tsgolint": ">=7.0.2005 <8"
+  },
+  "peerDependenciesMeta": {
+    "oxlint": {
+      "optional": true
+    },
+    "@oxlint/migrate": {
+      "optional": true
+    },
+    "oxlint-tsgolint": {
+      "optional": true
+    }
   }
 }

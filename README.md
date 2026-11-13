@@ -24,7 +24,7 @@ After you have submitted a PR,
 
 ## Usage
 
-We export two ESLint configurations for your usage.
+This package exports ESLint configurations (the default one below and opt-in presets like `jest`), and an [oxlint config builder](#oxlint) that converts the same presets.
 
 ### eslint-config-expensify
 
@@ -50,6 +50,62 @@ export default defineConfig([
     ...jestConfig,
 ]);
 ```
+
+## Oxlint
+
+`eslint-config-expensify/oxlint` builds an [oxlint](https://oxc.rs) config from the presets you would list in an ESLint config. Rules oxlint cannot run itself still run, from ESLint's own code, as `core/<rule>` (ESLint core rules) and `hosted/<rule>` (plugin rules).
+
+Install `oxlint`, `@oxlint/migrate` and `oxlint-tsgolint` next to this package. They are optional peer dependencies, so repos that only use the ESLint presets do not get them. See `peerDependencies` for supported versions.
+
+```sh
+npm install --save-dev oxlint @oxlint/migrate oxlint-tsgolint
+```
+
+```js
+// oxlint.config.mts
+import {buildOxlintConfig} from 'eslint-config-expensify/oxlint';
+
+export default await buildOxlintConfig({
+    presets: ['browser', 'react', 'typescript', {preset: 'jest', files: ['tests/**']}, 'scripts', 'prettier'],
+    ignorePatterns: ['dist/**'],
+    overrides: [{files: ['**/*.ts'], rules: {'core/no-restricted-syntax': ['error', {selector: 'TSEnumDeclaration', message: 'No enums.'}]}}],
+});
+```
+
+Options:
+
+- `presets`: this package's exports (`browser`, `react`, `typescript`, `jest`, `scripts`, ...) plus `'prettier'` to turn off formatting rules. `{preset, files}` runs a preset on `files` only:
+    - Presets whose blocks target locations or no files (`jest`, `scripts`, `formatting`, ...): `files` replaces the `files` of each block, like `{...block, files}`. For example `{preset: 'jest', files: ['tests/**']}`.
+    - Presets for file types (`typescript`, `browser`, `node`: their blocks are for `**/*.ts`, `**/*.js` and the like) and `react` (oxlint has no per-file settings) cannot be limited to files, and the build throws.
+- `ignorePatterns`, `env`, `globals`, `settings`, `jsPlugins`, `overrides`: the repo's own config, added after the presets. In `overrides`, write a rule that runs as `core/` or `hosted/` with that prefix. A rule named as ESLint spells it (like `react-hooks/exhaustive-deps`) fails with the name to use, and any other wrong name fails with oxlint's own error.
+- `plugins: {hosted, rulesdir}`: a repo's own plugin file in place of ours, to add rules or wrap one. Build it from the `rules` of `eslint-config-expensify/oxlint/plugins/hosted` or `.../rulesdir` and `hostRule()` from `eslint-config-expensify/oxlint/utils`.
+- `transformRule(ruleID, entry)`: rename (`[newID, entry]`) or drop (`null`) a preset rule before it is converted.
+- `nativeRules`: rules from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) to run with oxlint's own version instead of ESLint's.
+- `withNursery`: also use oxlint's experimental (nursery) rules where it has them. `import/export` and `import/named` always use oxlint's version.
+
+An override replaces a rule's whole setting, so a bare severity like `'no-console': 'warn'` drops the preset's options. To extend them, start from `await getPresetRuleEntry(preset, ruleID)`, which returns a copy of the preset's setting as `[severity, ...options]`, merged over its blocks like ESLint, except that settings that turn the rule off are skipped. It ignores which files a block is for, so give the override the files the setting belongs to:
+
+```js
+import {buildOxlintConfig, getPresetRuleEntry} from 'eslint-config-expensify/oxlint';
+
+const [severity, ...options] = await getPresetRuleEntry('typescript', '@typescript-eslint/naming-convention');
+
+// The typescript preset sets this rule for TS files only, so the override names TS files too.
+export default await buildOxlintConfig({
+    presets: ['browser', 'typescript'],
+    overrides: [{files: ['tests/**/*.ts'], rules: {'hosted/naming-convention': [severity, ...options, {selector: 'objectLiteralProperty', format: null}]}}],
+});
+```
+
+`toEslintRuleID()` turns oxlint's name for a finding, like `hosted(exhaustive-deps)`, back into the ESLint rule ID, so baselines keep using ESLint IDs. `eslint-disable` comments with ESLint IDs work for `core/` and `hosted/` rules too.
+
+Unused `eslint-disable` comments are not reported, although the presets ask for it (`reportUnusedDisableDirectives`). The check would flag comments that hide a `core/` or `hosted/` finding, because `oxlint/eslint-directives.js` removes it first. It can be enabled once repos use oxlint-style comments and that file is removed.
+
+### Changing rules
+
+Edit the presets as usual. After changing a preset, `oxlint/tables.js` or the oxlint version, run `npm run build:oxlint` and commit `oxlint/generated/rules.json`. `npm run test:oxlint` checks the oxlint side, and `npm test` does not include it.
+
+If the build stops with "oxlint cannot run <rule>", the message names the table in `oxlint/tables.js` to add the rule to.
 
 ## Style Guide
 
