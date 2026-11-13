@@ -23,7 +23,7 @@ const OWN_PLUGIN_SPECIFIERS = {
 };
 
 const OPTION_NAMES = new Set([
-    'presets', 'plugins', 'transformRule', 'withNursery', 'nativeRules', 'reactVersion', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides',
+    'presets', 'plugins', 'transformRule', 'withNursery', 'nativeRules', 'ignorePatterns', 'env', 'globals', 'settings', 'jsPlugins', 'overrides',
 ]);
 
 /**
@@ -33,13 +33,9 @@ const OPTION_NAMES = new Set([
  */
 
 /**
- * @param {string | undefined} reactVersion
- * @returns {string} the version oxlint's react rules need, since ESLint finds it itself and oxlint does not
+ * @returns {string} the version of the installed react, which oxlint's react rules need since oxlint cannot find it itself
  */
-function getReactVersion(reactVersion) {
-    if (reactVersion) {
-        return reactVersion;
-    }
+function getReactVersion() {
     try {
         // Where this package is installed first: that is inside the repo's node_modules, so it finds the repo's own react
         // even when oxlint or an editor runs from another directory. The working directory is the fallback.
@@ -47,7 +43,7 @@ function getReactVersion(reactVersion) {
     } catch {
         throw new Error(
             'The react preset needs the React version, and `react` cannot be resolved from the working directory or from where eslint-config-expensify is installed. '
-            + 'Install react, or pass `reactVersion`.',
+            + 'Install react.',
         );
     }
 }
@@ -100,7 +96,6 @@ function checkRuleName(rule, {nativeRules, replayedRuleIDs, renamedRuleIDs}) {
  * @param {TransformRule} [options.transformRule] renames or drops a preset rule before it is converted
  * @param {string[]} [options.nativeRules] ESLint rule IDs from `alwaysHostedRuleIDs` that run with oxlint's own version
  * @param {boolean} [options.withNursery] also convert rules oxlint keeps in its nursery category
- * @param {string} [options.reactVersion] the React version for oxlint's react rules, read from the installed `react` by default (`settings.react.version` also works)
  * @param {RepoConfig['ignorePatterns']} [options.ignorePatterns] added after the presets' patterns
  * @param {RepoConfig['env']} [options.env] merged over the presets' env
  * @param {RepoConfig['globals']} [options.globals] merged over the presets' globals
@@ -115,7 +110,6 @@ async function buildOxlintConfig({
     transformRule,
     withNursery = false,
     nativeRules = [],
-    reactVersion,
     ignorePatterns = [],
     env = {},
     globals = {},
@@ -151,11 +145,7 @@ async function buildOxlintConfig({
     const withoutUnused = rules => rules && Object.fromEntries(Object.entries(rules).filter(([rule]) => !unusedPrefixes.some(prefix => rule.startsWith(prefix))));
     const usesReact = presets.some(entry => getPresetName(entry) === 'react');
 
-    // ESLint's 'detect' means finding the installed react, which oxlint cannot do, so it counts as no version.
-    const {version: settingsVersion, ...otherReactSettings} = settings.react ?? {};
-    const detects = settingsVersion === 'detect';
-    const repoSettings = detects ? {...settings, react: otherReactSettings} : settings;
-    const version = usesReact ? getReactVersion(reactVersion ?? (detects ? undefined : settingsVersion)) : reactVersion;
+    const version = usesReact ? getReactVersion() : undefined;
     return {
         ...config,
         rules: withoutUnused(config.rules),
@@ -169,7 +159,7 @@ async function buildOxlintConfig({
         ],
         env: {...config.env, ...env},
         globals: {...config.globals, ...globals},
-        settings: mergeSettings(config.settings, mergeSettings(version ? {react: {...config.settings?.react, version}} : {}, repoSettings)),
+        settings: mergeSettings(config.settings, mergeSettings(version ? {react: {...config.settings?.react, version}} : {}, settings)),
         ignorePatterns: [...(config.ignorePatterns ?? []), ...ignorePatterns],
         overrides: [...config.overrides, ...overrides].map(override => (override.rules ? {...override, rules: withoutUnused(override.rules)} : override)),
     };

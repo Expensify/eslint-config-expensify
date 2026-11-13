@@ -9,6 +9,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {buildOxlintConfig} from '../index.js';
+
 const require = createRequire(import.meta.url);
 const packageDirectory = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -20,6 +22,17 @@ const EXPORTED_PRESETS = fs.readdirSync(new URL('../../configs/public/', import.
 // a later block that sets only a severity keeps the options of an earlier one. An export missing from the order goes last.
 const PRESET_ORDER = ['browser', 'node', 'expensify', 'formatting', 'react', 'react-formatting', 'typescript', 'scripts', 'jest'];
 const ALL_PRESETS = [...PRESET_ORDER, ...EXPORTED_PRESETS.filter(name => !PRESET_ORDER.includes(name)), 'prettier'];
+
+// buildOxlintConfig looks for react where this package is installed before the working directory, so a react above this
+// checkout would hide the one the tests give it
+const REACT_RESOLVES_FROM_CHECKOUT = (() => {
+    try {
+        require.resolve('react/package.json', {paths: [packageDirectory]});
+        return true;
+    } catch {
+        return false;
+    }
+})();
 
 /**
  * @returns {Record<string, string>} an environment where oxlint finds tsgolint even when the project has no node_modules
@@ -43,6 +56,40 @@ function createFixtureProject(configJSON, files = {}) {
         fs.writeFileSync(path.join(directory, name), content);
     }
     return directory;
+}
+
+/**
+ * Runs the action with the directory as the working directory, then restores the previous one. The working directory belongs to
+ * the whole process, so no other work may run at the same time.
+ * @template T
+ * @param {string} directory
+ * @param {() => Promise<T>} action
+ * @returns {Promise<T>}
+ */
+async function inWorkingDirectory(directory, action) {
+    const previous = process.cwd();
+    process.chdir(directory);
+    try {
+        return await action();
+    } finally {
+        process.chdir(previous);
+    }
+}
+
+/**
+ * Like buildOxlintConfig, in a temp directory with a react 19.0.0 installed, since this package does not have react.
+ * @param {Parameters<typeof buildOxlintConfig>[0]} options
+ * @returns {ReturnType<typeof buildOxlintConfig>}
+ */
+async function buildConfigWithReact(options) {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-oxlint-react-'));
+    try {
+        fs.mkdirSync(path.join(directory, 'node_modules/react'), {recursive: true});
+        fs.writeFileSync(path.join(directory, 'node_modules/react/package.json'), JSON.stringify({name: 'react', version: '19.0.0'}));
+        return await inWorkingDirectory(directory, () => buildOxlintConfig(options));
+    } finally {
+        fs.rmSync(directory, {recursive: true, force: true});
+    }
 }
 
 const OXLINT_ARGUMENTS = ['-c', 'oxlintrc.json', '--format=json', '.'];
@@ -111,5 +158,14 @@ function runOxlintAsync(directory, oxlintBinary, env) {
 }
 
 export {
-    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint, runOxlintAsync,
+    ALL_PRESETS,
+    EXPORTED_PRESETS,
+    REACT_RESOLVES_FROM_CHECKOUT,
+    buildConfigWithReact,
+    createFixtureProject,
+    getOxlintEnvironment,
+    inWorkingDirectory,
+    packageDirectory,
+    runOxlint,
+    runOxlintAsync,
 };

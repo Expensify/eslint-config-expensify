@@ -5,13 +5,13 @@ import {test} from 'node:test';
 
 import {buildOxlintConfig} from '../index.js';
 import {
-    ALL_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    ALL_PRESETS, buildConfigWithReact, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
 } from './helpers.mjs';
 
 const oxlintBinary = `${packageDirectory}node_modules/.bin/oxlint`;
 
 test('the config of all the exported presets loads in oxlint', async () => {
-    const config = await buildOxlintConfig({presets: ALL_PRESETS, reactVersion: '19.0.0'});
+    const config = await buildConfigWithReact({presets: ALL_PRESETS});
     const directory = createFixtureProject(JSON.stringify(config), {'index.js': 'export default 1;\n'});
     try {
         const {loaded, status, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
@@ -34,7 +34,7 @@ export function f() {
     return value['a'];
 }
 `;
-    const config = await buildOxlintConfig({presets: ['browser', 'react', 'expensify', 'typescript'], reactVersion: '19.0.0'});
+    const config = await buildConfigWithReact({presets: ['browser', 'react', 'expensify', 'typescript']});
     const directory = createFixtureProject(JSON.stringify(config), {
         'silenced.js': code(rule => `// eslint-disable-next-line ${rule}`),
         'loud.js': code(() => '// no directive'),
@@ -55,9 +55,8 @@ export function f() {
 
 test('a repo override can turn off a typescript/ rule, or a React Compiler rule by its react-hooks/ name, for its file only', async () => {
     // The repo lists no plugins for these rules, and oxlint treats react-hooks/ as react/
-    const config = await buildOxlintConfig({
+    const config = await buildConfigWithReact({
         presets: ['browser', 'react', 'typescript'],
-        reactVersion: '19.0.0',
         overrides: [
             {files: ['quiet.ts'], rules: {'typescript/dot-notation': 'off'}},
             {files: ['quiet.jsx'], rules: {'react-hooks/set-state-in-effect': 'off'}},
@@ -93,7 +92,7 @@ test('a repo override can turn off a typescript/ rule, or a React Compiler rule 
 
 test('an override naming a rule its plugin lacks is left to oxlint, which rejects the config', async () => {
     const config = await buildOxlintConfig({
-        presets: ['browser'], reactVersion: '19.0.0', overrides: [{files: ['**/*.js'], rules: {'hosted/no-such-rule': 'error'}}],
+        presets: ['browser'], overrides: [{files: ['**/*.js'], rules: {'hosted/no-such-rule': 'error'}}],
     });
     const directory = createFixtureProject(JSON.stringify(config), {'index.js': 'export default 1;\n'});
     try {
@@ -130,7 +129,7 @@ const importGraphFindings = diagnostics => diagnostics
     .sort();
 
 test('import/export and import/named run as oxlint\'s own rules', async () => {
-    const config = await buildOxlintConfig({presets: ['browser'], reactVersion: '19.0.0'});
+    const config = await buildOxlintConfig({presets: ['browser']});
     const directory = createFixtureProject(JSON.stringify(config), IMPORT_GRAPH_FILES);
     try {
         const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());

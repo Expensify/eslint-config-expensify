@@ -3,11 +3,10 @@ import assert from 'node:assert/strict';
 import {after, test} from 'node:test';
 import {isDeepStrictEqual} from 'node:util';
 
-import {buildOxlintConfig} from '../index.js';
 import {
     DROPPED_RULES, DROPPED_WITHOUT_NURSERY, DROP_OPTIONS, STAND_INS,
 } from '../tables.js';
-import {ALL_PRESETS, EXPORTED_PRESETS} from './helpers.mjs';
+import {ALL_PRESETS, EXPORTED_PRESETS, buildConfigWithReact} from './helpers.mjs';
 import {
     SAMPLE_FILES, createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
 } from './parity-helpers.mjs';
@@ -122,7 +121,7 @@ function compareRules(eslintRules, oxlintRules) {
  * @returns {Promise<ReturnType<typeof compareRules> & {files: number}>}
  */
 async function compareRun(presets) {
-    const config = await buildOxlintConfig({presets, reactVersion: '19.0.0'});
+    const config = await buildConfigWithReact({presets});
     const eslintRules = await resolveESLintRules(presets);
     const result = compareRules(eslintRules, resolveOxlintRules(config, matcher));
     return {...result, files: eslintRules.size};

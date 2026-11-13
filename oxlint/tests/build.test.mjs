@@ -1,6 +1,8 @@
 /* eslint-disable rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {test} from 'node:test';
 
 import {splitRuleID} from '../hosting.js';
@@ -10,7 +12,7 @@ import {
     buildOxlintConfig, getPresetRuleEntry, reactCompilerRuleNames, toEslintRuleID,
 } from '../index.js';
 import {
-    createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    REACT_RESOLVES_FROM_CHECKOUT, buildConfigWithReact, createFixtureProject, getOxlintEnvironment, inWorkingDirectory, packageDirectory, runOxlint,
 } from './helpers.mjs';
 
 const oxlintBinary = `${packageDirectory}node_modules/.bin/oxlint`;
@@ -24,17 +26,16 @@ const hasRule = (config, name) => ruleMapsOf(config).some(rules => name in rules
 
 test('nativeRules runs an always-hosted rule with oxlint\'s version, and rejects other IDs', async () => {
     const presets = ['react'];
-    const reactVersion = '19.0.0';
     const optionsOf = (config, name) => ruleMapsOf(config).map(rules => rules[name]).find(Boolean);
 
-    const hosted = await buildOxlintConfig({presets, reactVersion});
-    const native = await buildOxlintConfig({presets, reactVersion, nativeRules: ['react-hooks/exhaustive-deps']});
+    const hosted = await buildConfigWithReact({presets});
+    const native = await buildConfigWithReact({presets, nativeRules: ['react-hooks/exhaustive-deps']});
 
     assert.ok(hasRule(hosted, 'hosted/exhaustive-deps') && !hasRule(hosted, 'react/exhaustive-deps'));
     assert.ok(hasRule(native, 'react/exhaustive-deps') && !hasRule(native, 'hosted/exhaustive-deps'));
     assert.deepEqual(optionsOf(native, 'react/exhaustive-deps'), optionsOf(hosted, 'hosted/exhaustive-deps'));
 
-    await assert.rejects(buildOxlintConfig({presets, reactVersion, nativeRules: ['no-console']}), /nativeRules has no-console/);
+    await assert.rejects(buildConfigWithReact({presets, nativeRules: ['no-console']}), /nativeRules has no-console/);
 });
 
 /**
@@ -48,8 +49,8 @@ function renameCompilerRules(ruleID, entry) {
 }
 
 test('an override is refused when oxlint would load its rule name and it would do nothing', async () => {
-    const build = (rule, options) => buildOxlintConfig({
-        presets: ['browser', 'react', 'typescript'], reactVersion: '19.0.0', overrides: [{files: ['**/*.js'], rules: {[rule]: 'off'}}], ...options,
+    const build = (rule, options) => buildConfigWithReact({
+        presets: ['browser', 'react', 'typescript'], overrides: [{files: ['**/*.js'], rules: {[rule]: 'off'}}], ...options,
     });
     const rename = {transformRule: renameCompilerRules};
     const renameTypeScript = {transformRule: ruleID => (ruleID === '@typescript-eslint/no-explicit-any' ? ['rc/no-explicit-any', 'error'] : undefined)};
@@ -77,14 +78,14 @@ test('an override is refused when oxlint would load its rule name and it would d
 test('transformRule can rename or drop a rule', async () => {
     const transformRule = (ruleID, entry) => (ruleID === 'no-console' ? null : renameCompilerRules(ruleID, entry));
 
-    const config = await buildOxlintConfig({presets: ['browser', 'react'], transformRule, reactVersion: '19.0.0'});
+    const config = await buildConfigWithReact({presets: ['browser', 'react'], transformRule});
 
     assert.ok(hasRule(config, 'rc/immutability'));
     assert.ok(!hasRule(config, 'no-console'));
 });
 
 test('plugins replaces the plugin file of this package\'s hosted plugin', async () => {
-    const config = await buildOxlintConfig({presets: ['browser'], plugins: {hosted: '/repo/hosted.js'}, reactVersion: '19.0.0'});
+    const config = await buildOxlintConfig({presets: ['browser'], plugins: {hosted: '/repo/hosted.js'}});
 
     assert.deepEqual(config.jsPlugins.filter(plugin => plugin.name === 'hosted'), [{name: 'hosted', specifier: '/repo/hosted.js'}]);
 });
@@ -92,29 +93,34 @@ test('plugins replaces the plugin file of this package\'s hosted plugin', async 
 test('a repo can switch on hosted/no-unresolved, which no preset enables', async () => {
     const config = await buildOxlintConfig({
         presets: ['browser', 'typescript'],
-        reactVersion: '19.0.0',
         overrides: [{files: ['**/*.ts'], rules: {'hosted/no-unresolved': 'error'}}],
     });
 
     assert.ok(config.jsPlugins.some(plugin => plugin.name === 'hosted'));
 });
 
-test('the React version comes from reactVersion or settings.react.version, and `detect` counts as none', async () => {
-    // oxlint refuses the 'detect' that ESLint allows as react.version
-    const settings = {react: {version: 'detect', pragma: 'React'}};
+// The package's own location is searched before the working directory, so these two need a checkout with no react above it
+const skipWithReact = REACT_RESOLVES_FROM_CHECKOUT && 'react resolves from this checkout';
 
-    const withVersion = await buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0', settings});
+test('the React version comes from the installed react, and a repo\'s settings.react.version replaces it', {skip: skipWithReact}, async () => {
+    const withInstalled = await buildConfigWithReact({presets: ['react'], settings: {react: {pragma: 'React'}}});
 
-    assert.equal(withVersion.settings.react.version, '19.0.0');
-    assert.equal(withVersion.settings.react.pragma, 'React');
-    assert.equal((await buildOxlintConfig({presets: ['react'], settings: {react: {version: '18.2.0'}}})).settings.react.version, '18.2.0');
+    assert.equal(withInstalled.settings.react.version, '19.0.0');
+    assert.equal(withInstalled.settings.react.pragma, 'React');
+    assert.equal((await buildConfigWithReact({presets: ['react'], settings: {react: {version: '18.2.0'}}})).settings.react.version, '18.2.0');
+});
 
-    // Presets without react do not get 'detect' either
-    assert.equal(JSON.stringify((await buildOxlintConfig({presets: ['browser'], settings})).settings).includes('detect'), false);
+test('the react preset fails when react cannot be resolved', {skip: skipWithReact}, async () => {
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-oxlint-no-react-'));
+    try {
+        await inWorkingDirectory(empty, () => assert.rejects(buildOxlintConfig({presets: ['react']}), /Install react\./));
+    } finally {
+        fs.rmSync(empty, {recursive: true, force: true});
+    }
 });
 
 test('{preset, files} runs a preset for locations on those files only, in oxlint', async () => {
-    const config = await buildOxlintConfig({presets: ['browser', {preset: 'jest', files: ['unit/**']}], reactVersion: '19.0.0'});
+    const config = await buildOxlintConfig({presets: ['browser', {preset: 'jest', files: ['unit/**']}]});
 
     // The jest preset turns no-console off, and the browser preset turns it on. A *.test.js outside the folder is not a jest file anymore.
     const code = 'console.log(1);\n';
@@ -134,7 +140,7 @@ test('{preset, files} runs a preset for locations on those files only, in oxlint
 });
 
 test('{preset, files} refuses a preset for file types, and react whose settings oxlint cannot scope', async () => {
-    const build = preset => buildOxlintConfig({presets: [preset], reactVersion: '19.0.0'});
+    const build = preset => buildOxlintConfig({presets: [preset]});
 
     await assert.rejects(build({preset: 'typescript', files: ['src/**']}), /"typescript" preset is for file types \(\*\*\/\*\.ts\), so it cannot be limited to files/);
     await assert.rejects(build({preset: 'react', files: ['src/**']}), /oxlint has no per-file settings/);
@@ -145,10 +151,9 @@ test('repo options are merged after the presets', async () => {
     const override = {files: ['**/*.ts'], rules: {eqeqeq: 'off'}};
 
     const presets = ['browser', 'react'];
-    const base = await buildOxlintConfig({presets, reactVersion: '19.0.0'});
-    const config = await buildOxlintConfig({
+    const base = await buildConfigWithReact({presets});
+    const config = await buildConfigWithReact({
         presets,
-        reactVersion: '19.0.0',
         ignorePatterns: ['dist/**'],
         env: {myEnv: true},
         globals: {MY_GLOBAL: 'readonly'},
@@ -164,7 +169,10 @@ test('repo options are merged after the presets', async () => {
 });
 
 test('a mistyped option or an unknown preset is rejected', async () => {
-    await assert.rejects(buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0', ignorePattern: []}), /does not know the option ignorePattern/);
+    await assert.rejects(buildOxlintConfig({presets: ['react'], ignorePattern: []}), /does not know the option ignorePattern/);
+
+    // reactVersion is gone, so the React version can only come from the installed react
+    await assert.rejects(buildOxlintConfig({presets: ['react'], reactVersion: '19.0.0'}), /does not know the option reactVersion/);
     await assert.rejects(buildOxlintConfig({presets: ['reakt']}), /Unknown preset "reakt"/);
 });
 
