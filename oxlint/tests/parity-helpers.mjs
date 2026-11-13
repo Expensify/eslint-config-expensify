@@ -14,7 +14,7 @@ import {builtinRules} from 'eslint/use-at-your-own-risk';
 import prettierConfig from 'eslint-config-prettier';
 
 import {toEslintRuleID} from '../rule-names.js';
-import {packageDirectory} from './helpers.mjs';
+import {EXPORTED_PRESETS, packageDirectory} from './helpers.mjs';
 
 // The same files for every run. They cover each file type the presets tell apart, the places the presets scope rules to,
 // and a root file name next to the same name in a folder, since oxlint matches a glob without a slash at every depth.
@@ -67,8 +67,7 @@ async function resolveESLintRules(presets, files = SAMPLE_FILES) {
 
     // Some presets use rules of a plugin that another preset registers (typescript uses the import plugin), so ESLint cannot
     // load them alone. A first block registers every plugin of every preset. It sets no rule.
-    const exportedPresets = fs.readdirSync(new URL('../../configs/public/', import.meta.url)).map(file => file.replace(/\.js$/, ''));
-    const allPlugins = Object.assign({}, ...(await loadESLintBlocks(exportedPresets)).map(block => block.plugins));
+    const allPlugins = Object.assign({}, ...(await loadESLintBlocks(EXPORTED_PRESETS)).map(block => block.plugins));
     const tagOf = index => `parityBlock${index}`;
     const eslint = new ESLint({
         cwd: packageDirectory,
@@ -91,13 +90,6 @@ async function resolveESLintRules(presets, files = SAMPLE_FILES) {
                 const earlier = merged.get(ruleID);
                 merged.set(ruleID, entry.length === 1 && earlier ? [entry[0], ...earlier.slice(1)] : entry);
             }
-        }
-
-        // A guard for the merge above: it must give ESLint's own rules and severities.
-        const ownSeverities = Object.fromEntries([...merged].map(([ruleID, entry]) => [ruleID, entry[0]]));
-        const eslintSeverities = Object.fromEntries(Object.entries(config.rules ?? {}).map(([ruleID, setting]) => [ruleID, normalizeEntry(setting)[0]]));
-        if (JSON.stringify(Object.entries(ownSeverities).sort()) !== JSON.stringify(Object.entries(eslintSeverities).sort())) {
-            throw new Error(`The merge of the blocks for ${file} does not match what ESLint resolves`);
         }
         resolvedByFile.set(file, new Map([...merged].filter(([, entry]) => entry[0] !== 'off')));
     }

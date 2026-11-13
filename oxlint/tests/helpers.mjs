@@ -12,6 +12,15 @@ import {fileURLToPath} from 'node:url';
 const require = createRequire(import.meta.url);
 const packageDirectory = fileURLToPath(new URL('../../', import.meta.url));
 
+// Every preset the package exports, by file name in configs/public.
+const EXPORTED_PRESETS = fs.readdirSync(new URL('../../configs/public/', import.meta.url)).map(file => file.replace(/\.js$/, '')).sort();
+
+// All of them in one list, like a repo that uses every export, with eslint-config-prettier last. The order matters: the
+// conversion refuses an unscoped block that follows a scoped one for the same rule (`formatting` before `typescript`), and
+// a later block that sets only a severity keeps the options of an earlier one. An export missing from the order goes last.
+const PRESET_ORDER = ['browser', 'node', 'expensify', 'formatting', 'react', 'react-formatting', 'typescript', 'scripts', 'jest'];
+const ALL_PRESETS = [...PRESET_ORDER, ...EXPORTED_PRESETS.filter(name => !PRESET_ORDER.includes(name)), 'prettier'];
+
 /**
  * @param {string} [projectDirectory] a project that may have its own node_modules
  * @returns {Record<string, string>} an environment where oxlint finds tsgolint even when the project has no node_modules
@@ -71,5 +80,5 @@ function runOxlint(directory, oxlintBinary, env) {
 }
 
 export {
-    createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
 };

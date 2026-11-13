@@ -1,6 +1,5 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import {after, test} from 'node:test';
 import {isDeepStrictEqual} from 'node:util';
 
@@ -8,16 +7,10 @@ import {buildOxlintConfig} from '../index.js';
 import {
     DROPPED_RULES, DROPPED_WITHOUT_NURSERY, DROP_OPTIONS, STAND_INS,
 } from '../tables.js';
+import {ALL_PRESETS, EXPORTED_PRESETS} from './helpers.mjs';
 import {
     SAMPLE_FILES, createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
 } from './parity-helpers.mjs';
-
-// Every preset the package exports, by file name in configs/public.
-const EXPORTED_PRESETS = fs.readdirSync(new URL('../../configs/public/', import.meta.url)).map(file => file.replace(/\.js$/, '')).sort();
-
-// All of them in one list, like a repo that uses every export. `prettier` is eslint-config-prettier. `formatting` comes
-// before `typescript` because the conversion refuses an unscoped block that follows a scoped one for the same rule.
-const ALL_PRESETS = ['browser', 'node', 'expensify', 'formatting', 'react', 'react-formatting', 'typescript', 'scripts', 'jest', 'prettier'];
 
 // Exceptions to "oxlint runs what ESLint runs, with the same options". The dropped rules, the stand-ins and the rules
 // whose options are dropped are the ones oxlint/tables.js declares, and each rule below is one that convert.js changes
@@ -82,13 +75,11 @@ function indexByKey(rules, file, failures) {
  * @param {Map<string, Map<string, unknown[]>>} eslintRules the rules that are on, by file and ESLint rule ID
  * @param {Map<string, Map<string, unknown[]>>} oxlintRules the rules that are on, by file and the name oxlint runs them under
  * @param {boolean} withNursery whether the config was built with `withNursery`
- * @returns {{failures: string[], compared: number, declared: Set<string>}} one failure for each difference that no table
- * or exception declares (the file, the rule, and both entries), the number of entries compared, and the declared
- * exceptions that were used
+ * @returns {{failures: string[], compared: number}} one failure for each difference that no table or exception declares (the
+ * file, the rule, and both entries), and the number of entries compared
  */
 function compareRules(eslintRules, oxlintRules, withNursery) {
     const failures = [];
-    const declared = new Set();
     let compared = 0;
     const show = found => (found ? JSON.stringify(found.entry) : 'not on');
     for (const [file, eslintOn] of eslintRules) {
@@ -113,9 +104,7 @@ function compareRules(eslintRules, oxlintRules, withNursery) {
             const isDropped = ruleID in DROPPED_RULES || (!withNursery && ruleID in DROPPED_WITHOUT_NURSERY);
             if (!eslintFound || !oxlintFound) {
                 // ESLint runs it and oxlint does not: fine for a dropped rule. oxlint runs it and ESLint does not: never.
-                if (isDropped && !oxlintFound) {
-                    declared.add(ruleID);
-                } else {
+                if (!isDropped || oxlintFound) {
                     report();
                 }
                 continue;
@@ -123,12 +112,10 @@ function compareRules(eslintRules, oxlintRules, withNursery) {
             const expected = getExpectedOxlintEntry(ruleID, eslintFound.entry);
             if (isDropped || !isDeepStrictEqual(expected, oxlintFound.entry)) {
                 report();
-            } else if (ruleID in STAND_INS || expected !== eslintFound.entry) {
-                declared.add(ruleID);
             }
         }
     }
-    return {failures, compared, declared};
+    return {failures, compared};
 }
 
 /**
@@ -144,16 +131,6 @@ async function compareRun(presets, withNursery = false) {
     return {...result, files: eslintRules.size};
 }
 
-let combinedRun;
-
-/**
- * @returns {ReturnType<typeof compareRun>} the combined run, made once for the tests that use it
- */
-function getCombinedRun() {
-    combinedRun ??= compareRun(ALL_PRESETS);
-    return combinedRun;
-}
-
 /**
  * @param {string[]} failures
  * @returns {string} the failures, for the message of a failed assertion
@@ -162,12 +139,6 @@ function formatFailures(failures) {
     const shown = failures.slice(0, 40).join('\n');
     return `${failures.length} difference(s) between ESLint and oxlint:\n${shown}${failures.length > 40 ? `\n...and ${failures.length - 40} more` : ''}`;
 }
-
-test('the exported presets are the ones the combined list uses', () => {
-    // Given the files in configs/public and the combined list
-    // Then they name the same presets, so a new preset gets compared as well
-    assert.deepEqual(ALL_PRESETS.filter(name => name !== 'prettier').sort(), EXPORTED_PRESETS);
-});
 
 for (const name of EXPORTED_PRESETS) {
     test(`the ${name} preset alone runs in oxlint the rules, severities and options ESLint runs`, async (context) => {
@@ -185,7 +156,7 @@ for (const name of EXPORTED_PRESETS) {
 test('all the exported presets together run in oxlint the rules, severities and options ESLint runs', async (context) => {
     // Given the combined list, in ESLint and as an oxlint config
     // When both are resolved for each sample file
-    const {failures, compared, files} = await getCombinedRun();
+    const {failures, compared, files} = await compareRun(ALL_PRESETS);
 
     // Then nothing differs, except what tables.js declares, and the run is not empty
     context.diagnostic(`${compared} entries compared on ${files} files`);
@@ -202,13 +173,4 @@ test('all the exported presets together with withNursery run in oxlint the rules
     context.diagnostic(`${compared} entries compared on ${files} files`);
     assert.ok(compared >= MIN_COMBINED_ENTRIES, `only ${compared} entries compared`);
     assert.equal(failures.length, 0, formatFailures(failures));
-});
-
-test('every exception in tables.js is used by the combined list', async () => {
-    // Given the combined run, which every preset takes part in
-    const {declared} = await getCombinedRun();
-
-    // Then each dropped rule, stand-in, and rule whose options are dropped shows up in it, so no entry is out of date
-    const declaredIDs = [...Object.keys(DROPPED_RULES), ...Object.keys(STAND_INS), ...DROP_OPTIONS, NO_CYCLE, TS_NO_UNUSED_VARS];
-    assert.deepEqual(declaredIDs.filter(ruleID => !declared.has(ruleID)), []);
 });

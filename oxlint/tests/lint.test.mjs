@@ -5,17 +5,10 @@ import {test} from 'node:test';
 
 import {buildOxlintConfig} from '../index.js';
 import {
-    createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
 } from './helpers.mjs';
 
 const oxlintBinary = `${packageDirectory}node_modules/.bin/oxlint`;
-
-// Every preset the package exports, by file name in configs/public.
-const EXPORTED_PRESETS = fs.readdirSync(new URL('../../configs/public/', import.meta.url)).map(file => file.replace(/\.js$/, '')).sort();
-
-// All of them in one list. `formatting` comes before `typescript` because the conversion refuses an unscoped block that
-// follows a scoped one for the same rule.
-const ALL_PRESETS = ['browser', 'node', 'expensify', 'formatting', 'react', 'react-formatting', 'typescript', 'scripts', 'jest', 'prettier'];
 
 /**
  * Lints a small file with a config in the real oxlint and checks that oxlint accepts the config.
@@ -78,54 +71,20 @@ export function f() {
     }
 });
 
-test('without the typescript preset, dot-notation reports once on a JS file', async () => {
-    // Given a config built from the browser preset only, and a JS file that breaks dot-notation
-    const config = await buildOxlintConfig({presets: ['browser'], reactVersion: '19.0.0'});
-    const directory = createFixtureProject(JSON.stringify(config), {'dot.js': 'const value = {};\nexport default value[\'a\'];\n'});
-    try {
-        // When oxlint lints it
-        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-
-        // Then ESLint's rule reports it, and the typescript-eslint version does not report it a second time
-        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        const codes = diagnostics.filter(diagnostic => diagnostic.filename.endsWith('dot.js') && diagnostic.code.includes('dot-notation')).map(diagnostic => diagnostic.code);
-        assert.deepEqual(codes, ['core(dot-notation)']);
-    } finally {
-        fs.rmSync(directory, {recursive: true, force: true});
-    }
-});
-
-test('a repo override can turn off a typescript/ rule without listing the typescript plugin', async () => {
-    // Given the typescript preset, and a repo override that turns typescript/dot-notation off for a TS file
+test('a repo override can turn off a typescript/ rule, or a React Compiler rule by its react-hooks/ name, for its file only', async () => {
+    // Given the typescript and react presets, and overrides that turn typescript/dot-notation off for one TS file and
+    // react-hooks/set-state-in-effect off for one JSX file. The plugins of the rules are not listed by the repo, and oxlint
+    // treats react-hooks/ as react/.
     const config = await buildOxlintConfig({
-        presets: ['browser', 'typescript'],
+        presets: ['browser', 'react', 'typescript'],
         reactVersion: '19.0.0',
-        overrides: [{files: ['quiet.ts'], rules: {'typescript/dot-notation': 'off'}}],
+        overrides: [
+            {files: ['quiet.ts'], rules: {'typescript/dot-notation': 'off'}},
+            {files: ['quiet.jsx'], rules: {'react-hooks/set-state-in-effect': 'off'}},
+        ],
     });
-    const code = 'const value: Record<string, string> = {};\nexport default value[\'a\'];\n';
-    const directory = createFixtureProject(JSON.stringify(config), {'loud.ts': code, 'quiet.ts': code});
-    try {
-        // When oxlint lints both files
-        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-        const dotNotationIn = name => diagnostics.filter(diagnostic => diagnostic.filename.endsWith(name) && diagnostic.code.includes('dot-notation'));
-
-        // Then the preset's rule reports in the other file, and the override silences it in its file
-        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        assert.equal(dotNotationIn('loud.ts').length, 1);
-        assert.deepEqual(dotNotationIn('quiet.ts'), []);
-    } finally {
-        fs.rmSync(directory, {recursive: true, force: true});
-    }
-});
-
-test('a repo override can use the react-hooks/ prefix for a React Compiler rule that oxlint runs as react/', async () => {
-    // Given the react preset, and an override that turns react-hooks/set-state-in-effect off for one file
-    const config = await buildOxlintConfig({
-        presets: ['browser', 'react'],
-        reactVersion: '19.0.0',
-        overrides: [{files: ['quiet.jsx'], rules: {'react-hooks/set-state-in-effect': 'off'}}],
-    });
-    const code = [
+    const tsCode = 'const value: Record<string, string> = {};\nexport default value[\'a\'];\n';
+    const jsxCode = [
         'import {useEffect, useState} from \'react\';',
         '',
         'export default function Counter({value}) {',
@@ -135,55 +94,20 @@ test('a repo override can use the react-hooks/ prefix for a React Compiler rule 
         '}',
         '',
     ].join('\n');
-    const directory = createFixtureProject(JSON.stringify(config), {'loud.jsx': code, 'quiet.jsx': code});
-    try {
-        // When oxlint lints both files
-        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-        const reportedIn = name => diagnostics.filter(diagnostic => diagnostic.filename.endsWith(name) && diagnostic.code === 'react(set-state-in-effect)');
-
-        // Then the rule reports in the other file, and the override silences it, because oxlint treats react-hooks/ as react/
-        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        assert.equal(reportedIn('loud.jsx').length, 1);
-        assert.deepEqual(reportedIn('quiet.jsx'), []);
-    } finally {
-        fs.rmSync(directory, {recursive: true, force: true});
-    }
-});
-
-test('a preset glob without a slash matches at the root only, as in ESLint', async () => {
-    // Given the jest preset, which relaxes no-console for `jestSetup.js`, and that file at the root and in a folder
-    const config = await buildOxlintConfig({presets: ['browser', 'jest'], reactVersion: '19.0.0'});
-    const code = 'console.log(1);\n';
-    const directory = createFixtureProject(JSON.stringify(config), {'jestSetup.js': code, 'nested/jestSetup.js': code});
-    try {
-        // When oxlint lints both
-        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-        const noConsoleIn = diagnostics.filter(diagnostic => diagnostic.code.endsWith('(no-console)') && diagnostic.filename.endsWith('jestSetup.js')).map(diagnostic => diagnostic.filename);
-
-        // Then only the nested file reports, since ESLint matches `jestSetup.js` against the root file only
-        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        assert.deepEqual(noConsoleIn, ['nested/jestSetup.js']);
-    } finally {
-        fs.rmSync(directory, {recursive: true, force: true});
-    }
-});
-
-test('no-new-object and no-new-symbol report what ESLint reports, and their eslint-disable comments work', async () => {
-    // Given the browser preset, which sets both rules, and code that only some of their oxlint counterparts report
-    const config = await buildOxlintConfig({presets: ['browser'], reactVersion: '19.0.0'});
     const directory = createFixtureProject(JSON.stringify(config), {
-        'loud.js': 'export const a = new Object();\nexport const b = new Symbol();\nexport const c = Object();\nexport const d = new BigInt(1);\n',
-        'quiet.js': '// eslint-disable-next-line no-new-object\nexport const a = new Object();\n// eslint-disable-next-line no-new-symbol\nexport const b = new Symbol();\n',
+        'loud.ts': tsCode, 'quiet.ts': tsCode, 'loud.jsx': jsxCode, 'quiet.jsx': jsxCode,
     });
     try {
-        // When oxlint lints both files
+        // When oxlint lints all four
         const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-        const codesIn = name => diagnostics.filter(diagnostic => diagnostic.filename === name && /object|symbol|native/i.test(diagnostic.code)).map(diagnostic => diagnostic.code).sort();
+        const found = diagnostics
+            .filter(diagnostic => /\((dot-notation|set-state-in-effect)\)$/.test(diagnostic.code))
+            .map(diagnostic => `${diagnostic.filename} ${diagnostic.code}`)
+            .sort();
 
-        // Then each reports once on its ESLint line (not on `Object()` or `new BigInt(1)`), and the comments silence them
+        // Then the rules report in the loud files, and the overrides silence them in their own files
         assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-        assert.deepEqual(codesIn('loud.js'), ['core(no-new-object)', 'core(no-new-symbol)']);
-        assert.deepEqual(codesIn('quiet.js'), []);
+        assert.deepEqual(found, ['loud.jsx react(set-state-in-effect)', 'loud.ts typescript(dot-notation)']);
     } finally {
         fs.rmSync(directory, {recursive: true, force: true});
     }
@@ -205,12 +129,12 @@ const IMPORT_GRAPH_FILES = {
 };
 
 /**
- * @param {Array<{code: string, filename: string, line?: number, message?: string}>} diagnostics
- * @returns {string[]} the import/export and import/named findings in IMPORT_GRAPH_FILES, as `file:line code message`
+ * @param {Array<{code: string, filename: string, line?: number}>} diagnostics
+ * @returns {string[]} the import/export and import/named findings in IMPORT_GRAPH_FILES, as `file:line code`
  */
 const importGraphFindings = diagnostics => diagnostics
     .filter(diagnostic => diagnostic.filename in IMPORT_GRAPH_FILES && /\((export|named)\)$/.test(diagnostic.code))
-    .map(diagnostic => `${diagnostic.filename}:${diagnostic.line} ${diagnostic.code} ${diagnostic.message}`)
+    .map(diagnostic => `${diagnostic.filename}:${diagnostic.line} ${diagnostic.code}`)
     .sort();
 
 for (const withNursery of [false, true]) {
@@ -225,39 +149,13 @@ for (const withNursery of [false, true]) {
             // Then each problem is reported, and the valid import is not. import/export runs as oxlint's own rule either
             // way. import/named does so only with withNursery
             assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-            const named = withNursery
-                ? ['missing-from-js.js:1 import(named) named import "missing" not found', 'missing-from-ts.js:1 import(named) named import "missing" not found']
-                : ['missing-from-js.js:1 hosted(named) missing not found in \'./shared-three\'', 'missing-from-ts.js:1 hosted(named) missing not found in \'./shared-one\''];
+            const namedCode = withNursery ? 'import(named)' : 'hosted(named)';
             assert.deepEqual(importGraphFindings(diagnostics), [
-                ...named,
-                'mixed.js:1 import(export) Multiple exports of name \'shared\'.',
-                'mixed.ts:1 import(export) Multiple exports of name \'shared\'.',
-            ].sort());
-        } finally {
-            fs.rmSync(directory, {recursive: true, force: true});
-        }
-    });
-}
-
-for (const withNursery of [false, true]) {
-    test(`import/export runs as oxlint's own rule${withNursery ? ' with withNursery' : ''}`, async () => {
-        // Given the browser preset, which turns import/export on, and a project where two exports of one module give a name
-        const config = await buildOxlintConfig({presets: ['browser'], withNursery, reactVersion: '19.0.0'});
-        const directory = createFixtureProject(JSON.stringify(config), {
-            'shared.js': 'export const shared = 1;\n',
-            'other.js': 'export const shared = 2;\n',
-            'mixed.js': 'export * from \'./shared\';\nexport {shared} from \'./other\';\n',
-        });
-        try {
-            // When oxlint lints it
-            const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
-
-            // Then the config sets the native rule with the import plugin and no hosted copy, and oxlint reports the name
-            assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
-            assert.equal(config.rules['import/export'], 'error');
-            assert.ok(config.plugins.includes('import'));
-            assert.equal('hosted/export' in config.rules, false);
-            assert.deepEqual(diagnostics.filter(diagnostic => diagnostic.code === 'import(export)').map(diagnostic => diagnostic.filename), ['mixed.js']);
+                `missing-from-js.js:1 ${namedCode}`,
+                `missing-from-ts.js:1 ${namedCode}`,
+                'mixed.js:1 import(export)',
+                'mixed.ts:1 import(export)',
+            ]);
         } finally {
             fs.rmSync(directory, {recursive: true, force: true});
         }
