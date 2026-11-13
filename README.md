@@ -55,10 +55,10 @@ export default defineConfig([
 
 `eslint-config-expensify/oxlint` builds an [oxlint](https://oxc.rs) config from the presets you would list in an ESLint config. Rules oxlint cannot run itself still run, from ESLint's own code, as `core/<rule>` (ESLint core rules) and `hosted/<rule>` (plugin rules).
 
-Install `oxlint`, `@oxlint/migrate`, `oxlint-tsgolint` and `oxc-parser` next to this package. They are optional peer dependencies, so repos that only use the ESLint presets do not get them. See `peerDependencies` for supported versions.
+Install `oxlint`, `@oxlint/migrate` and `oxlint-tsgolint` next to this package. They are optional peer dependencies, so repos that only use the ESLint presets do not get them. See `peerDependencies` for supported versions.
 
 ```sh
-npm install --save-dev oxlint @oxlint/migrate oxlint-tsgolint oxc-parser
+npm install --save-dev oxlint @oxlint/migrate oxlint-tsgolint
 ```
 
 ```js
@@ -83,7 +83,7 @@ Options:
 - `transformRule(ruleID, entry)`: rename (`[newID, entry]`) or drop (`null`) a preset rule before it is converted.
 - `nativeRules`: rules from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) to run with oxlint's own version instead of ESLint's.
 - `extraRunningNames`: rule names or prefixes ending in `/` (like `rc/`) that the repo's own plugins add.
-- `withNursery`: also use oxlint's experimental (nursery) rules where it has them. `import/export` always uses oxlint's version.
+- `withNursery`: also use oxlint's experimental (nursery) rules where it has them. `import/export` and `import/named` always use oxlint's version.
 - `reactVersion`: only needed when `react` cannot be found from the repo.
 
 An override replaces a rule's whole setting, so a bare severity like `'no-console': 'warn'` drops the preset's options. To extend them, start from `await getPresetRuleEntry(preset, ruleID)`, which returns a copy of the preset's setting as `[severity, ...options]`, merged over its blocks as ESLint does. It ignores which files a block is for, so give the override the files the setting belongs to:

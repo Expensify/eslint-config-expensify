@@ -46,7 +46,7 @@ fs.writeFileSync(process.argv[2], JSON.stringify(config));
         const build = () => execFileSync(process.execPath, [path.join(project, 'build-config.mjs'), configFile], {cwd: workDirectory, stdio: 'pipe'});
         assert.throws(build, error => /npm install --save-dev "@oxlint\/migrate@>=1\.90\.0 <2"/.test(String(error.stderr)));
 
-        install([`@oxlint/migrate@${installedVersion('@oxlint/migrate')}`, `oxc-parser@${installedVersion('oxc-parser')}`]);
+        install([`@oxlint/migrate@${installedVersion('@oxlint/migrate')}`]);
         build();
 
         assert.equal(JSON.parse(fs.readFileSync(configFile, 'utf8')).settings.react.version, '19.0.0');

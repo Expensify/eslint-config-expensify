@@ -128,7 +128,7 @@ const importGraphFindings = diagnostics => diagnostics
     .sort();
 
 for (const withNursery of [false, true]) {
-    test(`import/export and import/named read the imported modules${withNursery ? ' with withNursery' : ''}`, async () => {
+    test(`import/export and import/named run as oxlint's own rules${withNursery ? ' with withNursery' : ''}`, async () => {
         const config = await buildOxlintConfig({presets: ['browser'], withNursery, reactVersion: '19.0.0'});
         const directory = createFixtureProject(JSON.stringify(config), IMPORT_GRAPH_FILES);
         try {
@@ -136,11 +136,9 @@ for (const withNursery of [false, true]) {
 
             assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
 
-            // import/export runs as oxlint's own rule either way, and import/named only with withNursery
-            const namedCode = withNursery ? 'import(named)' : 'hosted(named)';
             assert.deepEqual(importGraphFindings(diagnostics), [
-                `missing-from-js.js:1 ${namedCode}`,
-                `missing-from-ts.js:1 ${namedCode}`,
+                'missing-from-js.js:1 import(named)',
+                'missing-from-ts.js:1 import(named)',
                 'mixed.js:1 import(export)',
                 'mixed.ts:1 import(export)',
             ]);

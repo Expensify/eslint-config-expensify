@@ -83,7 +83,6 @@
   ],
   "hostedRuleIDs": [
     "@typescript-eslint/naming-convention",
-    "import/named",
     "import/no-extraneous-dependencies",
     "import/no-import-module-exports",
     "import/no-relative-packages",

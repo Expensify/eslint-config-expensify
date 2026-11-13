@@ -27,10 +27,10 @@ const ALWAYS_HOSTED = new Set([
     'react-hooks/exhaustive-deps',
 ]);
 
-// Rules in oxlint's nursery category that run as oxlint's own version even without `withNursery`. import/export misses
-// names that two `export * from` modules both export, which ESLint's version reports. That is accepted, so repos get
-// the native rule whether or not they set `withNursery`.
-const NURSERY_RULES_RUN_NATIVE = new Set(['import/export']);
+// Rules in oxlint's nursery category that run as oxlint's own version even without `withNursery`. The native import/export
+// misses names that two `export * from` modules both export, which ESLint's version reports. That is accepted, and it keeps
+// these rules off the hosted path, which would need a parser for the modules they read.
+const NURSERY_RULES_RUN_NATIVE = new Set(['import/export', 'import/named']);
 
 // Preset rules that do not run at all, and why.
 const DROPPED_RULES = {
@@ -67,7 +67,7 @@ const TYPED_CORE_EQUIVALENTS = new Set(['consistent-return', 'dot-notation']);
 /**
  * @param {string} key a settings key of a preset
  * @returns {boolean} whether convert.js copies it into the oxlint config: the `import/*` settings ESLint's import rules
- * read, except `import/parsers`, since the hosted import/* rules read imported modules with oxc-parser (see hosting.js)
+ * read, except `import/parsers`, which oxlint does not have
  */
 const isCopiedImportSetting = key => key.startsWith('import/') && key !== 'import/parsers';
 

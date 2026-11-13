@@ -318,7 +318,7 @@ function translateRules(rules, isTypeScriptBlock, alwaysHosted) {
 /**
  * Collects the presets' `import/*` settings, which ESLint's import rules read. oxlint has no per-file settings, so all
  * blocks are merged. presets.js checks that a setting for some files only is safe to merge (MERGED_IMPORT_SETTINGS).
- * `import/parsers` is skipped because the hosted import/* rules parse imported modules with oxc-parser.
+ * `import/parsers` is skipped because oxlint does not have it.
  * @param {Array<Record<string, any>>} blocks
  * @returns {Record<string, unknown>}
  */

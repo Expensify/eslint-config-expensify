@@ -117,92 +117,6 @@ function withStubbedParserServices(rule) {
 }
 
 /**
- * Adds the `loc` and `range` ESLint's SourceCode needs to every node of an oxc-parser AST, which has offsets only.
- * @param {Record<string, any>} ast
- * @param {string} code
- */
-function addLocations(ast, code) {
-    const lineStarts = [0];
-    for (let index = code.indexOf('\n'); index !== -1; index = code.indexOf('\n', index + 1)) {
-        lineStarts.push(index + 1);
-    }
-    const toPosition = (offset) => {
-        let low = 0;
-        let high = lineStarts.length - 1;
-        while (low < high) {
-            const middle = Math.ceil((low + high) / 2);
-            if (lineStarts[middle] <= offset) {
-                low = middle;
-            } else {
-                high = middle - 1;
-            }
-        }
-        return {line: low + 1, column: offset - lineStarts[low]};
-    };
-    const pending = [ast];
-    while (pending.length) {
-        const node = pending.pop();
-        if (Number.isInteger(node.start) && Number.isInteger(node.end)) {
-            node.range = [node.start, node.end];
-            node.loc = {start: toPosition(node.start), end: toPosition(node.end)};
-        }
-        for (const value of Object.values(node)) {
-            if (value && typeof value === 'object') {
-                pending.push(value);
-            }
-        }
-    }
-}
-
-let oxcParser;
-
-/**
- * @returns {{parseForESLint: (code: string, options: {filePath: string}) => {ast: Record<string, any>, visitorKeys: Record<string, string[]>}}}
- * a parser for eslint-plugin-import's `languageOptions.parser`, built on oxc-parser, which reads JS, JSX and TS. It returns
- * `visitorKeys` because eslint-plugin-import caches a parsed module only when the parser result has them.
- */
-function getOxcParser() {
-    if (!oxcParser) {
-        let parseSync;
-        let visitorKeys;
-        try {
-            ({parseSync, visitorKeys} = require('oxc-parser'));
-        } catch (error) {
-            throw new Error(
-                `The hosted import/* rules need oxc-parser to read imported modules, and it is not installed. Install it as a dev dependency: ${getInstallCommand('oxc-parser')}`,
-                {cause: error},
-            );
-        }
-        oxcParser = {
-            parseForESLint(code, {filePath}) {
-                const {program, comments} = parseSync(filePath, code);
-                const ast = {...program, comments, tokens: []};
-                addLocations(ast, code);
-                return {ast, visitorKeys};
-            },
-        };
-    }
-    return oxcParser;
-}
-
-/**
- * Lets an eslint-plugin-import rule read the modules a file imports (named, export, no-cycle, ...). It parses them with
- * `context.languageOptions.parser`, whose `parse` oxlint's JS plugins do not implement, so it gets one built on
- * oxc-parser instead. ESLint's `import/parsers` setting is left out of the config, so this parser reads every module.
- * @param {import('eslint').Rule.RuleModule} rule
- * @returns {import('eslint').Rule.RuleModule}
- */
-function withImportParser(rule) {
-    return {
-        ...rule,
-        create(context) {
-            const languageOptions = Object.create(context.languageOptions ?? null, {parser: {value: getOxcParser()}});
-            return rule.create(Object.create(context, {languageOptions: {value: languageOptions}}));
-        },
-    };
-}
-
-/**
  * Loads one ESLint plugin rule as a hosted rule, so `eslint-disable` comments with its ESLint ID apply to it. A repo that wraps
  * or adds hosted rules builds its own `hosted` plugin from this.
  * @param {string} ruleID the ESLint rule ID, like `react/jsx-no-bind`
@@ -216,11 +130,7 @@ function hostRule(ruleID, pluginRules) {
     if (!rule) {
         throw new Error(`The "${prefix}" plugin has no rule named "${name}".`);
     }
-    let hosted = STUBBED_PARSER_SERVICES.has(ruleID) ? withStubbedParserServices(rule) : rule;
-    if (prefix === 'import') {
-        hosted = withImportParser(hosted);
-    }
-    return withEslintDirectiveIDs(hosted, ruleID);
+    return withEslintDirectiveIDs(STUBBED_PARSER_SERVICES.has(ruleID) ? withStubbedParserServices(rule) : rule, ruleID);
 }
 
 export {

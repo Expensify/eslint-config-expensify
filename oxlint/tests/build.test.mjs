@@ -382,7 +382,7 @@ test('a preset that sets an import/* setting for some files only fails, unless t
     const forAll = {settings: {'import/internal-regex': '^@app/'}};
     const forTypeScript = settings => ({files: ['**/*.ts'], settings});
 
-    // A setting for all files, the known-safe external-module-folders and the dropped import/parsers pass
+    // A setting for all files, the known-safe external-module-folders and import/parsers, which oxlint does not have, pass
     checkScopedImportSettings('fake', [forAll, forTypeScript({'import/external-module-folders': ['node_modules', 'node_modules/@types']})]);
     checkScopedImportSettings('fake', [forTypeScript({'import/parsers': {'@typescript-eslint/parser': ['.ts']}})]);
 
