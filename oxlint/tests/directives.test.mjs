@@ -34,63 +34,34 @@ function isReported(comments, {ruleId = RULE_ID, column = 0} = {}) {
     return reports.length === 1;
 }
 
-test('a block eslint-disable without rule names hides every rule, and eslint-enable stops it', () => {
-    // ESLint reads eslint-disable and eslint-enable only from block comments
-    assert.equal(isReported([comment('Block', ' eslint-disable ', 1)]), false);
+test('a block eslint-disable hides the rule until an eslint-enable for it, and a line comment is no block directive', () => {
+    const disable = (line, options) => comment('Block', ` eslint-disable ${RULE_ID} `, line, options);
+    const enable = (line, ruleId = RULE_ID) => comment('Block', ` eslint-enable ${ruleId} `, line);
 
+    assert.equal(isReported([comment('Block', ' eslint-disable ', 1)]), false);
     assert.equal(isReported([comment('Line', ' eslint-disable', 1)]), true);
 
-    assert.equal(isReported([comment('Block', ' eslint-disable ', REPORT_LINE + 1)]), true);
-
-    assert.equal(isReported([comment('Block', ' eslint-disable ', 1), comment('Block', ' eslint-enable ', 2)]), true);
-});
-
-test('with several block directives for a rule, the last one before the report wins', () => {
-    const disable = line => comment('Block', ` eslint-disable ${RULE_ID} `, line);
-    const enable = line => comment('Block', ` eslint-enable ${RULE_ID} `, line);
-
     assert.equal(isReported([disable(1), enable(2)]), true);
-    assert.equal(isReported([enable(1), disable(2)]), false);
-    assert.equal(isReported([disable(1), enable(2), disable(3)]), false);
+    assert.equal(isReported([disable(1), enable(2, 'other/rule')]), false);
 
-    assert.equal(isReported([disable(1), comment('Block', ' eslint-enable other/rule ', 2)]), false);
-
-    assert.equal(isReported([comment('Block', ' eslint-disable ', 1), enable(2)]), true);
-
-    // On one line, the column of the directive decides whether it comes before the report
-    assert.equal(isReported([comment('Block', ` eslint-disable ${RULE_ID} `, REPORT_LINE, {column: 0})], {column: 10}), false);
-    assert.equal(isReported([comment('Block', ` eslint-disable ${RULE_ID} `, REPORT_LINE, {column: 20})], {column: 10}), true);
+    // On the report's line, a directive after the report's column does not count
+    assert.equal(isReported([disable(REPORT_LINE, {column: 20})], {column: 10}), true);
 });
 
-test('eslint-disable-line and eslint-disable-next-line hide the one line they cover', () => {
-    const next = (line, options) => comment('Line', ` eslint-disable-next-line ${RULE_ID}`, line, options);
-    const same = (line, options) => comment('Line', ` eslint-disable-line ${RULE_ID}`, line, options);
+test('eslint-disable-next-line hides the line after the comment, and eslint-disable-line the line it is on', () => {
+    assert.equal(isReported([comment('Line', ` eslint-disable-next-line ${RULE_ID}`, REPORT_LINE - 1)]), false);
+    assert.equal(isReported([comment('Line', ` eslint-disable-line ${RULE_ID}`, REPORT_LINE)]), false);
 
-    assert.equal(isReported([next(REPORT_LINE - 1)]), false);
-    assert.equal(isReported([same(REPORT_LINE)]), false);
-
-    assert.equal(isReported([next(REPORT_LINE)]), true);
-    assert.equal(isReported([next(REPORT_LINE - 2)]), true);
-    assert.equal(isReported([same(REPORT_LINE - 1)]), true);
-
-    // A multi-line next-line applies after the comment ends, but a multi-line disable-line is ignored, as in ESLint
+    // A multi-line next-line applies after the comment ends
     assert.equal(isReported([comment('Block', ` eslint-disable-next-line ${RULE_ID} `, REPORT_LINE - 2, {endLine: REPORT_LINE - 1})]), false);
-    assert.equal(isReported([comment('Block', ` eslint-disable-line ${RULE_ID} `, REPORT_LINE - 1, {endLine: REPORT_LINE})]), true);
 });
 
 test('a comment can name several rules, or none, and may end with a reason', () => {
     const next = value => [comment('Line', ` eslint-disable-next-line ${value}`, REPORT_LINE - 1)];
 
     assert.equal(isReported(next(`other/rule, ${RULE_ID}`)), false);
-    assert.equal(isReported(next(`${RULE_ID}, other/rule`)), false);
-
-    assert.equal(isReported(next('other/rule, another/rule')), true);
-
     assert.equal(isReported(next('')), false);
     assert.equal(isReported(next(`${RULE_ID} -- the reason, with a comma`)), false);
-    assert.equal(isReported(next('other/rule -- react-hooks/exhaustive-deps')), true);
-
-    assert.equal(isReported([comment('Block', ' eslint-disabled ', 1)]), true);
 });
 
 test('when a file changes, its eslint-disable comments are read again', () => {

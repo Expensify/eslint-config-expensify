@@ -22,11 +22,10 @@ const PRESET_ORDER = ['browser', 'node', 'expensify', 'formatting', 'react', 're
 const ALL_PRESETS = [...PRESET_ORDER, ...EXPORTED_PRESETS.filter(name => !PRESET_ORDER.includes(name)), 'prettier'];
 
 /**
- * @param {string} [projectDirectory] a project that may have its own node_modules
  * @returns {Record<string, string>} an environment where oxlint finds tsgolint even when the project has no node_modules
  */
-function getOxlintEnvironment(projectDirectory = packageDirectory) {
-    const tsgolint = require.resolve(`@oxlint-tsgolint/${process.platform}-${process.arch}/tsgolint`, {paths: [projectDirectory, packageDirectory]});
+function getOxlintEnvironment() {
+    const tsgolint = require.resolve(`@oxlint-tsgolint/${process.platform}-${process.arch}/tsgolint`, {paths: [packageDirectory]});
     return {...process.env, OXLINT_TSGOLINT_PATH: tsgolint};
 }
 

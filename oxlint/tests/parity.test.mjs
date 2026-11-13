@@ -73,11 +73,10 @@ function indexByKey(rules, file, failures) {
  * Compares the rules ESLint and oxlint run on each file.
  * @param {Map<string, Map<string, unknown[]>>} eslintRules the rules that are on, by file and ESLint rule ID
  * @param {Map<string, Map<string, unknown[]>>} oxlintRules the rules that are on, by file and the name oxlint runs them under
- * @param {boolean} withNursery whether the config was built with `withNursery`
  * @returns {{failures: string[], compared: number}} one failure for each difference that no table or exception declares (the
  * file, the rule, and both entries), and the number of entries compared
  */
-function compareRules(eslintRules, oxlintRules, withNursery) {
+function compareRules(eslintRules, oxlintRules) {
     const failures = [];
     let compared = 0;
     const show = found => (found ? JSON.stringify(found.entry) : 'not on');
@@ -100,7 +99,7 @@ function compareRules(eslintRules, oxlintRules, withNursery) {
             const oxlintFound = oxlintByKey.get(key);
             const ruleID = eslintFound?.ruleID ?? oxlintFound.ruleID;
             const report = () => failures.push(`${file} ${ruleID}\n    ESLint: ${show(eslintFound)}\n    oxlint: ${show(oxlintFound)}`);
-            const isDropped = ruleID in DROPPED_RULES || (!withNursery && ruleID in DROPPED_WITHOUT_NURSERY);
+            const isDropped = ruleID in DROPPED_RULES || ruleID in DROPPED_WITHOUT_NURSERY;
             if (!eslintFound || !oxlintFound) {
                 // ESLint runs it and oxlint does not: fine for a dropped rule. oxlint runs it and ESLint does not: never.
                 if (!isDropped || oxlintFound) {
@@ -120,13 +119,12 @@ function compareRules(eslintRules, oxlintRules, withNursery) {
 /**
  * Builds the oxlint config for the presets and compares what both linters run on every sample file.
  * @param {string[]} presets
- * @param {boolean} [withNursery]
  * @returns {Promise<ReturnType<typeof compareRules> & {files: number}>}
  */
-async function compareRun(presets, withNursery = false) {
-    const config = await buildOxlintConfig({presets, withNursery, reactVersion: '19.0.0'});
+async function compareRun(presets) {
+    const config = await buildOxlintConfig({presets, reactVersion: '19.0.0'});
     const eslintRules = await resolveESLintRules(presets);
-    const result = compareRules(eslintRules, resolveOxlintRules(config, matcher), withNursery);
+    const result = compareRules(eslintRules, resolveOxlintRules(config, matcher));
     return {...result, files: eslintRules.size};
 }
 
@@ -151,14 +149,6 @@ for (const name of EXPORTED_PRESETS) {
 
 test('all the exported presets together run in oxlint the rules, severities and options ESLint runs', async (context) => {
     const {failures, compared, files} = await compareRun(ALL_PRESETS);
-
-    context.diagnostic(`${compared} entries compared on ${files} files`);
-    assert.ok(compared >= MIN_COMBINED_ENTRIES, `only ${compared} entries compared`);
-    assert.equal(failures.length, 0, formatFailures(failures));
-});
-
-test('all the exported presets together with withNursery run in oxlint the rules, severities and options ESLint runs', async (context) => {
-    const {failures, compared, files} = await compareRun(ALL_PRESETS, true);
 
     context.diagnostic(`${compared} entries compared on ${files} files`);
     assert.ok(compared >= MIN_COMBINED_ENTRIES, `only ${compared} entries compared`);

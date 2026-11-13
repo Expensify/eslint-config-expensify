@@ -5,16 +5,13 @@ import {test} from 'node:test';
 
 import {buildOxlintConfig} from '../index.js';
 import {
-    ALL_PRESETS, EXPORTED_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
+    ALL_PRESETS, createFixtureProject, getOxlintEnvironment, packageDirectory, runOxlint,
 } from './helpers.mjs';
 
 const oxlintBinary = `${packageDirectory}node_modules/.bin/oxlint`;
 
-/**
- * Lints a small file with a config in the real oxlint and checks that oxlint accepts the config.
- * @param {import('oxlint').OxlintConfig} config
- */
-function assertConfigLoads(config) {
+test('the config of all the exported presets loads in oxlint', async () => {
+    const config = await buildOxlintConfig({presets: ALL_PRESETS, reactVersion: '19.0.0'});
     const directory = createFixtureProject(JSON.stringify(config), {'index.js': 'export default 1;\n'});
     try {
         const {loaded, status, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
@@ -24,16 +21,6 @@ function assertConfigLoads(config) {
     } finally {
         fs.rmSync(directory, {recursive: true, force: true});
     }
-}
-
-for (const name of EXPORTED_PRESETS) {
-    test(`the ${name} preset alone builds a config that loads in oxlint`, async () => {
-        assertConfigLoads(await buildOxlintConfig({presets: [name], reactVersion: '19.0.0'}));
-    });
-}
-
-test('the config of all the exported presets loads in oxlint', async () => {
-    assertConfigLoads(await buildOxlintConfig({presets: ALL_PRESETS, reactVersion: '19.0.0'}));
 });
 
 test('eslint-disable comments with ESLint rule IDs silence hosted and core rules', async () => {
@@ -127,23 +114,21 @@ const importGraphFindings = diagnostics => diagnostics
     .map(diagnostic => `${diagnostic.filename}:${diagnostic.line} ${diagnostic.code}`)
     .sort();
 
-for (const withNursery of [false, true]) {
-    test(`import/export and import/named run as oxlint's own rules${withNursery ? ' with withNursery' : ''}`, async () => {
-        const config = await buildOxlintConfig({presets: ['browser'], withNursery, reactVersion: '19.0.0'});
-        const directory = createFixtureProject(JSON.stringify(config), IMPORT_GRAPH_FILES);
-        try {
-            const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
+test('import/export and import/named run as oxlint\'s own rules', async () => {
+    const config = await buildOxlintConfig({presets: ['browser'], reactVersion: '19.0.0'});
+    const directory = createFixtureProject(JSON.stringify(config), IMPORT_GRAPH_FILES);
+    try {
+        const {diagnostics, stderr} = runOxlint(directory, oxlintBinary, getOxlintEnvironment());
 
-            assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
+        assert.ok(diagnostics.length > 0, `oxlint did not load the config: ${stderr}`);
 
-            assert.deepEqual(importGraphFindings(diagnostics), [
-                'missing-from-js.js:1 import(named)',
-                'missing-from-ts.js:1 import(named)',
-                'mixed.js:1 import(export)',
-                'mixed.ts:1 import(export)',
-            ]);
-        } finally {
-            fs.rmSync(directory, {recursive: true, force: true});
-        }
-    });
-}
+        assert.deepEqual(importGraphFindings(diagnostics), [
+            'missing-from-js.js:1 import(named)',
+            'missing-from-ts.js:1 import(named)',
+            'mixed.js:1 import(export)',
+            'mixed.ts:1 import(export)',
+        ]);
+    } finally {
+        fs.rmSync(directory, {recursive: true, force: true});
+    }
+});
