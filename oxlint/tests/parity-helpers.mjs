@@ -181,7 +181,7 @@ function resolveOxlintRules(config, matcher, files = SAMPLE_FILES) {
 }
 
 /**
- * @param {string} name the name oxlint runs a rule under, like `core/dot-notation`, `typescript/no-explicit-any` or `hosted/named`
+ * @param {string} name the name oxlint runs a rule under, like `core/dot-notation`, `typescript/no-explicit-any` or `hosted/naming-convention`
  * @returns {string} the ESLint rule ID, using the package's own mapping (toEslintRuleID)
  */
 function toESLintID(name) {

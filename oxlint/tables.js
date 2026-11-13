@@ -28,8 +28,8 @@ const ALWAYS_HOSTED = new Set([
 ]);
 
 // Rules in oxlint's nursery category that run as oxlint's own version even without `withNursery`. The native import/export
-// misses names that two `export * from` modules both export, which ESLint's version reports. That is accepted, and it keeps
-// these rules off the hosted path, which would need a parser for the modules they read.
+// misses names that two `export * from` modules both export, which ESLint's version reports. That is accepted. Hosted, these
+// rules would report nothing, because oxlint's JS plugins cannot parse the modules they check.
 const NURSERY_RULES_RUN_NATIVE = new Set(['import/export', 'import/named']);
 
 // Hosted rules a repo can switch on itself though no preset enables them in the lists rules.json is built from. oxlint has no
