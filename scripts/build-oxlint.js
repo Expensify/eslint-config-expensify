@@ -33,7 +33,7 @@ async function buildRulesJson() {
     const coreRuleNames = targets.filter(([, target]) => target.startsWith('core/')).map(([, target]) => splitRuleID(target).name);
     const hostedRuleIDs = targets.filter(([, target]) => target.startsWith('hosted/')).map(([ruleID]) => ruleID);
 
-    // All hosted rules share the `hosted/` prefix, so loading fails if two plugins bring a rule with the same name.
+    // All hosted rules share the `hosted/` prefix, so the build fails if two plugins bring a rule with the same name.
     const names = hostedRuleIDs.map(ruleID => splitRuleID(ruleID).name);
     const duplicate = names.find((name, index) => names.indexOf(name) !== index);
     if (duplicate) {

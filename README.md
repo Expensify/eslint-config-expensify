@@ -83,7 +83,7 @@ Options:
 - `nativeRules`: rules from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) to run with oxlint's own version instead of ESLint's.
 - `withNursery`: also use oxlint's experimental (nursery) rules where it has them. `import/export` and `import/named` always use oxlint's version.
 
-An override replaces a rule's whole setting, so a bare severity like `'no-console': 'warn'` drops the preset's options. To extend them, start from `await getPresetRuleEntry(preset, ruleID)`, which returns a copy of the preset's setting as `[severity, ...options]`, merged over its blocks as ESLint does. It ignores which files a block is for, so give the override the files the setting belongs to:
+An override replaces a rule's whole setting, so a bare severity like `'no-console': 'warn'` drops the preset's options. To extend them, start from `await getPresetRuleEntry(preset, ruleID)`, which returns a copy of the preset's setting as `[severity, ...options]`, merged over its blocks like ESLint, except that settings that turn the rule off are skipped. It ignores which files a block is for, so give the override the files the setting belongs to:
 
 ```js
 import {buildOxlintConfig, getPresetRuleEntry} from 'eslint-config-expensify/oxlint';

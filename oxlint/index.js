@@ -166,8 +166,8 @@ async function buildOxlintConfig({
 }
 
 /**
- * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks as ESLint does
- * (see mergeRuleEntries), so an override can extend it. Only presets.js is loaded, not @oxlint/migrate.
+ * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks like ESLint, except
+ * that settings that turn the rule off are skipped (see mergeRuleEntries), so an override can extend it. Only presets.js is loaded, not @oxlint/migrate.
  * @param {string} preset a preset name, like `typescript`
  * @param {string} ruleID the rule's ESLint ID, like `@typescript-eslint/naming-convention`
  * @returns {Promise<[import('./index.d.ts').RuleSeverity, ...unknown[]]>}

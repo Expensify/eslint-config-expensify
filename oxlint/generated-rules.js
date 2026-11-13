@@ -6,7 +6,7 @@ import {splitRuleID} from './hosting.js';
 
 const {coreRuleNames, hostedRuleIDs} = JSON.parse(fs.readFileSync(new URL('./generated/rules.json', import.meta.url), 'utf8'));
 
-// Each hosted rule's ESLint ID by the name it runs under (`hosted/<name>`), since oxlint gives all of them one plugin name.
+// Each hosted rule's ESLint ID by the name it runs under (`hosted/<name>`), since all hosted rules share the `hosted` plugin name.
 const hostedRuleIDsByName = new Map(hostedRuleIDs.map(ruleID => [splitRuleID(ruleID).name, ruleID]));
 
 // How a stale generated/rules.json gets rebuilt. A repo cannot do it itself, so messages name this package.

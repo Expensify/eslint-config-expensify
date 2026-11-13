@@ -8,7 +8,7 @@ const OXLINT_DIAGNOSTIC_CODE = /^([\w@/.-]+)\((.+)\)$/;
 let reactHooksRuleNames;
 
 /**
- * Loads on the first `react(...)` code, since eslint-plugin-react-hooks takes a while to load.
+ * Reads the rule names on the first `react(...)` code.
  * @returns {Set<string>} the rules of eslint-plugin-react-hooks, which oxlint runs in its `react` plugin
  */
 function getReactHooksRuleNames() {

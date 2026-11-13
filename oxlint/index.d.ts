@@ -58,9 +58,10 @@ export type BuildOxlintConfigOptions = {
 export type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2;
 
 /**
- * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks as ESLint
- * does. Which files a block is for is ignored. Use it so an override can extend the setting, since an override replaces
- * the whole setting. `Options` types the options, which the package cannot know, like `[Record<string, unknown>]`.
+ * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks like ESLint, except
+ * that settings that turn the rule off are skipped. Which files a block is for is ignored. Use it so an override can extend the
+ * setting, since an override replaces the whole setting. `Options` types the options, which the package cannot know, like
+ * `[Record<string, unknown>]`.
  */
 export function getPresetRuleEntry<Options extends unknown[] = unknown[]>(preset: string, ruleID: string): Promise<[RuleSeverity, ...Options]>;
 
