@@ -1,4 +1,4 @@
-/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
+/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling */
 import assert from 'node:assert/strict';
 import {after, test} from 'node:test';
 import {isDeepStrictEqual} from 'node:util';
@@ -6,26 +6,24 @@ import {isDeepStrictEqual} from 'node:util';
 import {
     DROPPED_RULES, DROPPED_WITHOUT_NURSERY, DROP_OPTIONS, STAND_INS,
 } from '../tables.js';
-import {ALL_PRESETS, EXPORTED_PRESETS, buildConfigWithReact} from './helpers.mjs';
+import {ALL_PRESETS, EXPORTED_PRESETS, buildConfigInProject} from './helpers.mjs';
 import {
-    SAMPLE_FILES, createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
+    createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
 } from './parity-helpers.mjs';
 
-// Exceptions to "oxlint runs what ESLint runs, with the same options". The dropped rules, stand-ins and dropped options come from
-// oxlint/tables.js, and each rule below is one that convert.js changes without a table.
 const STAND_IN_SOURCES = Object.fromEntries(Object.entries(STAND_INS).map(([ruleID, standIn]) => [standIn, ruleID]));
 
+// Most exceptions to parity are listed in oxlint/tables.js. The two rules below are changed by convert.js without a table.
 // The preset sets maxDepth to the string "∞" and oxlint takes only a number, so convert.js leaves it out.
 const NO_CYCLE = 'import/no-cycle';
 
-// ESLint runs typescript-eslint's no-unused-vars on TypeScript files, which reports values used only as types. oxlint's
-// rule does that only with this option, so convert.js adds it to the rule's options in blocks for TypeScript files.
+// typescript-eslint's no-unused-vars reports values used only as types, and oxlint's only with reportVarsOnlyUsedAsTypes, which convert.js adds for TypeScript files.
 const TS_NO_UNUSED_VARS = '@typescript-eslint/no-unused-vars';
 
-// The least number of rule entries the combined run compares, so that a run which compares nothing cannot pass.
+// A floor, so that a run which compares nothing cannot pass
 const MIN_COMBINED_ENTRIES = 3000;
 
-const matcher = createFileMatcher(SAMPLE_FILES);
+const matcher = createFileMatcher();
 after(() => matcher.remove());
 
 /**
@@ -72,8 +70,7 @@ function indexByKey(rules, file, failures) {
  * Compares the rules ESLint and oxlint run on each file.
  * @param {Map<string, Map<string, unknown[]>>} eslintRules the rules that are on, by file and ESLint rule ID
  * @param {Map<string, Map<string, unknown[]>>} oxlintRules the rules that are on, by file and the name oxlint runs them under
- * @returns {{failures: string[], compared: number}} one failure for each difference that no table or exception declares (the
- * file, the rule, and both entries), and the number of entries compared
+ * @returns {{failures: string[], compared: number}} one failure per difference that no table or exception declares, and the number of entries compared
  */
 function compareRules(eslintRules, oxlintRules) {
     const failures = [];
@@ -121,7 +118,7 @@ function compareRules(eslintRules, oxlintRules) {
  * @returns {Promise<ReturnType<typeof compareRules> & {files: number}>}
  */
 async function compareRun(presets) {
-    const config = await buildConfigWithReact({presets});
+    const config = await buildConfigInProject({presets});
     const eslintRules = await resolveESLintRules(presets);
     const result = compareRules(eslintRules, resolveOxlintRules(config, matcher));
     return {...result, files: eslintRules.size};

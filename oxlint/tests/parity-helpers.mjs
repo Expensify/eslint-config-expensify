@@ -1,9 +1,6 @@
-/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
+/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling */
 /* eslint-disable no-await-in-loop -- Node-only tooling, and these loops read one file at a time */
-/**
- * Helpers for the parity test: resolve the rules ESLint runs on a file from a list of presets, and the rules oxlint runs on
- * the same file from the config `buildOxlintConfig` made, both as `[severity, ...options]` by rule.
- */
+/** Helpers for the parity test: the rules ESLint and oxlint run on a file, both as `[severity, ...options]` by rule. */
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -16,8 +13,7 @@ import prettierConfig from 'eslint-config-prettier';
 import {toEslintRuleID} from '../rule-names.js';
 import {EXPORTED_PRESETS, packageDirectory} from './helpers.mjs';
 
-// The same files for every run. They cover each file type the presets tell apart, the places the presets scope rules to,
-// and a root file name next to the same name in a folder, since oxlint matches a glob without a slash at every depth.
+// Covers each file type the presets tell apart, where they scope rules, and a root file name next to the same name in a folder (oxlint matches a glob without a slash at every depth)
 const SAMPLE_FILES = [
     'a.js', 'a.jsx', 'a.mjs', 'a.cjs', 'a.ts', 'a.tsx', 'a.mts', 'a.d.ts',
     'a.test.js', 'a.test.ts', 'tests/x.js', 'tests/x.ts', 'src/x.ts', 'src/__mocks__/x.js',
@@ -41,7 +37,7 @@ function normalizeEntry(setting) {
 }
 
 /**
- * Loads the presets as a repo's ESLint config lists them: this package's exports in order, and eslint-config-prettier as one block.
+ * Loads the presets as a repo's ESLint config lists them.
  * @param {string[]} presets names of files in configs/public, and `prettier`
  * @returns {Promise<Array<Record<string, any>>>} the ESLint flat config blocks
  */
@@ -55,15 +51,12 @@ async function loadESLintBlocks(presets) {
  * apply (each gets a tagged settings key). The rules are merged from those blocks as written: a later setting replaces an
  * earlier one, except a bare severity, which keeps the earlier options.
  * @param {string[]} presets
- * @param {string[]} [files] paths relative to the package
- * @returns {Promise<Map<string, Map<string, unknown[]>>>} for each file ESLint lints, the rules that are on by ESLint rule
- * ID. A file no block applies to, or that ESLint ignores, is left out.
+ * @returns {Promise<Map<string, Map<string, unknown[]>>>} for each file ESLint lints, the rules that are on by ESLint rule ID
  */
-async function resolveESLintRules(presets, files = SAMPLE_FILES) {
+async function resolveESLintRules(presets) {
     const blocks = await loadESLintBlocks(presets);
 
-    // Some presets use rules of a plugin that another preset registers (typescript uses the import plugin), so ESLint cannot
-    // load them alone. A first block registers every plugin of every preset. It sets no rule.
+    // Some presets use a plugin that another preset registers (typescript uses import), so a first block registers the plugins of every preset
     const allPlugins = Object.assign({}, ...(await loadESLintBlocks(EXPORTED_PRESETS)).map(block => block.plugins));
     const tagOf = index => `parityBlock${index}`;
     const eslint = new ESLint({
@@ -72,7 +65,7 @@ async function resolveESLintRules(presets, files = SAMPLE_FILES) {
         overrideConfig: [{plugins: allPlugins}, ...blocks.map((block, index) => ({...block, settings: {...block.settings, [tagOf(index)]: true}}))],
     });
     const resolvedByFile = new Map();
-    for (const file of files) {
+    for (const file of SAMPLE_FILES) {
         const config = await eslint.calculateConfigForFile(path.join(packageDirectory, file));
         if (!config) {
             continue;
@@ -94,15 +87,13 @@ async function resolveESLintRules(presets, files = SAMPLE_FILES) {
 }
 
 /**
- * Asks oxlint which files a list of `files` globs applies to, so oxlint's own glob matching decides. Each file breaks one of two
- * probe rules, which only an override with those globs turns on, so a file is reported if and only if the override applies to it.
- * @param {string[]} files paths relative to the package
+ * Asks oxlint which of the sample files a list of `files` globs applies to. Each file breaks one of two probe rules that only an override with those globs turns on.
  * @returns {{getMatches: (globs: string[] | null, ignorePatterns?: string[]) => Set<string>, remove: () => void}} `getMatches` returns
  * the files the globs match, or for `null` the files oxlint lints at all. `remove` deletes the temp project.
  */
-function createFileMatcher(files) {
+function createFileMatcher() {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-oxlint-parity-'));
-    for (const file of files) {
+    for (const file of SAMPLE_FILES) {
         fs.mkdirSync(path.dirname(path.join(directory, file)), {recursive: true});
 
         // Statements are a syntax error in a declaration file, so it breaks the other rule.
@@ -122,7 +113,7 @@ function createFileMatcher(files) {
                     overrides: globs ? [{files: globs, rules: probeRules}] : [],
                 };
                 fs.writeFileSync(path.join(directory, 'probe.json'), JSON.stringify(config));
-                const result = spawnSync(`${packageDirectory}node_modules/.bin/oxlint`, ['-c', 'probe.json', '--format=json', ...files], {
+                const result = spawnSync(`${packageDirectory}node_modules/.bin/oxlint`, ['-c', 'probe.json', '--format=json', ...SAMPLE_FILES], {
                     cwd: directory, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
                 });
                 let diagnostics;
@@ -140,33 +131,24 @@ function createFileMatcher(files) {
 }
 
 /**
- * @param {string} name a rule name as oxlint's config writes it
- * @returns {string} the name with oxlint's aliases for a plugin resolved, so two names of one rule are one key
- */
-function normalizeOxlintName(name) {
-    return name.replace(/^eslint\//, '').replace(/^import-x\//, 'import/').replace(/^react-hooks\//, 'react/');
-}
-
-/**
- * Resolves the rules oxlint runs on each file from a config built by `buildOxlintConfig`: the root rules, then each override whose
- * `files` apply (see createFileMatcher), in order. A later entry replaces an earlier one completely, also a bare severity.
+ * Resolves the rules oxlint runs on each file: the root rules, then each override whose `files` apply (see createFileMatcher), in order.
+ * A later entry replaces an earlier one completely, also a bare severity.
  * @param {import('oxlint').OxlintConfig} config
  * @param {ReturnType<typeof createFileMatcher>} matcher
- * @param {string[]} [files]
- * @returns {Map<string, Map<string, unknown[]>>} for each file oxlint lints, the rules that are on by the name oxlint runs
- * them under (like `core/dot-notation`)
+ * @returns {Map<string, Map<string, unknown[]>>} for each file oxlint lints, the rules that are on by the name oxlint runs them under (like `core/dot-notation`)
  */
-function resolveOxlintRules(config, matcher, files = SAMPLE_FILES) {
+function resolveOxlintRules(config, matcher) {
     const linted = matcher.getMatches(null, config.ignorePatterns);
     const resolvedByFile = new Map();
-    for (const file of files) {
+    for (const file of SAMPLE_FILES) {
         if (!linted.has(file)) {
             continue;
         }
         const rules = new Map();
         const apply = (ruleSettings) => {
             for (const [name, setting] of Object.entries(ruleSettings ?? {})) {
-                rules.set(normalizeOxlintName(name), normalizeEntry(setting));
+                // oxlint's aliases for a plugin, so two names of one rule are one key
+                rules.set(name.replace(/^eslint\//, '').replace(/^import-x\//, 'import/').replace(/^react-hooks\//, 'react/'), normalizeEntry(setting));
             }
         };
         apply(config.rules);
@@ -181,7 +163,7 @@ function resolveOxlintRules(config, matcher, files = SAMPLE_FILES) {
 }
 
 /**
- * @param {string} name the name oxlint runs a rule under, like `core/dot-notation`, `typescript/no-explicit-any` or `hosted/naming-convention`
+ * @param {string} name the name oxlint runs a rule under, like `core/dot-notation`
  * @returns {string} the ESLint rule ID, using the package's own mapping (toEslintRuleID)
  */
 function toESLintID(name) {
@@ -193,8 +175,8 @@ function toESLintID(name) {
 }
 
 /**
- * typescript-eslint extends some core rules (`dot-notation`, `no-unused-vars`, ...). The typescript preset turns the core
- * rule off and the typescript-eslint one on for TypeScript files, and oxlint runs them under either name. Both are one key.
+ * typescript-eslint extends some core rules (`dot-notation`, ...). The typescript preset turns the core rule off and the
+ * typescript-eslint one on for TypeScript files, and oxlint runs them under either name. Both are one key.
  * @param {string} ruleID an ESLint rule ID
  * @returns {string} the ID of the core rule when `ruleID` is the typescript-eslint extension of one, else `ruleID`
  */
@@ -204,5 +186,5 @@ function toComparisonKey(ruleID) {
 }
 
 export {
-    SAMPLE_FILES, createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
+    createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
 };

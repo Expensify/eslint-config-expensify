@@ -1,4 +1,4 @@
-/* eslint-disable es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
+/* eslint-disable es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling */
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -28,7 +28,8 @@ test('the packed package ships what its exports need and no tests, and imports o
         const targets = Object.values(exports).flatMap(entry => (typeof entry === 'string' ? [entry] : Object.values(entry))).map(target => target.slice(2));
         assert.deepEqual(targets.filter(target => !shipped.includes(target)), [], 'an exports target is not published');
 
-        // The copy below links every package of this checkout, so only this check can tell that a package the shipped code imports is not declared. typescript comes with typescript-eslint.
+        // The copy below links every package of this checkout, so only this check can tell that a package the shipped code imports is not declared.
+        // typescript is a peer dependency of typescript-eslint, and eslint-plugin-expensify/utils/typeUtil.js imports it without declaring it.
         const declared = [...Object.keys(dependencies), ...Object.keys(peerDependencies), 'typescript'];
         const imported = shipped
             .filter(file => file.endsWith('.js') && !file.includes('/tests/'))

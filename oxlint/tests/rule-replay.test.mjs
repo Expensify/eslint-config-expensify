@@ -1,9 +1,7 @@
-/* eslint-disable es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
+/* eslint-disable es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling */
 /**
- * Replays the cases of eslint-plugin-expensify's rule tests through oxlint, with this package's rulesdir plugin. Every
- * `valid` case must report nothing, and every `invalid` case as many errors as its ESLint test expects. ESLint's own run
- * stays the source of truth: the Jest suite proves the expectations, and this file only checks that oxlint gives the same
- * number of errors.
+ * Replays eslint-plugin-expensify's rule tests through oxlint with this package's rulesdir plugin. A valid case must report nothing,
+ * an invalid case as many errors as its ESLint test expects.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -12,15 +10,12 @@ import {fileURLToPath} from 'node:url';
 
 import {rules} from '../plugins/rulesdir.js';
 import {DROPPED_RULES, STAND_INS} from '../tables.js';
-import {getOxlintEnvironment, packageDirectory} from './helpers.mjs';
 import {captureRuleTests, replaySuite} from './rule-tester-shim.mjs';
 
-const oxlintBinary = `${packageDirectory}node_modules/.bin/oxlint`;
 const pluginSpecifier = fileURLToPath(new URL('../plugins/rulesdir.js', import.meta.url));
 const ruleDirectory = fileURLToPath(new URL('../../eslint-plugin-expensify/', import.meta.url));
 const testDirectory = fileURLToPath(new URL('../../eslint-plugin-expensify/tests/', import.meta.url));
 
-// How many oxlint runs go at once. There is one run per rule file.
 const CONCURRENCY = 4;
 
 // Rules that rulesdir.js leaves out because they call ESLintUtils.getParserServices, so oxlint has no `rulesdir/<name>` to replay.
@@ -30,13 +25,12 @@ const suites = await captureRuleTests(testDirectory, ruleDirectory);
 const testFileCount = fs.readdirSync(testDirectory).filter(name => name.endsWith('.test.js')).length;
 const replayedSuites = suites.filter(suite => !SKIPPED_RULES.includes(suite.ruleName));
 
-// Runs the replays a few at a time, and keeps a failed run as the result of its rule so that the test of the rule reports it.
-const options = {oxlintBinary, env: getOxlintEnvironment(), pluginSpecifier};
+// A failed run is kept as the result of its rule, so that the test of the rule reports it
 const replays = new Map();
 const queue = [...replayedSuites];
 await Promise.all(Array.from({length: CONCURRENCY}, async () => {
     for (let suite = queue.shift(); suite; suite = queue.shift()) {
-        replays.set(suite, await replaySuite(suite, options).catch(error => ({error})));
+        replays.set(suite, await replaySuite(suite, pluginSpecifier).catch(error => ({error})));
     }
 }));
 
