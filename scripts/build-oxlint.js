@@ -1,10 +1,7 @@
 /* eslint-disable rulesdir/prefer-underscore-method -- Node-only tooling, so native array methods are fine */
 /**
- * Writes oxlint/generated/rules.json: which ESLint rules run as `core/` and `hosted/` in oxlint. That depends on the
- * presets and the oxlint version, so it is computed here over every export of this package, and the plugins read the
- * file instead of running the conversion each time they load.
- *
- *     npm run build:oxlint
+ * Writes oxlint/generated/rules.json: which ESLint rules run as `core/` and `hosted/` in oxlint. That depends on the presets
+ * and the oxlint version, so it is computed over every export here, and the plugins read the file. Run `npm run build:oxlint`.
  */
 import fs from 'node:fs';
 import {fileURLToPath, pathToFileURL} from 'node:url';

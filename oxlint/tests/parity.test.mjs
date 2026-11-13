@@ -12,9 +12,8 @@ import {
     SAMPLE_FILES, createFileMatcher, resolveESLintRules, resolveOxlintRules, toComparisonKey, toESLintID,
 } from './parity-helpers.mjs';
 
-// Exceptions to "oxlint runs what ESLint runs, with the same options". The dropped rules, the stand-ins and the rules
-// whose options are dropped are the ones oxlint/tables.js declares, and each rule below is one that convert.js changes
-// without a table.
+// Exceptions to "oxlint runs what ESLint runs, with the same options". The dropped rules, stand-ins and dropped options come from
+// oxlint/tables.js, and each rule below is one that convert.js changes without a table.
 const STAND_IN_SOURCES = Object.fromEntries(Object.entries(STAND_INS).map(([ruleID, standIn]) => [standIn, ruleID]));
 
 // The preset sets maxDepth to the string "∞" and oxlint takes only a number, so convert.js leaves it out.
@@ -142,11 +141,8 @@ function formatFailures(failures) {
 
 for (const name of EXPORTED_PRESETS) {
     test(`the ${name} preset alone runs in oxlint the rules, severities and options ESLint runs`, async (context) => {
-        // Given the preset on its own, in ESLint and as an oxlint config
-        // When both are resolved for each sample file
         const {failures, compared, files} = await compareRun([name]);
 
-        // Then nothing differs, except what tables.js declares
         context.diagnostic(`${compared} entries compared on ${files} files`);
         assert.ok(files > 0, 'ESLint lints no sample file');
         assert.equal(failures.length, 0, formatFailures(failures));
@@ -154,22 +150,16 @@ for (const name of EXPORTED_PRESETS) {
 }
 
 test('all the exported presets together run in oxlint the rules, severities and options ESLint runs', async (context) => {
-    // Given the combined list, in ESLint and as an oxlint config
-    // When both are resolved for each sample file
     const {failures, compared, files} = await compareRun(ALL_PRESETS);
 
-    // Then nothing differs, except what tables.js declares, and the run is not empty
     context.diagnostic(`${compared} entries compared on ${files} files`);
     assert.ok(compared >= MIN_COMBINED_ENTRIES, `only ${compared} entries compared`);
     assert.equal(failures.length, 0, formatFailures(failures));
 });
 
 test('all the exported presets together with withNursery run in oxlint the rules, severities and options ESLint runs', async (context) => {
-    // Given the combined list built with withNursery, which also converts the rules oxlint keeps in its nursery category
-    // When both are resolved for each sample file
     const {failures, compared, files} = await compareRun(ALL_PRESETS, true);
 
-    // Then nothing differs, except what tables.js declares
     context.diagnostic(`${compared} entries compared on ${files} files`);
     assert.ok(compared >= MIN_COMBINED_ENTRIES, `only ${compared} entries compared`);
     assert.equal(failures.length, 0, formatFailures(failures));

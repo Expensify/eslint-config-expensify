@@ -3,10 +3,9 @@ import type {OxlintConfig} from 'oxlint';
 export * from './utils.js';
 
 /**
- * A preset name of this package (or `'prettier'`), or an object that runs the preset on `files` only. Blocks for file
- * types (typescript, browser, node) keep them inside `files`, like ESLint's `defineConfig({files, extends})`. Other blocks
- * get `files` instead of their own, like `{...block, files}`. `react` cannot be limited to `files`: it sets settings that
- * oxlint cannot scope to files, so the build throws.
+ * A preset name of this package (or `'prettier'`), or `{preset, files}` to run the preset on `files` only. Blocks for file types
+ * (typescript, browser, node) keep them inside `files`, like ESLint's `defineConfig({files, extends})`, and other blocks get `files`
+ * instead of their own, like `{...block, files}`. `react` cannot be limited to `files`, because oxlint cannot scope its settings.
  */
 export type PresetEntry = string | {preset: string; files: string[]};
 
@@ -23,11 +22,11 @@ export type BuildOxlintConfigOptions = {
 
     /**
      * Plugin files that replace this package's `hosted` and `rulesdir` plugins. Absolute paths, package names, or paths
-     * relative to the config file.
+     * relative to the config file. Their `meta.name` must stay `hosted` and `rulesdir`.
      */
     plugins?: {hosted?: string; rulesdir?: string};
 
-    /** Called for each preset rule before it is converted, to rename or drop it. */
+    /** Renames or drops a preset rule before it is converted. React Compiler rules stay as @oxlint/migrate writes them, `react/<name>`, so map them here to run them another way. */
     transformRule?: TransformRule;
 
     /** Also convert the rules oxlint keeps in its nursery category. False by default. */

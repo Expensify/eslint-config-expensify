@@ -1,7 +1,4 @@
-/**
- * The parts of this package a plugin file needs. Importing it never loads @oxlint/migrate, so a repo's own `hosted` or
- * `rulesdir` plugin stays quick to load. `index.js` re-exports all of it next to `buildOxlintConfig`.
- */
+/** What a plugin file needs from this package. Importing it never loads @oxlint/migrate, so plugin files stay quick to load, and index.js re-exports all of it. */
 import {withEslintDirectiveIDs, withEslintDirectiveIDsFor} from './eslint-directives.js';
 import {hostRule} from './hosting.js';
 import {reactCompilerRuleNames} from './react-compiler-rules.js';

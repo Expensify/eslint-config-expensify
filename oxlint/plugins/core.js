@@ -1,13 +1,8 @@
 /* eslint-disable rulesdir/prefer-underscore-method -- Node-only tooling, so native array methods are fine */
 /**
- * ESLint core rules that oxlint cannot run in its default config, run from ESLint's own code under `core/`, so each one
- * behaves as it does in ESLint. oxlint cannot run them for one of these reasons:
- * - It has no version of the rule (most of them).
- * - Its version is experimental (nursery category).
- * - Its only version is the typed `typescript/` one (`dot-notation` and `consistent-return`).
- * - Its replacement reports more than ESLint's deprecated rule (like `no-new-object`).
- *
- * generated/rules.json lists them. `eslint-disable` comments with the ESLint rule name hide their reports.
+ * ESLint core rules that oxlint cannot run in its default config (it has no version, only a nursery or typed one, or a replacement
+ * that reports more than ESLint), run from ESLint's own code under `core/`. generated/rules.json lists them, and `eslint-disable`
+ * comments with the ESLint rule name hide their reports.
  */
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 

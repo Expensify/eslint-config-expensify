@@ -1,9 +1,8 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 /**
- * Turns eslint-config-expensify presets (ESLint flat config blocks) into oxlint config with @oxlint/migrate. Rules oxlint
- * cannot run itself are replayed as `core/<rule>` (ESLint core rules) or `hosted/<rule>` (ESLint plugin rules), which
- * run from ESLint's own code through the plugins in ./plugins. If a preset rule cannot run either way, the conversion
- * stops with an error until the rule is listed in tables.js, so no rule is lost without a decision.
+ * Turns eslint-config-expensify presets (ESLint flat config blocks) into oxlint config with @oxlint/migrate. Rules oxlint cannot
+ * run itself are replayed as `core/<rule>` or `hosted/<rule>` from ESLint's own code (see ./plugins). If a preset rule cannot run
+ * either way, the conversion stops until the rule is listed in tables.js, so no rule is lost without a decision.
  */
 import migrate from '@oxlint/migrate';
 import {builtinRules} from 'eslint/use-at-your-own-risk';
@@ -114,9 +113,8 @@ function createRuleCollector() {
 }
 
 /**
- * Applies `transformRule` to every preset rule, and rejects react-hooks rules the installed plugin does not have. Rules
- * `transformRule` renames come back in `renamed`, collected like the replayed rules, to be added to the converted config,
- * and in `renamedRuleIDs`, which maps each ESLint rule ID to its new name.
+ * Applies `transformRule` to every preset rule, and rejects react-hooks rules the installed plugin does not have. Renamed rules
+ * come back in `renamed`, collected like the replayed rules, and in `renamedRuleIDs`, which maps each ESLint rule ID to its new name.
  * @param {Array<Record<string, any>>} blocks ESLint flat config blocks
  * @param {TransformRule | undefined} transformRule
  * @returns {{
@@ -400,18 +398,15 @@ async function convertPresets(presetBlocks, {transformRule, withNursery = false,
 
     /** @type {import('oxlint').OxlintConfig} */
     const config = {
-        // Every plugin an override uses is also listed here. If neither the root nor the override lists a plugin, oxlint
-        // ignores that plugin's rules in the override, so a repo override that turns off a `typescript/` rule would do
-        // nothing. With `categories` off, a listed plugin runs only the rules the config sets.
-        // A nursery rule that runs natively without `withNursery` brings its plugin, since migrate skipped the rule.
+        // Every plugin an override uses is also listed here, or oxlint ignores its rules in that override (an override that turns off
+        // a `typescript/` rule would do nothing). With `categories` off, a listed plugin runs only the rules set. A native nursery rule, which migrate skips, adds its plugin.
         plugins: [...new Set([
             ...(migrated.plugins ?? []),
             ...(migrated.overrides ?? []).flatMap(override => override.plugins ?? []),
             ...[...enabledReplayTargets].filter(rule => NURSERY_RULES_RUN_NATIVE.has(rule)).map(rule => splitRuleID(rule).prefix),
         ])],
 
-        // JS plugins are named after their package (see getJsPluginName). oxlint reserves names like `react`, `import` and
-        // `jsdoc` for its own plugins, which is why rules of the ESLint plugins with those names run under `hosted/`.
+        // JS plugins are named after their package (see getJsPluginName). oxlint reserves some plugin names (see HOSTED_PLUGIN_PACKAGES), so those rules run as `hosted/`.
         jsPlugins: [...specifiers].map(specifier => ({name: getJsPluginName(specifier), specifier: resolvePackage(specifier)})),
         categories: migrated.categories,
 

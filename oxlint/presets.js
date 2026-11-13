@@ -9,7 +9,6 @@ import {MERGED_IMPORT_SETTINGS, isCopiedImportSetting} from './tables.js';
 // The names of this package's own exports (see "exports" in package.json) that hold ESLint config.
 const PRESET_NAMES = ['browser', 'expensify', 'formatting', 'jest', 'node', 'react', 'react-formatting', 'scripts', 'typescript'];
 
-// The names `presets` accepts, for error messages: the exports above and eslint-config-prettier.
 const VALID_PRESETS = [...PRESET_NAMES, 'prettier'].join(', ');
 
 // The preset lists generated/rules.json is computed over: every export on its own, and the usual combinations. One list
@@ -34,13 +33,11 @@ const FILE_TYPE_GLOB = /^\*\*\/\*\.[\w.]+$/;
 const GLOB_SYNTAX = /[*?{}[\]!]/;
 
 /**
- * Returns the parts of a glob of `files` that match only files of the given types. The type is read from the last part
- * of the glob: `src/**` gives `src/**\/*.ts` for `.ts`, `src/**\/*.{js,ts}` gives `src/**\/*.ts`, `src/foo-*.d.ts` is kept
- * for `.ts`, and `setup.js` gives nothing. A wildcard name must end with a plain extension, like `foo-*.ts`.
+ * Returns the parts of a glob of `files` that match only files of the given types: `src/**` gives `src/**\/*.ts` for `.ts`,
+ * `src/foo-*.d.ts` is kept for `.ts`, and `setup.js` gives nothing. A wildcard name must end with a plain extension, like `foo-*.ts`.
  * @param {string} glob
  * @param {string[]} extensions like `.ts`
- * @returns {string[] | undefined} undefined when the last part of the glob can match files of any type, like `src/*` or
- * `src/index.*`
+ * @returns {string[] | undefined} undefined when the last part of the glob can match files of any type, like `src/*` or `src/index.*`
  */
 function narrowToExtensions(glob, extensions) {
     const directory = glob.slice(0, glob.lastIndexOf('/') + 1);
@@ -61,9 +58,8 @@ function narrowToExtensions(glob, extensions) {
 }
 
 /**
- * Runs a preset block on `files` only:
- * - A block for some file types (`**\/*.ts`) keeps them inside `files`: `src/**` gives `src/**\/*.ts`.
- * - Any other block gets `files` instead of its own.
+ * Runs a preset block on `files` only. A block for some file types (`**\/*.ts`) keeps them inside `files` (`src/**` gives
+ * `src/**\/*.ts`), and any other block gets `files` instead of its own.
  * @param {Record<string, any>} block
  * @param {string[]} files
  * @param {string} preset
@@ -88,9 +84,8 @@ function limitBlock(block, files, preset) {
 }
 
 /**
- * Throws when a preset block for some files only sets an `import/*` setting that convert.js would apply to every file,
- * unless MERGED_IMPORT_SETTINGS says that is safe. Runs on the blocks as the preset ships them, so `npm run build:oxlint`
- * fails here before a repo gets the preset.
+ * Throws when a preset block for some files only sets an `import/*` setting that convert.js would apply to every file, unless
+ * MERGED_IMPORT_SETTINGS says that is safe. It runs on the blocks as shipped, so `npm run build:oxlint` fails here first.
  * @param {string} name
  * @param {Array<Record<string, any>>} blocks
  */
@@ -161,7 +156,6 @@ async function loadPresetBlocks(presets) {
         presets.map(async (entry) => {
             const preset = getPresetName(entry);
 
-            // An entry that is a name is the preset name itself, with no files.
             const files = entry === preset ? undefined : entry.files;
             const blocks = await loadPreset(preset);
             if (!files) {

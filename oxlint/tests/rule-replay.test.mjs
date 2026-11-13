@@ -41,19 +41,18 @@ await Promise.all(Array.from({length: CONCURRENCY}, async () => {
 }));
 
 test('every rule test file is captured', () => {
-    // Then a change that stops the capture cannot pass unnoticed, since every test file calls ruleTester.run once
+    // A change that stops the capture cannot pass unnoticed, since every test file calls ruleTester.run once
     assert.equal(suites.length, testFileCount);
 });
 
 test('the skipped rules are the ones the plugin leaves out', () => {
-    // Then no skipped rule is exported by rulesdir.js, and every rulesdir rule that tables.js drops or replaces is skipped
     assert.deepEqual(SKIPPED_RULES.filter(name => name in rules), []);
     const dropped = [...Object.keys(DROPPED_RULES), ...Object.keys(STAND_INS)].filter(id => id.startsWith('rulesdir/')).map(id => id.replace('rulesdir/', ''));
     assert.deepEqual(dropped.filter(name => !SKIPPED_RULES.includes(name)), []);
 });
 
 test('every replayed rule has an invalid case', () => {
-    // Then the replay shows that each rule ran in oxlint at all, since only an invalid case reports
+    // Only an invalid case reports, so a rule with none never shows that it ran in oxlint at all
     assert.ok(replayedSuites.length > 0, 'no rule is replayed');
     assert.deepEqual(
         replayedSuites.filter(suite => !suite.cases.some(testCase => testCase.kind === 'invalid')).map(suite => suite.ruleName),
@@ -63,11 +62,9 @@ test('every replayed rule has an invalid case', () => {
 
 for (const suite of replayedSuites) {
     test(`rulesdir/${suite.ruleName} in oxlint reports as many errors as its ESLint test expects`, () => {
-        // Given every case of the ESLint test as a file of its own, with the rule on, linted by oxlint
         const {results, stderr, error} = replays.get(suite);
         assert.ifError(error);
 
-        // Then every case gets the number of errors the ESLint test expects
         const ruleCode = `rulesdir(${suite.ruleName})`;
         const failures = [];
         for (const testCase of suite.cases) {

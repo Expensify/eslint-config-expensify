@@ -1,13 +1,9 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 /**
- * oxlint runs some ESLint rules as JS plugins under a new name. For example,
- * `@typescript-eslint/naming-convention` becomes `hosted/naming-convention`. oxlint does not know the
- * two are the same rule, so an existing `eslint-disable-next-line @typescript-eslint/naming-convention`
- * comment would not hide its report. The wrappers here read those comments and drop what ESLint would hide.
- *
- * This file only exists for repos that still have `eslint-disable` comments. Once they all use oxlint-style comments
- * (`oxlint-disable-next-line hosted/naming-convention`), it can be removed in a later release, along with the `core/` and
- * `hosted/` handling that depends on it.
+ * oxlint runs some ESLint rules under a new name (`@typescript-eslint/naming-convention` becomes `hosted/naming-convention`), so an
+ * `eslint-disable-next-line @typescript-eslint/naming-convention` comment would not hide its report. The wrappers here read those
+ * comments and drop what ESLint would hide. This file only exists for repos that still have `eslint-disable` comments. Remove it,
+ * with the `core/` and `hosted/` handling that depends on it, once repos use oxlint-style comments (`oxlint-disable-next-line hosted/naming-convention`).
  */
 
 const JUSTIFICATION = /\s-{2,}\s/;
@@ -39,9 +35,8 @@ function parseComment(comment) {
 }
 
 /**
- * Collects a file's disable comments in a form that is quick to check for each report. A
- * `-line`/`-next-line` comment becomes the line it covers. `eslint-disable`/`eslint-enable` comments
- * stay in source order, because the last one before a report decides.
+ * Collects a file's disable comments in a form that is quick to check for each report. A `-line` or `-next-line` comment becomes
+ * the line it covers, and `eslint-disable` and `eslint-enable` comments stay in source order, since the last one before a report decides.
  * @param {Array<Parameters<typeof parseComment>[0]>} comments
  * @returns {{lines: Map<string, Set<number>>, blocks: Array<{line: number, column: number, ruleId: string, disable: boolean}>}}
  */
@@ -102,9 +97,8 @@ function directivesFor(filename, sourceCode) {
 }
 
 /**
- * Tells whether ESLint would hide a report of `eslintRuleId` at `position`. As in ESLint, the last
- * `eslint-disable`/`eslint-enable` before the report, by line and then column, that names the rule
- * (or no rule) wins.
+ * Tells whether ESLint would hide a report of `eslintRuleId` at `position`: the last `eslint-disable` or `eslint-enable` before
+ * the report (by line, then column) that names the rule or no rule wins.
  * @param {ReturnType<typeof parseDirectives>} directives
  * @param {string} eslintRuleId
  * @param {{line: number, column: number} | null} position
@@ -143,9 +137,8 @@ function reportPosition(args) {
 }
 
 /**
- * Makes an oxlint JS plugin rule respect `eslint-disable` comments written for the ESLint rule it
- * copies. Without it, `// eslint-disable-next-line react-hooks/exhaustive-deps` would not hide the
- * oxlint copy's report, because oxlint calls that copy `hosted/exhaustive-deps`.
+ * Makes an oxlint JS plugin rule respect `eslint-disable` comments written for the ESLint rule it copies. Without it,
+ * `react-hooks/exhaustive-deps` comments would not hide the report of the copy, which oxlint calls `hosted/exhaustive-deps`.
  * @param {import('eslint').Rule.RuleModule} rule
  * @param {string} eslintRuleId the ID ESLint reports this rule under, like `react-hooks/exhaustive-deps`
  * @returns {import('eslint').Rule.RuleModule}

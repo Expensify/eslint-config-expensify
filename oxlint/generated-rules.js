@@ -1,8 +1,5 @@
 /* eslint-disable rulesdir/prefer-underscore-method -- Node-only tooling, so native array methods are fine */
-/**
- * Reads generated/rules.json, so the plugins and buildOxlintConfig never run the conversion just to learn which rules
- * run as `core/` and `hosted/`. `npm run build:oxlint` writes the file.
- */
+/** Reads generated/rules.json, so the plugins and buildOxlintConfig need not run the conversion. `npm run build:oxlint` writes it. */
 import fs from 'node:fs';
 
 import {splitRuleID} from './hosting.js';

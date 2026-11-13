@@ -1,10 +1,7 @@
 /**
- * Loads every rule of eslint-plugin-expensify into oxlint, under the `rulesdir` name ESLint uses. A repo that changes a
- * rule builds its own plugin named `rulesdir` from `rules` and passes it as `plugins.rulesdir`.
- *
- * Rules that need type information are left out, because JS plugins get none and they would throw on every file. A
- * config that enables one fails to load with "rule not found", which names the rule. The conversion drops or replaces
- * the ones the presets enable.
+ * Loads every rule of eslint-plugin-expensify into oxlint under the `rulesdir` name. A repo that changes a rule builds its own
+ * `rulesdir` plugin from `rules` and passes it as `plugins.rulesdir`. Rules that need type information are left out, because JS
+ * plugins get none and they would throw on every file. The conversion drops or replaces the ones the presets enable.
  */
 import fs from 'node:fs';
 import {createRequire} from 'node:module';

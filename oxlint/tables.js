@@ -1,6 +1,4 @@
-/**
- * Hand-made decisions the conversion in convert.js cannot derive.
- */
+/** Hand-made decisions the conversion in convert.js cannot derive. */
 
 // ESLint plugins whose rules can run as `hosted/<rule>`. oxlint keeps the names react, import, jsdoc, @typescript-eslint
 // and react-hooks for its own rules, so a JS plugin cannot use them.
@@ -83,8 +81,7 @@ const MERGED_IMPORT_SETTINGS = {
 // options that set `types`, which the presets do not, so the hosted copy gets empty parser services.
 const STUBBED_PARSER_SERVICES = new Set(['@typescript-eslint/naming-convention']);
 
-// @oxlint/migrate warnings that are safe to ignore: the parser, the added globals, and the react version (buildOxlintConfig
-// sets that itself).
+// @oxlint/migrate warnings that are safe to ignore: the parser, the added globals, and the react version buildOxlintConfig sets.
 const EXPECTED_WARNINGS = [/^special parser detected: @babel\/eslint-parser$/, /^react\.version "detect"/, /^Added \d+ globals/];
 
 // Warnings about settings oxlint cannot take are safe only when every dropped key is an `import/*` one (restored from the

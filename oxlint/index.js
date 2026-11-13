@@ -1,13 +1,8 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 /**
- * oxlint config for repos that use eslint-config-expensify. `buildOxlintConfig` converts the presets you pick (the same
- * ones you would list in an ESLint config) with @oxlint/migrate and adds your own settings. Rules oxlint cannot run
- * itself run from ESLint's code through the `core` and `hosted` plugins in ./plugins. generated/rules.json lists them, so
- * the plugins load fast. If the list is out of date, `npm run build:oxlint` rebuilds it.
- *
- * `core/<name>` is an ESLint core rule run from ESLint's own code, `hosted/<name>` an ESLint plugin rule run from the
- * plugin's own code. A preset rule is replayed when it runs as one of them instead of natively (oxlint cannot run it, or
- * it is in ALWAYS_HOSTED). A preset block is one entry of an ESLint flat config array.
+ * Builds an oxlint config from the eslint-config-expensify presets. Rules oxlint cannot run itself are replayed from ESLint's own
+ * code, as `core/<name>` (ESLint core rules) or `hosted/<name>` (plugin rules), see convert.js. generated/rules.json lists them,
+ * and `npm run build:oxlint` rebuilds it. A preset block is one entry of an ESLint flat config array.
  */
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
@@ -144,12 +139,10 @@ function isListedRunningName(rule) {
 
 /**
  * Throws when an override names a rule in a way that does not match how it runs:
- * - By its built-in name, while it runs as `hosted/` or `core/` (like `import/prefer-default-export`) or under the name
- *   `transformRule` gave it (like `rc/set-state-in-effect`). The override would do nothing or run a second copy.
- * - By a `hosted/` name, while `nativeRules` makes it run natively, or while it is a NURSERY_RULES_RUN_NATIVE rule.
+ * - By its built-in name while it runs as `hosted/`, `core/` or under the name `transformRule` gave it. It would do nothing or run a second copy.
+ * - By a `hosted/` name while the rule runs natively (`nativeRules`, NURSERY_RULES_RUN_NATIVE).
  * - As a `core/` or `hosted/` rule that no plugin has, because oxlint reports that only when the config loads.
- * - By the name of a rule the conversion drops (DROPPED_RULES) or replaces with a rule of another name (STAND_INS), which
- *   runs nowhere, so oxlint would refuse to load the config.
+ * - By a rule the conversion drops (DROPPED_RULES) or replaces (STAND_INS), which runs nowhere, so oxlint would refuse to load the config.
  * @param {string} rule
  * @param {{extraRunningNames: string[], nativeRules: string[], replayedRuleIDs: Map<string, string>, renamedRuleIDs: Map<string, string>, withNursery: boolean}} context
  */
@@ -207,32 +200,21 @@ function checkRulesJson(config) {
 
 /**
  * Builds one flat oxlint config (no `extends`) from eslint-config-expensify presets plus the repo's own settings.
+ * index.d.ts documents each option.
  * @param {object} options
- * @param {PresetEntry[]} options.presets the presets to convert, in order, like the ESLint config list: names of this
- * package's exports (`browser`, `react`, `typescript`, `jest`, `scripts`, ...) and `'prettier'` for
- * eslint-config-prettier. `{preset: 'jest', files: [...]}` runs that preset on `files` only: blocks for file types keep
- * them inside `files` (like ESLint's `defineConfig({files, extends})`), other blocks get `files` (like `{...block, files}`).
- * @param {{hosted?: string, rulesdir?: string}} [options.plugins] plugin files that replace this package's `hosted` and
- * `rulesdir` plugins. Their `meta.name` must stay `hosted` / `rulesdir`. Use an absolute path, a package name, or a path relative to the config file.
- * @param {TransformRule} [options.transformRule] called for each preset rule with its ESLint rule ID, before conversion.
- * Return `[newRuleID, entry]` to write the rule under another name, `null` to drop it, `undefined` for the default.
- * React Compiler rules (see `reactCompilerRuleNames`) are kept as @oxlint/migrate writes them, `react/<name>`. Map them
- * here to run them another way.
- * @param {string[]} [options.extraRunningNames] rule names (or prefixes ending in `/`) the repo's overrides may use that
- * this package does not know, like `hosted/require-jsdoc` from the repo's own hosted plugin or `rc/`
- * @param {string[]} [options.nativeRules] ESLint rule IDs from `alwaysHostedRuleIDs` (like `react-hooks/exhaustive-deps`) that
- * run with oxlint's own version instead of the hosted copy. Throws for an ID that is not in that list.
- * @param {boolean} [options.withNursery] also convert rules oxlint keeps in its nursery category (false by default)
- * @param {string} [options.reactVersion] the React version for oxlint's react rules (`settings.react.version` also works).
- * By default it is read from the `react` installed next to this package, then from the working directory. Throws if the
- * `react` preset is used and neither has it.
+ * @param {PresetEntry[]} options.presets the presets to convert, in order, or `{preset, files}` to run one on `files` only
+ * @param {{hosted?: string, rulesdir?: string}} [options.plugins] plugin files that replace this package's `hosted` and `rulesdir` plugins
+ * @param {TransformRule} [options.transformRule] renames or drops a preset rule before it is converted
+ * @param {string[]} [options.extraRunningNames] rule names (or prefixes ending in `/`) the repo's overrides may use that this package does not know
+ * @param {string[]} [options.nativeRules] ESLint rule IDs from `alwaysHostedRuleIDs` that run with oxlint's own version
+ * @param {boolean} [options.withNursery] also convert rules oxlint keeps in its nursery category
+ * @param {string} [options.reactVersion] the React version for oxlint's react rules, read from the installed `react` by default (`settings.react.version` also works)
  * @param {RepoConfig['ignorePatterns']} [options.ignorePatterns] added after the presets' patterns
  * @param {RepoConfig['env']} [options.env] merged over the presets' env
  * @param {RepoConfig['globals']} [options.globals] merged over the presets' globals
  * @param {RepoConfig['settings']} [options.settings] merged into the presets' settings, key by key
  * @param {RepoConfig['jsPlugins']} [options.jsPlugins] added after the plugins of the presets
- * @param {RepoConfig['overrides']} [options.overrides] added after the presets' overrides, so they win. A rule that runs as
- * hosted/ or core/ must be written with that name
+ * @param {RepoConfig['overrides']} [options.overrides] added after the presets' overrides, so they win. A `hosted/` or `core/` rule must be written with that name
  * @returns {Promise<import('oxlint').OxlintConfig>}
  */
 async function buildOxlintConfig({
@@ -310,9 +292,8 @@ async function buildOxlintConfig({
 }
 
 /**
- * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks as ESLint
- * does (see mergeRuleEntries). Which files a block is for is ignored. Use it so a repo's override can extend the setting,
- * since an override replaces the whole setting. Only presets.js is loaded, not @oxlint/migrate.
+ * Returns a copy of the preset's setting for a rule as `[severity, ...options]`, merged over the preset's blocks as ESLint does
+ * (see mergeRuleEntries), so an override can extend it. Only presets.js is loaded, not @oxlint/migrate.
  * @param {string} preset a preset name, like `typescript`
  * @param {string} ruleID the rule's ESLint ID, like `@typescript-eslint/naming-convention`
  * @returns {Promise<[import('./index.d.ts').RuleSeverity, ...unknown[]]>}

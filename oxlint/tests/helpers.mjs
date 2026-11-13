@@ -31,8 +31,7 @@ function getOxlintEnvironment(projectDirectory = packageDirectory) {
 }
 
 /**
- * Creates a temp project that holds the config as JSON and the given files, like a repo that writes the built config to
- * its own folder.
+ * Creates a temp project that holds the config as JSON and the given files.
  * @param {string} configJSON
  * @param {Record<string, string>} [files] the files of the project, by name
  * @returns {string} the directory

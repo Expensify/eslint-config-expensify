@@ -36,9 +36,7 @@ const SPECIFIERS_TO_REPLACE = new Set(['eslint', '@typescript-eslint/rule-tester
 /** The calls of `ruleTester.run` made by the stand-in RuleTester while a test file loads. */
 const recorded = [];
 
-/**
- * Stand-in for the RuleTester of `eslint` and `@typescript-eslint/rule-tester`: remembers the cases instead of running them.
- */
+/** Stand-in for the RuleTester of `eslint` and `@typescript-eslint/rule-tester`: remembers the cases instead of running them. */
 class RuleTester {
     /**
      * @param {Record<string, any>} [config] the options the test gave its RuleTester
@@ -99,8 +97,7 @@ function toRecordedCase(testFile, kind, index, testCase) {
 }
 
 /**
- * Loads every test file in a folder with the stand-in RuleTester, without running any test. The test files are not edited:
- * a resolve hook sends their `eslint` and `@typescript-eslint/rule-tester` imports to this file for as long as they load.
+ * Loads every test file in a folder with the stand-in RuleTester, which a resolve hook swaps in for their imports.
  * @param {string} testDirectory folder with the `*.test.js` files
  * @param {string} ruleDirectory folder with the rule files the tests import
  * @returns {Promise<RecordedSuite[]>} one suite per `ruleTester.run` call, in file order
@@ -150,8 +147,7 @@ async function captureRuleTests(testDirectory, ruleDirectory) {
 /**
  * @param {RecordedSuite} suite
  * @param {RecordedCase} testCase
- * @returns {string} where the case goes in the temp project: its own folder, so cases never share a file. A `filename` of
- * the case is kept below that folder, since some rules read the path
+ * @returns {string} where the case goes in the temp project: its own folder, with a case `filename` kept below it, since some rules read the path
  */
 function getCasePath(suite, testCase) {
     const folder = `case-${testCase.kind}-${testCase.index}`;
@@ -169,10 +165,8 @@ function getCasePath(suite, testCase) {
 /**
  * Writes every case of a suite into a temp project that enables only that rule, and runs oxlint on it once.
  * @param {RecordedSuite} suite
- * @param {{oxlintBinary: string, env: Record<string, string>, pluginSpecifier: string}} options `pluginSpecifier` is the
- * file of the rulesdir plugin
- * @returns {Promise<{results: Map<RecordedCase, Array<{code?: string, message: string}>>, stderr: string}>} the
- * diagnostics of every case
+ * @param {{oxlintBinary: string, env: Record<string, string>, pluginSpecifier: string}} options `pluginSpecifier` is the rulesdir plugin file
+ * @returns {Promise<{results: Map<RecordedCase, Array<{code?: string, message: string}>>, stderr: string}>} the diagnostics of every case
  */
 async function replaySuite(suite, {oxlintBinary, env, pluginSpecifier}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-rule-replay-'));

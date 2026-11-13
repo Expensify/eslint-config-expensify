@@ -41,8 +41,7 @@ function normalizeEntry(setting) {
 }
 
 /**
- * Loads the presets the way a repo's ESLint config lists them: this package's exports spread in order, and
- * eslint-config-prettier as one block.
+ * Loads the presets as a repo's ESLint config lists them: this package's exports in order, and eslint-config-prettier as one block.
  * @param {string[]} presets names of files in configs/public, and `prettier`
  * @returns {Promise<Array<Record<string, any>>>} the ESLint flat config blocks
  */
@@ -52,11 +51,9 @@ async function loadESLintBlocks(presets) {
 }
 
 /**
- * Resolves the rules ESLint runs on each file. ESLint matches the files of each block itself. calculateConfigForFile also
- * fills in each rule's default options, so it is only used to tell which blocks apply (each block gets a settings key that
- * shows up in the result), and the rules are merged from the blocks as written, as ESLint merges them: a later setting
- * replaces an earlier one, except a bare severity, which keeps the earlier options. The severities are checked against
- * the ones ESLint resolved.
+ * Resolves the rules ESLint runs on each file. calculateConfigForFile fills in default options, so it only tells which blocks
+ * apply (each gets a tagged settings key). The rules are merged from those blocks as written: a later setting replaces an
+ * earlier one, except a bare severity, which keeps the earlier options.
  * @param {string[]} presets
  * @param {string[]} [files] paths relative to the package
  * @returns {Promise<Map<string, Map<string, unknown[]>>>} for each file ESLint lints, the rules that are on by ESLint rule
@@ -97,13 +94,11 @@ async function resolveESLintRules(presets, files = SAMPLE_FILES) {
 }
 
 /**
- * Asks oxlint which of a set of files a list of `files` globs applies to, instead of matching the globs here. It lints the
- * files with a config that turns two rules on in an `overrides` entry with those globs. Each file holds code that breaks
- * one of the rules, so the file is reported if, and only if, the override applies to it.
+ * Asks oxlint which files a list of `files` globs applies to, so oxlint's own glob matching decides. Each file breaks one of two
+ * probe rules, which only an override with those globs turns on, so a file is reported if and only if the override applies to it.
  * @param {string[]} files paths relative to the package
- * @returns {{getMatches: (globs: string[] | null, ignorePatterns?: string[]) => Set<string>, remove: () => void}} `getMatches`
- * returns the files the globs match, or, for `null`, the files oxlint lints at all (the ones the config does not ignore).
- * `remove` deletes the temp project.
+ * @returns {{getMatches: (globs: string[] | null, ignorePatterns?: string[]) => Set<string>, remove: () => void}} `getMatches` returns
+ * the files the globs match, or for `null` the files oxlint lints at all. `remove` deletes the temp project.
  */
 function createFileMatcher(files) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'expensify-oxlint-parity-'));
@@ -153,9 +148,8 @@ function normalizeOxlintName(name) {
 }
 
 /**
- * Resolves the rules oxlint runs on each file from a config built by `buildOxlintConfig`. The root rules come first, then
- * each override whose `files` apply to the file (according to oxlint, see createFileMatcher), in order. A later entry
- * replaces an earlier one completely, also when it is a bare severity: oxlint does not keep the options then.
+ * Resolves the rules oxlint runs on each file from a config built by `buildOxlintConfig`: the root rules, then each override whose
+ * `files` apply (see createFileMatcher), in order. A later entry replaces an earlier one completely, also a bare severity.
  * @param {import('oxlint').OxlintConfig} config
  * @param {ReturnType<typeof createFileMatcher>} matcher
  * @param {string[]} [files]

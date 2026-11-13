@@ -1,9 +1,7 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, rulesdir/prefer-underscore-method -- Node-only tooling, so modern syntax and native array methods are fine */
 /**
- * Loads rules of the ESLint plugins in HOSTED_PLUGIN_PACKAGES so oxlint can run them as JS plugin rules (`hostRule`), and
- * holds the small helpers around that: `definePlugin` for the plugin files, `splitRuleID`, the react-hooks rule ID helpers
- * (`toOxlintReactHooksID`, `withReactHooksID`), package resolution and `getInstallCommand` for install hints. Nothing is
- * loaded until a rule is asked for, so importing this file stays cheap.
+ * Loads rules of the ESLint plugins in HOSTED_PLUGIN_PACKAGES so oxlint can run them as JS plugin rules (`hostRule`), plus the
+ * small helpers around that, like `definePlugin`, `splitRuleID` and `getInstallCommand`. Nothing loads until a rule is asked for.
  */
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -37,8 +35,7 @@ function resolvePackage(request) {
 }
 
 /**
- * oxlint runs eslint-plugin-react-hooks rules in its `react` plugin, so `react-hooks/exhaustive-deps` is
- * `react/exhaustive-deps` there.
+ * oxlint runs eslint-plugin-react-hooks rules in its `react` plugin, so `react-hooks/exhaustive-deps` is `react/exhaustive-deps` there.
  * @param {string} ruleID an ESLint rule ID
  * @returns {string} the ID oxlint's own version of the rule has
  */
@@ -61,8 +58,7 @@ function definePlugin(name, rules) {
 }
 
 /**
- * Splits a rule ID into its plugin prefix and rule name: `react/jsx-no-bind` is `react` and `jsx-no-bind`, and a core
- * rule like `curly` has an empty prefix.
+ * Splits a rule ID into its plugin prefix and rule name, like `react` and `jsx-no-bind`. A core rule like `curly` has an empty prefix.
  * @param {string} ruleID
  * @returns {{prefix: string, name: string}}
  */
@@ -207,12 +203,11 @@ function withImportParser(rule) {
 }
 
 /**
- * Loads one ESLint plugin rule as a hosted rule. `eslint-disable` comments that use its ESLint ID apply to it. A repo
- * that wraps or adds hosted rules builds its own `hosted` plugin from this.
+ * Loads one ESLint plugin rule as a hosted rule, so `eslint-disable` comments with its ESLint ID apply to it. A repo that wraps
+ * or adds hosted rules builds its own `hosted` plugin from this.
  * @param {string} ruleID the ESLint rule ID, like `react/jsx-no-bind`
- * @param {Record<string, import('eslint').Rule.RuleModule>} [pluginRules] the `rules` of a plugin this package does not
- * list (like eslint-plugin-storybook), which the repo imports itself. By default the rule comes from the plugins this
- * package lists.
+ * @param {Record<string, import('eslint').Rule.RuleModule>} [pluginRules] the `rules` of a plugin this package does not list
+ * (like eslint-plugin-storybook), which the repo imports itself. By default the rule comes from the plugins this package lists.
  * @returns {import('eslint').Rule.RuleModule}
  */
 function hostRule(ruleID, pluginRules) {

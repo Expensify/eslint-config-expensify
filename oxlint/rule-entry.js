@@ -32,9 +32,8 @@ const isOff = entry => ['off', 0].includes(getSeverity(entry));
 const ruleMapsOf = config => [config.rules, ...(config.overrides ?? []).map(override => override.rules)].filter(Boolean);
 
 /**
- * Merges the settings blocks give one rule, in block order, as ESLint does: a setting with options replaces the earlier
- * options, a setting with only a severity keeps them, and a setting that turns the rule off is skipped. It does not look
- * at which files a block is for.
+ * Merges the settings blocks give one rule, in block order, as ESLint does: options replace earlier options, a bare severity
+ * keeps them, and a setting that turns the rule off is skipped. Which files a block is for is ignored.
  * @param {unknown[]} entries the rule's setting in each block, in order (undefined for a block that does not set it)
  * @returns {unknown[] | undefined} the merged `[severity, ...options]`, or undefined when no setting turns the rule on
  */
