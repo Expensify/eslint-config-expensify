@@ -36,6 +36,10 @@ Just add `extends: 'expensify'` to the `.eslintrc` file in the root directory of
 
 Just add `extends: 'expensify/legacy'` to the `.eslintrc` file in the root directory of your project.
 
+### eslint-config-expensify/react
+
+The React config includes all nine rules from [`eslint-plugin-react-you-might-not-need-an-effect`](https://github.com/nickjvandyke/eslint-plugin-react-you-might-not-need-an-effect) as errors, alongside React, React Hooks, and accessibility rules. These catch redundant derived state, effect chains, and other unnecessary effects. Only the plugin and its strict rules are included, not its browser globals, so the config also works for React Native consumers.
+
 ### eslint-config-expensify/jest
 
 Opt-in config for Jest test, mock, and setup files. Enables Jest globals, `eslint-plugin-jest` recommended and style rules, relaxes `no-console`, `no-await-in-loop`, and `no-import-assign` for test files, and allows the `@jest-environment` JSDoc tag via `jsdoc/check-tag-names`.
